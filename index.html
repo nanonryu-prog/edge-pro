@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Flowbase — Automate your busywork, keep your focus</title>
+<meta name="description" content="Flowbase turns your team's repetitive workflows into one-click automations. No code, no waiting on engineering." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="assets-tailwind.css" />
+
+<style>
+  :root { color-scheme: light; }
+  body { font-family: 'DM Sans', sans-serif; }
+  h1, h2, h3, .font-display { font-family: 'Space Grotesk', sans-serif; }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid rgba(9, 9, 11, 0.08);
+  }
+  .glass-dark {
+    background: rgba(9, 9, 11, 0.55);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .grain {
+    background-image: radial-gradient(circle at 1px 1px, rgba(9,9,11,0.06) 1px, transparent 0);
+    background-size: 22px 22px;
+  }
+
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1), transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  [data-reveal].is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  [data-reveal-stagger] > * {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  [data-reveal-stagger].is-visible > * { opacity: 1; transform: translateY(0); }
+  [data-reveal-stagger].is-visible > *:nth-child(1) { transition-delay: 0ms; }
+  [data-reveal-stagger].is-visible > *:nth-child(2) { transition-delay: 90ms; }
+  [data-reveal-stagger].is-visible > *:nth-child(3) { transition-delay: 180ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal], [data-reveal-stagger] > * {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
+  }
+
+  .focus-ring:focus-visible {
+    outline: 2px solid #18181B;
+    outline-offset: 3px;
+  }
+</style>
+</head>
+
+<body class="bg-paper text-ink font-body antialiased">
+
+<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:bg-ink focus:text-white focus:px-4 focus:py-2 focus:rounded-full">
+  Skip to main content
+</a>
+
+<!-- ============ NAV ============ -->
+<header class="fixed top-0 inset-x-0 z-50">
+  <nav class="mx-auto max-w-6xl px-5 sm:px-8 mt-4">
+    <div class="glass rounded-full px-5 sm:px-6 h-16 flex items-center justify-between shadow-sm shadow-black/5">
+      <a href="#main" class="flex items-center gap-2 focus-ring rounded-full">
+        <span class="w-8 h-8 rounded-xl bg-ink flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"/></svg>
+        </span>
+        <span class="font-display font-semibold text-lg tracking-tight">Flowbase</span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8 text-sm font-medium text-ink/70">
+        <a href="#features" class="hover:text-ink transition-colors duration-200 focus-ring rounded">Features</a>
+        <a href="#proof" class="hover:text-ink transition-colors duration-200 focus-ring rounded">Customers</a>
+        <a href="#cta" class="hover:text-ink transition-colors duration-200 focus-ring rounded">Pricing</a>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a href="#cta" class="hidden sm:inline-flex items-center justify-center h-11 px-5 rounded-full bg-ink text-white text-sm font-semibold hover:bg-ink/85 active:scale-[0.97] transition-all duration-200 cursor-pointer focus-ring">
+          Start free trial
+        </a>
+        <button id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu" class="md:hidden w-11 h-11 flex items-center justify-center rounded-full hover:bg-ink/5 transition-colors cursor-pointer focus-ring">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="mobileMenu" class="hidden md:hidden glass rounded-3xl mt-2 p-4 flex flex-col gap-1 text-sm font-medium">
+      <a href="#features" class="px-4 py-3 rounded-xl hover:bg-ink/5 transition-colors focus-ring">Features</a>
+      <a href="#proof" class="px-4 py-3 rounded-xl hover:bg-ink/5 transition-colors focus-ring">Customers</a>
+      <a href="#cta" class="px-4 py-3 rounded-xl hover:bg-ink/5 transition-colors focus-ring">Pricing</a>
+      <a href="#cta" class="mt-1 px-4 py-3 rounded-xl bg-ink text-white text-center focus-ring">Start free trial</a>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+
+  <!-- ============ HERO ============ -->
+  <section class="relative overflow-hidden pt-40 pb-24 sm:pt-48 sm:pb-32">
+    <div class="absolute inset-0 grain opacity-40" aria-hidden="true"></div>
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[720px] h-[720px] rounded-full bg-gradient-to-b from-ink/10 to-transparent blur-3xl" aria-hidden="true"></div>
+
+    <div class="relative mx-auto max-w-4xl px-5 sm:px-8 text-center">
+      <div data-reveal class="inline-flex items-center gap-2 rounded-full border border-ink/10 bg-white/70 px-4 py-1.5 text-xs font-semibold text-ink/70 mb-8">
+        <span class="w-1.5 h-1.5 rounded-full bg-ink"></span>
+        Now with AI workflow suggestions
+      </div>
+
+      <h1 data-reveal class="font-display font-semibold tracking-tight text-4xl sm:text-6xl leading-[1.08] text-ink">
+        Automate your busywork.
+        <br class="hidden sm:block" />
+        Keep your team's focus.
+      </h1>
+
+      <p data-reveal class="mt-6 text-lg sm:text-xl text-ink/60 leading-relaxed max-w-2xl mx-auto">
+        Flowbase turns repetitive, multi-step tasks into one-click automations — no code,
+        no engineering backlog, live in minutes.
+      </p>
+
+      <div data-reveal class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a href="#cta" class="w-full sm:w-auto inline-flex items-center justify-center h-12 px-7 rounded-full bg-ink text-white font-semibold hover:bg-ink/85 active:scale-[0.97] transition-all duration-200 cursor-pointer focus-ring">
+          Start free trial
+        </a>
+        <a href="#features" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-12 px-7 rounded-full border border-ink/15 font-semibold text-ink hover:bg-ink/5 active:scale-[0.97] transition-all duration-200 cursor-pointer focus-ring">
+          See how it works
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+        </a>
+      </div>
+
+      <p data-reveal class="mt-5 text-xs text-ink/40">No credit card required · Free 14-day trial · Cancel anytime</p>
+    </div>
+
+    <!-- product mockup -->
+    <div data-reveal class="relative mx-auto max-w-5xl px-5 sm:px-8 mt-16 sm:mt-20">
+      <div class="glass rounded-3xl p-3 sm:p-4 shadow-xl shadow-black/10">
+        <div class="rounded-2xl bg-white overflow-hidden border border-ink/5">
+          <div class="flex items-center gap-1.5 px-4 py-3 border-b border-ink/5">
+            <span class="w-2.5 h-2.5 rounded-full bg-ink/15"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-ink/15"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-ink/15"></span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-px bg-ink/5">
+            <div class="bg-white p-6 sm:col-span-2">
+              <div class="h-3 w-24 rounded-full bg-ink/10 mb-4"></div>
+              <div class="space-y-3">
+                <div class="h-16 rounded-xl border border-ink/10 flex items-center px-4 gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-ink/10"></div>
+                  <div class="flex-1 space-y-1.5">
+                    <div class="h-2.5 w-2/3 rounded-full bg-ink/10"></div>
+                    <div class="h-2 w-1/3 rounded-full bg-ink/5"></div>
+                  </div>
+                  <div class="h-6 w-14 rounded-full bg-ink/10"></div>
+                </div>
+                <div class="h-16 rounded-xl border border-ink/10 flex items-center px-4 gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-ink/10"></div>
+                  <div class="flex-1 space-y-1.5">
+                    <div class="h-2.5 w-1/2 rounded-full bg-ink/10"></div>
+                    <div class="h-2 w-1/4 rounded-full bg-ink/5"></div>
+                  </div>
+                  <div class="h-6 w-14 rounded-full bg-ink/10"></div>
+                </div>
+                <div class="h-16 rounded-xl border border-ink/10 flex items-center px-4 gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-ink/10"></div>
+                  <div class="flex-1 space-y-1.5">
+                    <div class="h-2.5 w-3/5 rounded-full bg-ink/10"></div>
+                    <div class="h-2 w-1/3 rounded-full bg-ink/5"></div>
+                  </div>
+                  <div class="h-6 w-14 rounded-full bg-ink/10"></div>
+                </div>
+              </div>
+            </div>
+            <div class="bg-ink p-6 flex flex-col justify-between">
+              <div>
+                <div class="h-2.5 w-16 rounded-full bg-white/30 mb-4"></div>
+                <div class="text-white font-display text-3xl font-semibold">128<span class="text-white/40 text-lg">h</span></div>
+                <div class="text-white/50 text-xs mt-1">saved this month</div>
+              </div>
+              <div class="h-9 rounded-full bg-white/15 mt-6"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SOCIAL PROOF ============ -->
+  <section id="proof" class="py-16 sm:py-20 border-y border-ink/5">
+    <div class="mx-auto max-w-6xl px-5 sm:px-8">
+      <p data-reveal class="text-center text-xs font-semibold tracking-widest uppercase text-ink/40 mb-10">
+        Trusted by fast-moving teams at
+      </p>
+
+      <div data-reveal-stagger class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 items-center opacity-70">
+        <div class="flex items-center justify-center h-10 font-display font-semibold text-ink/50 grayscale">Northwind</div>
+        <div class="flex items-center justify-center h-10 font-display font-semibold text-ink/50 grayscale">Solace</div>
+        <div class="flex items-center justify-center h-10 font-display font-semibold text-ink/50 grayscale">Marrow</div>
+        <div class="flex items-center justify-center h-10 font-display font-semibold text-ink/50 grayscale">Circuit</div>
+        <div class="flex items-center justify-center h-10 font-display font-semibold text-ink/50 grayscale">Kindred</div>
+        <div class="flex items-center justify-center h-10 font-display font-semibold text-ink/50 grayscale">Vantage</div>
+      </div>
+
+      <div data-reveal class="mt-14 max-w-2xl mx-auto text-center">
+        <p class="font-display text-xl sm:text-2xl leading-snug text-ink/80">
+          "We cut our onboarding workflow from four days to twenty minutes.
+          Flowbase paid for itself in the first week."
+        </p>
+        <div class="mt-5 flex items-center justify-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-ink/10"></div>
+          <div class="text-left">
+            <div class="text-sm font-semibold text-ink">Mira Chen</div>
+            <div class="text-xs text-ink/50">Head of Ops, Solace</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURES ============ -->
+  <section id="features" class="py-24 sm:py-32">
+    <div class="mx-auto max-w-6xl px-5 sm:px-8">
+      <div data-reveal class="max-w-2xl mx-auto text-center mb-16">
+        <span class="text-xs font-semibold tracking-widest uppercase text-ink/40">Why teams switch</span>
+        <h2 class="font-display font-semibold text-3xl sm:text-4xl tracking-tight mt-3">
+          Everything your workflow needs, nothing it doesn't
+        </h2>
+        <p class="mt-4 text-ink/60 leading-relaxed">
+          Built for operations teams who need to move fast without waiting on a sprint cycle.
+        </p>
+      </div>
+
+      <div data-reveal-stagger class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="glass rounded-2xl p-7 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/5 transition-all duration-300">
+          <div class="w-11 h-11 rounded-xl bg-ink flex items-center justify-center mb-5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"/></svg>
+          </div>
+          <h3 class="font-display font-semibold text-lg text-ink">Instant automations</h3>
+          <p class="mt-2 text-sm text-ink/60 leading-relaxed">
+            Drag, drop, and connect any tool in your stack. No code, no waiting on engineering
+            to ship a fix.
+          </p>
+        </div>
+
+        <div class="glass rounded-2xl p-7 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/5 transition-all duration-300">
+          <div class="w-11 h-11 rounded-xl bg-ink flex items-center justify-center mb-5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          </div>
+          <h3 class="font-display font-semibold text-lg text-ink">Real-time visibility</h3>
+          <p class="mt-2 text-sm text-ink/60 leading-relaxed">
+            Track every run, catch failures before they cascade, and see exactly where time
+            gets saved.
+          </p>
+        </div>
+
+        <div class="glass rounded-2xl p-7 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/5 transition-all duration-300">
+          <div class="w-11 h-11 rounded-xl bg-ink flex items-center justify-center mb-5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h3 class="font-display font-semibold text-lg text-ink">Enterprise-grade security</h3>
+          <p class="mt-2 text-sm text-ink/60 leading-relaxed">
+            SOC 2 Type II, SSO, and granular permissions — built in from day one, not bolted
+            on later.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA ============ -->
+  <section id="cta" class="py-24 sm:py-32">
+    <div class="mx-auto max-w-5xl px-5 sm:px-8">
+      <div data-reveal class="relative overflow-hidden rounded-[2.5rem] glass-dark px-6 sm:px-16 py-16 sm:py-20 text-center">
+        <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-[520px] h-[520px] rounded-full bg-white/10 blur-3xl" aria-hidden="true"></div>
+
+        <h2 class="relative font-display font-semibold text-3xl sm:text-5xl tracking-tight text-white leading-tight">
+          Give your team back
+          <br class="hidden sm:block" />
+          its most valuable hours.
+        </h2>
+        <p class="relative mt-5 text-white/60 max-w-md mx-auto">
+          Start automating in minutes. Free for 14 days, no credit card required.
+        </p>
+
+        <form class="relative mt-9 flex flex-col sm:flex-row gap-3 max-w-md mx-auto" onsubmit="return false;">
+          <label for="cta-email" class="sr-only">Work email</label>
+          <input
+            id="cta-email"
+            type="email"
+            required
+            autocomplete="email"
+            placeholder="you@company.com"
+            class="w-full h-12 rounded-full bg-white/10 border border-white/15 px-5 text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-white/60 transition-shadow"
+          />
+          <button type="submit" class="h-12 px-7 rounded-full bg-white text-ink font-semibold text-sm hover:bg-white/90 active:scale-[0.97] transition-all duration-200 cursor-pointer whitespace-nowrap focus-ring">
+            Start free trial
+          </button>
+        </form>
+        <p class="relative mt-4 text-xs text-white/35">Join 2,400+ teams already automating with Flowbase</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="border-t border-ink/5 py-12">
+  <div class="mx-auto max-w-6xl px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+    <a href="#main" class="flex items-center gap-2 focus-ring rounded-full">
+      <span class="w-7 h-7 rounded-lg bg-ink flex items-center justify-center">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"/></svg>
+      </span>
+      <span class="font-display font-semibold text-ink/80">Flowbase</span>
+    </a>
+
+    <nav class="flex items-center gap-6 text-sm text-ink/50">
+      <a href="#features" class="hover:text-ink transition-colors focus-ring rounded">Features</a>
+      <a href="#proof" class="hover:text-ink transition-colors focus-ring rounded">Customers</a>
+      <a href="#cta" class="hover:text-ink transition-colors focus-ring rounded">Pricing</a>
+    </nav>
+
+    <p class="text-xs text-ink/35">© 2026 Flowbase, Inc. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+  // Mobile menu toggle
+  const menuBtn = document.getElementById('menuBtn');
+  const mobileMenu = document.getElementById('mobileMenu');
+  menuBtn.addEventListener('click', () => {
+    const isOpen = !mobileMenu.classList.contains('hidden');
+    mobileMenu.classList.toggle('hidden');
+    menuBtn.setAttribute('aria-expanded', String(!isOpen));
+  });
+
+  // Scroll-reveal animations (respects prefers-reduced-motion via CSS above)
+  const revealTargets = document.querySelectorAll('[data-reveal], [data-reveal-stagger]');
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+  );
+  revealTargets.forEach((el) => io.observe(el));
+</script>
+
+</body>
+</html>
