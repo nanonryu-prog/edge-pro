@@ -385,6 +385,16 @@
   .price-feats .ck { width: 20px; height: 20px; flex: none; border-radius: 6px; background: rgba(124,92,252,0.16); border: 1px solid rgba(124,92,252,0.3); display: grid; place-items: center; color: var(--violet-2); margin-top: 1px; }
   .price-note { text-align: center; color: var(--faint); font-size: 13px; margin-top: 28px; }
 
+  /* ---------- FAQ ---------- */
+  .faq-list { max-width: 760px; margin: 44px auto 0; display: flex; flex-direction: column; gap: 12px; }
+  .faq { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; padding: 4px 20px; transition: border-color .2s var(--ease); }
+  .faq[open] { border-color: rgba(124,92,252,0.4); background: rgba(124,92,252,0.05); }
+  .faq summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; font-weight: 600; font-size: 15.5px; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary .q-ico { width: 26px; height: 26px; flex: none; border-radius: 8px; border: 1px solid var(--border-2); display: grid; place-items: center; transition: transform .25s var(--ease), background .2s; color: var(--violet-2); }
+  .faq[open] summary .q-ico { transform: rotate(45deg); background: rgba(124,92,252,0.18); }
+  .faq p { color: var(--muted); font-size: 14.5px; line-height: 1.65; margin: 0 0 18px; }
+
   /* ---------- Footer ---------- */
   footer { border-top: 1px solid var(--border); padding: 44px 0; margin-top: 40px; }
   .foot { display: flex; flex-direction: column; gap: 20px; align-items: center; justify-content: space-between; text-align: center; }
@@ -833,6 +843,42 @@
         </div>
       </div>
       <p class="price-note">Prices in USD. Cancel anytime — your data is always yours to export and keep.</p>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section id="faq" style="padding:80px 0 40px;">
+    <div class="wrap">
+      <div class="section-head" data-reveal style="margin-bottom:0;">
+        <span class="eyebrow">Good to know</span>
+        <h2 class="h2">Questions, answered</h2>
+      </div>
+      <div class="faq-list" data-reveal>
+        <details class="faq" open>
+          <summary>What exactly is EDGE Pro? <span class="q-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+          <p>A trading journal built around discipline. You log each trade against your own rules, and EDGE grades how well you followed your plan — then tracks your prop-firm evaluation, your P&amp;L calendar, and your progress with XP and levels. It's the accountability layer most traders skip.</p>
+        </details>
+        <details class="faq">
+          <summary>How is it different from a normal trading journal? <span class="q-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+          <p>Most journals only tell you whether a trade won or lost. EDGE Pro also grades <em>how</em> you traded — did you follow your checklist, size correctly, and stay off tilt? A profitable trade that broke your rules gets flagged, because that's the habit most likely to blow the account next time.</p>
+        </details>
+        <details class="faq">
+          <summary>Do I have to connect my broker? <span class="q-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+          <p>No. EDGE Pro is manual-first by design — logging each trade is part of the review habit. It works with any market you trade (forex, futures, stocks, options, crypto) and never places trades on your behalf.</p>
+        </details>
+        <details class="faq">
+          <summary>Can I use it for my FTMO or prop-firm challenge? <span class="q-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+          <p>Yes — that's exactly who it's built for. Track your profit target, daily loss limit and max trailing drawdown live, and build a verified 50-trade track record you can show to backers.</p>
+        </details>
+        <details class="faq">
+          <summary>Is my data private? <span class="q-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+          <p>Your journal is tied to your own account and is always yours to export or delete. We never sell your data and we never trade on your behalf.</p>
+        </details>
+        <details class="faq">
+          <summary>What does it cost? <span class="q-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+          <p>Plans start at $9/mo, with Pro at $15/mo and Funded at $25/mo. Every plan begins with a 7-day free trial and no card is required to start.</p>
+        </details>
+      </div>
     </div>
   </section>
 

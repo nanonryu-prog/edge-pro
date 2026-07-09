@@ -366,22 +366,62 @@
       : '<path d="M17.9 17.9A10.4 10.4 0 0 1 12 19c-6.5 0-10-7-10-7a18.4 18.4 0 0 1 5.1-5.9m3.2-1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.2 3.2M1 1l22 22"/>';
   });
 
-  // Demo: this is a UI mockup — no real authentication is wired up.
-  document.getElementById('authForm').addEventListener('submit', (e) => {
+  /* ============================================================
+     In-browser account backend (localStorage).
+     Passwords are hashed with SHA-256 before storage. This is a
+     local, single-device store — swap these functions for real
+     API / Supabase auth calls to add cloud sync later.
+     ============================================================ */
+  const USERS_KEY = 'edgepro_users';
+  const SESSION_KEY = 'edgepro_session';
+  const getUsers = () => { try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; } catch { return {}; } };
+  const saveUsers = u => localStorage.setItem(USERS_KEY, JSON.stringify(u));
+  async function hash(pw) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw + '::edgepro'));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  function showMsg(text, ok) {
+    demoMsg.textContent = text;
+    demoMsg.style.background = ok ? 'rgba(36,209,155,0.1)' : 'rgba(245,71,107,0.1)';
+    demoMsg.style.borderColor = ok ? 'rgba(36,209,155,0.35)' : 'rgba(245,71,107,0.35)';
+    demoMsg.style.color = ok ? '#24D19B' : '#F5476B';
+    demoMsg.classList.add('show');
+  }
+  // If already logged in, skip straight to the app.
+  if (localStorage.getItem(SESSION_KEY)) { /* stay — user may want to switch account */ }
+
+  document.getElementById('authForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    demoMsg.textContent = mode === 'login'
-      ? 'This is a UI demo — connect your auth backend to enable real log in.'
-      : 'This is a UI demo — connect your auth backend to enable sign up.';
-    demoMsg.classList.add('show');
+    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+    const pw = document.getElementById('password').value;
+    const name = (document.getElementById('name').value || '').trim();
+    if (!email || !pw) { showMsg('Enter your email and password.', false); return; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showMsg('That email address looks off.', false); return; }
+    const users = getUsers();
+
+    if (mode === 'signup') {
+      if (pw.length < 6) { showMsg('Use a password of at least 6 characters.', false); return; }
+      if (users[email]) { showMsg('An account with that email already exists — try logging in.', false); return; }
+      users[email] = { name: name || email.split('@')[0], email, pw: await hash(pw), created: Date.now() };
+      saveUsers(users);
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ email, name: users[email].name }));
+      showMsg('Account created! Opening your journal…', true);
+      setTimeout(() => location.href = 'app.html', 700);
+    } else {
+      const u = users[email];
+      if (!u || u.pw !== await hash(pw)) { showMsg('Wrong email or password.', false); return; }
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ email, name: u.name }));
+      showMsg('Welcome back! Opening your journal…', true);
+      setTimeout(() => location.href = 'app.html', 600);
+    }
   });
+
   document.querySelectorAll('.social-btn').forEach(b => b.addEventListener('click', () => {
-    demoMsg.textContent = `Demo only — wire up ${b.dataset.provider} OAuth to enable this.`;
-    demoMsg.classList.add('show');
+    showMsg(`${b.dataset.provider} sign-in needs an OAuth backend — use email to try it now.`, false);
   }));
   document.getElementById('forgotLink').addEventListener('click', (e) => {
     e.preventDefault();
-    demoMsg.textContent = 'Demo only — connect your backend to send reset emails.';
-    demoMsg.classList.add('show');
+    showMsg('Local accounts have no email reset — sign up again or clear site data.', false);
   });
 
   // Prefill email if passed from landing CTA (?email=)
