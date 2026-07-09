@@ -138,6 +138,8 @@
   .btn-lg { height: 54px; padding: 0 30px; font-size: 16px; }
   .link-quiet { color: var(--muted); font-weight: 500; font-size: 14.5px; transition: color .2s var(--ease); }
   .link-quiet:hover { color: var(--text); }
+  .nav-login { display: none; }
+  @media (min-width: 640px) { .nav-login { display: inline-flex; } }
 
   .icon-btn {
     width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px;
@@ -203,7 +205,20 @@
   .donut-num { font-family: 'Space Grotesk'; font-weight: 700; font-size: 30px; }
   .ring-fg { stroke-dasharray: 264; stroke-dashoffset: 264; transform: rotate(-90deg); transform-origin: 50% 50%; }
   .is-visible .ring-fg { animation: ring 1.6s var(--ease) .5s forwards; }
-  @keyframes ring { to { stroke-dashoffset: 74; } } /* ~72% */
+  @keyframes ring { to { stroke-dashoffset: 114; } } /* ~57% of 264 */
+
+  /* live equity endpoint pulse */
+  .eq-wrap { position: relative; }
+  .eq-dot {
+    position: absolute; top: 22px; right: -3px; width: 10px; height: 10px; border-radius: 50%;
+    background: #E15CC6; box-shadow: 0 0 0 0 rgba(225,92,198,0.6); opacity: 0;
+  }
+  .is-visible .eq-dot { opacity: 1; animation: livepulse 1.9s ease-out infinite; transition: opacity .4s ease 1.9s; }
+  @keyframes livepulse {
+    0% { box-shadow: 0 0 0 0 rgba(225,92,198,0.55); }
+    70% { box-shadow: 0 0 0 12px rgba(225,92,198,0); }
+    100% { box-shadow: 0 0 0 0 rgba(225,92,198,0); }
+  }
 
   .zella { display: flex; flex-direction: column; gap: 10px; }
   .barrow { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
@@ -230,6 +245,21 @@
   .fade-edge::before, .fade-edge::after { content:""; position:absolute; top:0; bottom:0; width:120px; z-index:2; pointer-events:none; }
   .fade-edge::before { left:0; background: linear-gradient(90deg, var(--bg), transparent); }
   .fade-edge::after { right:0; background: linear-gradient(270deg, var(--bg), transparent); }
+
+  /* import methods */
+  .import-row { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 560px) { .import-row { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 940px) { .import-row { grid-template-columns: repeat(4, 1fr); } }
+  .import-chip {
+    display: flex; align-items: center; gap: 13px; padding: 16px 18px; border-radius: 14px;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    transition: transform .25s var(--ease), border-color .25s var(--ease), background .25s var(--ease);
+  }
+  .import-chip:hover { transform: translateY(-3px); border-color: rgba(124,92,252,0.4); background: rgba(124,92,252,0.06); }
+  .chip-ico { width: 40px; height: 40px; flex: none; border-radius: 11px; display: grid; place-items: center;
+    background: rgba(124,92,252,0.14); border: 1px solid rgba(124,92,252,0.28); color: var(--violet-2); }
+  .chip-t { font-weight: 600; font-size: 14.5px; }
+  .chip-d { font-size: 12.5px; color: var(--faint); margin-top: 2px; }
 
   /* ---------- Stats band ---------- */
   .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; text-align: center; }
@@ -333,8 +363,9 @@
     [data-reveal], [data-stagger] > * { opacity: 1 !important; transform: none !important; }
     .eq-path { stroke-dashoffset: 0 !important; }
     .eq-area { opacity: 1 !important; }
-    .ring-fg { stroke-dashoffset: 74 !important; }
+    .ring-fg { stroke-dashoffset: 114 !important; }
     .spark i { transform: scaleY(1) !important; }
+    .eq-dot { opacity: 1 !important; }
     .blob { animation: none !important; }
   }
 </style>
@@ -365,13 +396,13 @@
     <nav class="nav-links" aria-label="Primary">
       <a href="#features">Features</a>
       <a href="#how">How it works</a>
-      <a href="#stats">Results</a>
+      <a href="#stats">Why us</a>
       <a href="#pricing">Pricing</a>
     </nav>
 
     <div class="nav-cta">
-      <a href="#pricing" class="link-quiet" style="display:none;" id="loginLink">Log in</a>
-      <a href="#pricing" class="btn btn-primary btn-sm">Start free trial</a>
+      <a href="login.html" class="link-quiet nav-login">Log in</a>
+      <a href="login.html" class="btn btn-primary btn-sm">Start free trial</a>
       <button id="menuBtn" class="icon-btn menu" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
@@ -381,7 +412,7 @@
     <div id="mobileMenu" class="mobile-menu">
       <a href="#features">Features</a>
       <a href="#how">How it works</a>
-      <a href="#stats">Results</a>
+      <a href="#stats">Why us</a>
       <a href="#pricing">Pricing</a>
     </div>
   </div>
@@ -392,7 +423,7 @@
   <!-- ============ HERO ============ -->
   <section class="hero">
     <div class="wrap">
-      <span class="pill" data-reveal><span class="dot-live"></span>Now syncing live with 20+ brokers</span>
+      <span class="pill" data-reveal><span class="dot-live"></span>Your trading edge, backed by data</span>
 
       <h1 data-reveal>
         Journal, analyze, and
@@ -405,7 +436,7 @@
       </p>
 
       <div class="hero-actions" data-reveal>
-        <a href="#pricing" class="btn btn-primary btn-lg">Start your free trial</a>
+        <a href="login.html" class="btn btn-primary btn-lg">Start your free trial</a>
         <a href="#how" class="btn btn-ghost btn-lg">
           See how it works
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
@@ -429,38 +460,42 @@
               <div class="equity-head">
                 <div>
                   <div class="card-label">Net P&amp;L · This month</div>
-                  <div class="equity-val tabular">$<span data-count="24680">0</span></div>
+                  <div class="equity-val tabular">$<span data-count="4824">0</span></div>
                 </div>
-                <div class="equity-chg">▲ 18.4%</div>
+                <div class="equity-chg">▲ 12.6%</div>
               </div>
-              <svg viewBox="0 0 500 150" width="100%" height="150" preserveAspectRatio="none" aria-hidden="true">
-                <defs>
-                  <linearGradient id="eqfill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="rgba(124,92,252,0.35)"/>
-                    <stop offset="100%" stop-color="rgba(124,92,252,0)"/>
-                  </linearGradient>
-                  <linearGradient id="eqline" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stop-color="#7C5CFC"/>
-                    <stop offset="100%" stop-color="#E15CC6"/>
-                  </linearGradient>
-                </defs>
-                <path class="eq-area" d="M0,120 L0,110 C40,112 70,95 110,98 C150,101 175,70 210,72 C250,74 280,55 320,48 C360,41 390,30 430,26 C460,23 480,18 500,14 L500,150 L0,150 Z" fill="url(#eqfill)"/>
-                <path class="eq-path" d="M0,110 C40,112 70,95 110,98 C150,101 175,70 210,72 C250,74 280,55 320,48 C360,41 390,30 430,26 C460,23 480,18 500,14" fill="none" stroke="url(#eqline)" stroke-width="3" stroke-linecap="round"/>
-              </svg>
+              <div class="eq-wrap">
+                <svg viewBox="0 0 500 150" width="100%" height="150" preserveAspectRatio="none" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="eqfill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="rgba(124,92,252,0.35)"/>
+                      <stop offset="100%" stop-color="rgba(124,92,252,0)"/>
+                    </linearGradient>
+                    <linearGradient id="eqline" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stop-color="#7C5CFC"/>
+                      <stop offset="100%" stop-color="#E15CC6"/>
+                    </linearGradient>
+                  </defs>
+                  <!-- realistic equity curve: up overall, with intra-month drawdowns -->
+                  <path class="eq-area" d="M0,124 L18,116 L60,120 L96,104 L132,112 L168,90 L204,98 L240,102 L276,74 L312,84 L348,88 L384,60 L420,70 L456,44 L500,32 L500,150 L0,150 Z" fill="url(#eqfill)"/>
+                  <path class="eq-path" d="M0,124 L18,116 L60,120 L96,104 L132,112 L168,90 L204,98 L240,102 L276,74 L312,84 L348,88 L384,60 L420,70 L456,44 L500,32" fill="none" stroke="url(#eqline)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="eq-dot" aria-hidden="true"></span>
+              </div>
             </div>
 
             <div class="kpi-row">
               <div class="kpi">
                 <div class="card-label">Win rate</div>
-                <div class="v win tabular"><span data-count="72" data-suffix="%">0</span></div>
+                <div class="v win tabular"><span data-count="57" data-suffix="%">0</span></div>
               </div>
               <div class="kpi">
                 <div class="card-label">Profit factor</div>
-                <div class="v tabular"><span data-count="2.8" data-decimals="1">0</span></div>
+                <div class="v tabular"><span data-count="2.3" data-decimals="1">0</span></div>
               </div>
               <div class="kpi">
                 <div class="card-label">Avg loss</div>
-                <div class="v loss tabular">-$<span data-count="118">0</span></div>
+                <div class="v loss tabular">-$<span data-count="212">0</span></div>
               </div>
             </div>
           </div>
@@ -476,8 +511,8 @@
                 </svg>
                 <div style="position:absolute; inset:0; display:grid; place-items:center;">
                   <div>
-                    <div class="donut-num grad-text tabular"><span data-count="72" data-suffix="%">0</span></div>
-                    <div style="font-size:11px;color:var(--faint);">203 trades</div>
+                    <div class="donut-num grad-text tabular"><span data-count="57" data-suffix="%">0</span></div>
+                    <div style="font-size:11px;color:var(--faint);">42 trades</div>
                   </div>
                 </div>
               </div>
@@ -486,13 +521,13 @@
             <div class="card">
               <div class="card-label">Edge Score</div>
               <div style="display:flex; align-items:baseline; gap:8px; margin:6px 0 14px;">
-                <span class="donut-num grad-text tabular"><span data-count="88">0</span></span>
+                <span class="donut-num grad-text tabular"><span data-count="74">0</span></span>
                 <span style="color:var(--faint);font-size:12px;">/ 100</span>
               </div>
               <div class="zella">
-                <div class="barrow"><span style="width:74px;">Discipline</span><span class="bartrack"><i class="barfill" data-w="92%"></i></span></div>
-                <div class="barrow"><span style="width:74px;">Risk mgmt</span><span class="bartrack"><i class="barfill" data-w="80%"></i></span></div>
-                <div class="barrow"><span style="width:74px;">Consistency</span><span class="bartrack"><i class="barfill" data-w="88%"></i></span></div>
+                <div class="barrow"><span style="width:74px;">Discipline</span><span class="bartrack"><i class="barfill" data-w="78%"></i></span></div>
+                <div class="barrow"><span style="width:74px;">Risk mgmt</span><span class="bartrack"><i class="barfill" data-w="66%"></i></span></div>
+                <div class="barrow"><span style="width:74px;">Consistency</span><span class="bartrack"><i class="barfill" data-w="71%"></i></span></div>
               </div>
             </div>
           </div>
@@ -502,40 +537,39 @@
     </div>
   </section>
 
-  <!-- ============ BROKER MARQUEE ============ -->
+  <!-- ============ IMPORT METHODS ============ -->
   <div class="marquee-wrap">
-    <p class="marquee-label">Auto-imports from every broker &amp; platform you use</p>
-    <div class="fade-edge">
-      <div class="marquee">
-        <span class="logo">TradingView</span>
-        <span class="logo">Interactive Brokers</span>
-        <span class="logo">MetaTrader</span>
-        <span class="logo">Thinkorswim</span>
-        <span class="logo">Webull</span>
-        <span class="logo">Tradovate</span>
-        <span class="logo">NinjaTrader</span>
-        <span class="logo">Robinhood</span>
-        <!-- duplicate for seamless loop -->
-        <span class="logo">TradingView</span>
-        <span class="logo">Interactive Brokers</span>
-        <span class="logo">MetaTrader</span>
-        <span class="logo">Thinkorswim</span>
-        <span class="logo">Webull</span>
-        <span class="logo">Tradovate</span>
-        <span class="logo">NinjaTrader</span>
-        <span class="logo">Robinhood</span>
+    <p class="marquee-label">Get your trades in, any way you like</p>
+    <div class="wrap">
+      <div class="import-row" data-reveal data-stagger>
+        <div class="import-chip">
+          <span class="chip-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></span>
+          <div><div class="chip-t">Broker sync</div><div class="chip-d">Secure read-only connection</div></div>
+        </div>
+        <div class="import-chip">
+          <span class="chip-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg></span>
+          <div><div class="chip-t">CSV / spreadsheet</div><div class="chip-d">Drag, drop, auto-mapped</div></div>
+        </div>
+        <div class="import-chip">
+          <span class="chip-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="m3 14 4-4 4 4 3-3 7 6"/><circle cx="8.5" cy="9" r="1.5"/></svg></span>
+          <div><div class="chip-t">Screenshot &amp; note</div><div class="chip-d">Attach chart context</div></div>
+        </div>
+        <div class="import-chip">
+          <span class="chip-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
+          <div><div class="chip-t">Manual entry</div><div class="chip-d">Fast keyboard-first form</div></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- ============ STATS ============ -->
+  <!-- ============ VALUE STRIP ============ -->
   <section id="stats" style="padding:90px 0;">
     <div class="wrap">
       <div class="stats" data-reveal data-stagger>
-        <div class="stat"><div class="num grad-text tabular">$<span data-count="9" data-suffix="B+">0</span></div><div class="lbl">Trades tracked</div></div>
-        <div class="stat"><div class="num grad-text tabular"><span data-count="70" data-suffix="K+">0</span></div><div class="lbl">Active traders</div></div>
-        <div class="stat"><div class="num grad-text tabular"><span data-count="4.9" data-decimals="1">0</span>★</div><div class="lbl">Average rating</div></div>
-        <div class="stat"><div class="num grad-text tabular"><span data-count="20" data-suffix="+">0</span></div><div class="lbl">Broker integrations</div></div>
+        <div class="stat"><div class="num grad-text tabular"><span data-count="40" data-suffix="+">0</span></div><div class="lbl">Performance metrics</div></div>
+        <div class="stat"><div class="num grad-text">1-click</div><div class="lbl">Broker sync &amp; import</div></div>
+        <div class="stat"><div class="num grad-text">Bar&nbsp;×&nbsp;bar</div><div class="lbl">Trade replay</div></div>
+        <div class="stat"><div class="num grad-text">Read-only</div><div class="lbl">We never place trades</div></div>
       </div>
     </div>
   </section>
@@ -634,19 +668,12 @@
     </div>
   </section>
 
-  <!-- ============ TESTIMONIAL ============ -->
+  <!-- ============ PHILOSOPHY ============ -->
   <section style="padding:70px 0;">
     <div class="wrap">
       <div class="quote-card" data-reveal>
-        <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
-        <p>"Within a month Edge Pro showed me that 80% of my losses came from one revenge-trading habit after lunch. Cutting it turned a break-even year into my best ever."</p>
-        <div class="who">
-          <span class="avatar">JR</span>
-          <div style="text-align:left;">
-            <div style="font-weight:600;font-size:15px;">Jordan Reyes</div>
-            <div style="color:var(--faint);font-size:13px;">Full-time futures trader</div>
-          </div>
-        </div>
+        <span class="eyebrow">The Edge Pro idea</span>
+        <p style="margin-top:14px;">The best traders aren't the luckiest — they're the ones who <span class="grad-text">review</span>. Edge Pro turns every trade into a lesson, so your next decision is sharper than your last.</p>
       </div>
     </div>
   </section>
@@ -655,15 +682,15 @@
   <section id="pricing" style="padding:60px 0 40px;">
     <div class="wrap">
       <div class="cta-card" data-reveal>
-        <span class="pill" style="margin-bottom:22px;"><span class="dot-live"></span>Join 70,000+ traders</span>
+        <span class="pill" style="margin-bottom:22px;"><span class="dot-live"></span>Start in minutes</span>
         <h2>Find your edge.<br/>Start trading with data.</h2>
-        <p class="lead" style="max-width:44ch;">Free for 7 days. No credit card required. Cancel anytime, keep your exported data forever.</p>
-        <form class="cta-form" onsubmit="return false;">
-          <label for="email" class="sr-only" style="position:absolute;left:-9999px;">Work email</label>
-          <input id="email" type="email" required autocomplete="email" placeholder="you@email.com" />
+        <p class="lead" style="max-width:44ch;">Free for 7 days. No credit card required. Cancel anytime, and keep your exported data forever.</p>
+        <form class="cta-form" action="login.html" method="get">
+          <label for="email" class="sr-only" style="position:absolute;left:-9999px;">Email</label>
+          <input id="email" name="email" type="email" required autocomplete="email" placeholder="you@email.com" />
           <button type="submit" class="btn btn-primary btn-lg">Start free trial</button>
         </form>
-        <p class="hero-note" style="margin-top:16px;">Trusted by traders at prop firms, hedge funds and trading desks worldwide.</p>
+        <p class="hero-note" style="margin-top:16px;">Your data stays yours — read-only connections, encrypted, export anytime.</p>
       </div>
     </div>
   </section>
@@ -683,7 +710,7 @@
       <a href="#features">Features</a>
       <a href="#how">How it works</a>
       <a href="#pricing">Pricing</a>
-      <a href="#stats">Results</a>
+      <a href="#stats">Why us</a>
     </nav>
     <p style="color:var(--faint);font-size:12.5px;">© 2026 Edge Pro, Inc. All rights reserved.</p>
   </div>
