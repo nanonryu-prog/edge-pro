@@ -202,6 +202,39 @@
 .toggle:last-child{border-bottom:none;}
 .sw{width:42px;height:24px;border-radius:999px;background:var(--track);position:relative;cursor:pointer;transition:.2s;flex:none;}
 .sw.on{background:var(--violet);} .sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;} .sw.on::after{left:21px;}
+
+/* ===== Motion layer ===== */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes popIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes ringIn{from{stroke-dashoffset:264}}
+#view.anim>*{animation:fadeUp .5s var(--ease) both}
+#view.anim>*:nth-child(2){animation-delay:.06s} #view.anim>*:nth-child(3){animation-delay:.12s}
+#view.anim>*:nth-child(4){animation-delay:.18s} #view.anim>*:nth-child(5){animation-delay:.24s}
+#view.anim>*:nth-child(6){animation-delay:.30s} #view.anim>*:nth-child(7){animation-delay:.36s}
+#view.anim .kpis .card{animation:fadeUp .5s var(--ease) both}
+#view.anim .kpis .card:nth-child(2){animation-delay:.05s} #view.anim .kpis .card:nth-child(3){animation-delay:.1s} #view.anim .kpis .card:nth-child(4){animation-delay:.15s}
+#view.anim .eqline{stroke-dasharray:1600;stroke-dashoffset:1600;animation:draw 1.4s var(--ease) .25s forwards}
+#view.anim .ring-fg{animation:ringIn 1.1s var(--ease) .3s both}
+.kcard,.stat{transition:transform .2s var(--ease),box-shadow .25s var(--ease),border-color .2s}
+.kcard:hover{transform:translateY(-3px);border-color:var(--border-2);box-shadow:0 18px 40px rgba(0,0,0,.28)}
+.btn{transition:transform .16s var(--ease),box-shadow .2s,background .2s,filter .2s}
+.btn:active{transform:translateY(0) scale(.97)}
+.btn-primary:hover{filter:brightness(1.04)}
+.nav-item{position:relative;transition:background .16s var(--ease),color .16s var(--ease),padding-left .16s var(--ease)}
+.nav-item:hover{padding-left:15px}
+.nav-item.active::before{content:"";position:absolute;left:2px;top:8px;bottom:8px;width:3px;border-radius:3px;background:var(--grad);animation:popIn .3s var(--ease)}
+.menu.open{animation:popIn .18s var(--ease)}
+.modal{animation:fadeUp .3s var(--ease)}
+.rule,.ach,.tag{transition:transform .18s var(--ease),border-color .2s,background .2s}
+.ach.on:hover{transform:translateY(-2px)}
+.cal-day{transition:transform .14s var(--ease)}
+.cal-day:hover{transform:scale(1.07);z-index:2}
+.avatar{transition:transform .18s var(--ease)} .avatar:hover{transform:scale(1.06)}
+.icon-btn{transition:transform .16s var(--ease),color .2s,background .2s} .icon-btn:active{transform:scale(.92)}
+.insight{transition:transform .2s var(--ease),border-color .2s} .insight:hover{transform:translateX(3px);border-color:var(--border-2)}
+tr{transition:background .15s}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}}
 </style>
 <script>(function(){var p=localStorage.getItem("edgepro_theme")||"auto";var t=p;if(p==="auto"){var h=new Date().getHours();t=(h>=7&&h<19)?"light":"dark";}document.documentElement.setAttribute("data-theme",t);})();</script>
 </head>
@@ -320,7 +353,7 @@ function buildNav(){
   $('#sideNav').innerHTML=NAV.map(([id,l,ic])=>`<button class="nav-item${id===current?' active':''}" data-go="${id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ic}</svg>${l}</button>`).join('');
   document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 }
-function go(id){ current=id; buildNav(); $('#pageTitle').textContent=NAV.find(n=>n[0]===id)[1]; $('#pageSub').textContent=SUB[id]; VIEWS[id](); window.scrollTo(0,0); toggleNav(false); }
+function go(id){ current=id; buildNav(); $('#pageTitle').textContent=NAV.find(n=>n[0]===id)[1]; $('#pageSub').textContent=SUB[id]; VIEWS[id](); const _v=$('#view'); _v.classList.remove('anim'); void _v.offsetWidth; _v.classList.add('anim'); window.scrollTo(0,0); toggleNav(false); }
 
 /* ---- views ---- */
 const VIEWS={};
@@ -626,8 +659,8 @@ function equitySVG(tr,acct){ const pts=[acct]; let c=acct; tr.forEach(t=>{c+=t.p
   if(pts.length<2||tr.length===0){ return `<div class="hint" style="padding:34px 0;text-align:center">Log trades to draw your equity curve.</div>`; }
   const min=Math.min(...pts),max=Math.max(...pts),range=(max-min)||1,W=500,H=150;
   const path=pts.map((p,i)=>`${i?'L':'M'}${(i/(pts.length-1)*W).toFixed(1)},${(H-(p-min)/range*H).toFixed(1)}`).join(' ');
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="150" preserveAspectRatio="none"><defs><linearGradient id="ef" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(124,92,252,.35)"/><stop offset="100%" stop-color="rgba(124,92,252,0)"/></linearGradient><linearGradient id="el" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#7C5CFC"/><stop offset="100%" stop-color="#E15CC6"/></linearGradient></defs><path d="${path} L${W},${H} L0,${H} Z" fill="url(#ef)"/><path d="${path}" fill="none" stroke="url(#el)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
-function ring(pct){ const r=42,c=2*Math.PI*r,off=c-(pct/100)*c; return `<div class="ring-wrap"><svg width="150" height="150" viewBox="0 0 100 100"><circle cx="50" cy="50" r="${r}" fill="none" stroke="var(--track)" stroke-width="10"/><circle cx="50" cy="50" r="${r}" fill="none" stroke="url(#rg)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 50 50)"/><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7C5CFC"/><stop offset="100%" stop-color="#E15CC6"/></linearGradient></defs></svg><div class="ring-num"><div><div class="n">${pct}</div><div class="o">OF 100</div></div></div></div>`; }
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="150" preserveAspectRatio="none"><defs><linearGradient id="ef" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(124,92,252,.35)"/><stop offset="100%" stop-color="rgba(124,92,252,0)"/></linearGradient><linearGradient id="el" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#7C5CFC"/><stop offset="100%" stop-color="#E15CC6"/></linearGradient></defs><path d="${path} L${W},${H} L0,${H} Z" fill="url(#ef)"/><path class="eqline" d="${path}" fill="none" stroke="url(#el)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
+function ring(pct){ const r=42,c=2*Math.PI*r,off=c-(pct/100)*c; return `<div class="ring-wrap"><svg width="150" height="150" viewBox="0 0 100 100"><circle cx="50" cy="50" r="${r}" fill="none" stroke="var(--track)" stroke-width="10"/><circle class="ring-fg" cx="50" cy="50" r="${r}" fill="none" stroke="url(#rg)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 50 50)"/><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7C5CFC"/><stop offset="100%" stop-color="#E15CC6"/></linearGradient></defs></svg><div class="ring-num"><div><div class="n">${pct}</div><div class="o">OF 100</div></div></div></div>`; }
 function meter(label,cur,tgt,cls){ const p=tgt?Math.max(0,Math.min(100,cur/tgt*100)):0; return `<div class="meter"><div class="mrow"><span>${label}</span><b>${money0(cur)}</b></div><div class="mtrack"><div class="mfill ${cls}" style="width:${p}%"></div></div></div>`; }
 function insights(s){ const out=[]; if(!s.tr.length){out.push('Log your first trade and EDGE will start surfacing patterns here.');}
   else{ if(s.dis>=90)out.push(`Discipline at ${s.dis}/100 — exactly the consistency backers want to see.`); else if(s.broken>0)out.push(`You broke your rules on ${s.broken} trade${s.broken>1?'s':''}. Those are the leaks to close first.`);
