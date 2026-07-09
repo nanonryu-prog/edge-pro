@@ -331,6 +331,55 @@
   .cta-form input::placeholder { color: var(--faint); }
   .cta-form input:focus { outline: 2px solid var(--violet); outline-offset: 1px; }
 
+  /* ---------- P&L Calendar highlight ---------- */
+  .cal-section { display: grid; grid-template-columns: 1fr; gap: 40px; align-items: center; }
+  @media (min-width: 900px) { .cal-section { grid-template-columns: 1fr 1.1fr; } }
+  .cal-copy h2 { font-size: clamp(26px, 4vw, 40px); font-weight: 700; line-height: 1.12; margin: 14px 0 0; }
+  .cal-copy p { color: var(--muted); font-size: 16px; line-height: 1.6; margin: 16px 0 0; }
+  .cal-points { list-style: none; margin: 22px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .cal-points li { display: flex; gap: 11px; align-items: flex-start; font-size: 14.5px; color: rgba(244,244,251,0.82); }
+  .cal-points .tick { width: 24px; height: 24px; flex: none; border-radius: 7px; background: rgba(36,209,155,0.14); border: 1px solid rgba(36,209,155,0.34); display: grid; place-items: center; color: var(--win); }
+  .cal-card { background: linear-gradient(180deg, var(--surface), var(--bg-2)); border: 1px solid var(--border-2); border-radius: 22px; padding: 22px; box-shadow: 0 30px 90px rgba(0,0,0,0.5); }
+  .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .cal-head .m { font-family: 'Space Grotesk'; font-weight: 700; font-size: 17px; }
+  .cal-head .tot { font-size: 13px; color: var(--win); font-weight: 600; }
+  .cal-dow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 6px; }
+  .cal-dow span { text-align: center; font-size: 10.5px; color: var(--faint); font-weight: 600; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-day { aspect-ratio: 1; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; border: 1px solid var(--border);
+    background: rgba(255,255,255,0.02); color: var(--faint); opacity: 0; transform: scale(.8); }
+  .is-visible .cal-day { animation: cellpop .4s var(--ease) forwards; }
+  @keyframes cellpop { to { opacity: 1; transform: scale(1); } }
+  .cal-day .pl { font-weight: 700; font-size: 10.5px; font-variant-numeric: tabular-nums; }
+  .cal-day.win { background: rgba(36,209,155,0.14); border-color: rgba(36,209,155,0.32); color: rgba(244,244,251,0.7); }
+  .cal-day.win .pl { color: var(--win); }
+  .cal-day.loss { background: rgba(245,71,107,0.13); border-color: rgba(245,71,107,0.3); color: rgba(244,244,251,0.7); }
+  .cal-day.loss .pl { color: var(--loss); }
+
+  /* ---------- Pricing ---------- */
+  .billing-toggle { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 999px; padding: 5px; margin: 22px auto 0; }
+  .billing-toggle button { border: none; background: transparent; color: var(--muted); font-weight: 600; font-size: 13.5px; padding: 9px 18px; border-radius: 999px; cursor: pointer; transition: color .2s var(--ease); }
+  .billing-toggle button.active { background: var(--grad); color: #fff; box-shadow: 0 6px 18px rgba(124,92,252,0.4); }
+  .save-badge { font-size: 11px; font-weight: 700; color: var(--win); background: rgba(36,209,155,0.14); border: 1px solid rgba(36,209,155,0.3); padding: 2px 8px; border-radius: 999px; margin-left: 6px; }
+
+  .price-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 48px; align-items: start; }
+  @media (min-width: 820px) { .price-grid { grid-template-columns: repeat(3, 1fr); } }
+  .price-card { position: relative; background: linear-gradient(180deg, var(--surface), var(--bg-2)); border: 1px solid var(--border); border-radius: 22px; padding: 30px 26px; display: flex; flex-direction: column; transition: transform .3s var(--ease), border-color .3s var(--ease); }
+  .price-card:hover { transform: translateY(-5px); }
+  .price-card.popular { border-color: transparent; box-shadow: 0 0 0 1.5px rgba(124,92,252,0.6), 0 30px 80px rgba(124,92,252,0.22); }
+  .price-card.popular::before { content: "Most popular"; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--grad); color: #fff; font-size: 11.5px; font-weight: 700; padding: 5px 14px; border-radius: 999px; white-space: nowrap; box-shadow: 0 8px 20px rgba(124,92,252,0.5); }
+  .price-name { font-family: 'Space Grotesk'; font-weight: 700; font-size: 19px; }
+  .price-desc { color: var(--muted); font-size: 13.5px; margin: 6px 0 20px; min-height: 38px; }
+  .price-amt { display: flex; align-items: flex-end; gap: 4px; }
+  .price-amt .num { font-family: 'Space Grotesk'; font-weight: 700; font-size: 46px; line-height: 1; }
+  .price-amt .per { color: var(--faint); font-size: 14px; padding-bottom: 6px; }
+  .price-bill { font-size: 12.5px; color: var(--faint); margin-top: 8px; min-height: 18px; }
+  .price-card .btn { width: 100%; margin: 22px 0 22px; }
+  .price-feats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .price-feats li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: rgba(244,244,251,0.82); }
+  .price-feats .ck { width: 20px; height: 20px; flex: none; border-radius: 6px; background: rgba(124,92,252,0.16); border: 1px solid rgba(124,92,252,0.3); display: grid; place-items: center; color: var(--violet-2); margin-top: 1px; }
+  .price-note { text-align: center; color: var(--faint); font-size: 13px; margin-top: 28px; }
+
   /* ---------- Footer ---------- */
   footer { border-top: 1px solid var(--border); padding: 44px 0; margin-top: 40px; }
   .foot { display: flex; flex-direction: column; gap: 20px; align-items: center; justify-content: space-between; text-align: center; }
@@ -355,6 +404,10 @@
   [data-stagger].is-visible > *:nth-child(4){ transition-delay: 210ms; }
   [data-stagger].is-visible > *:nth-child(5){ transition-delay: 280ms; }
   [data-stagger].is-visible > *:nth-child(6){ transition-delay: 350ms; }
+  [data-stagger].is-visible > *:nth-child(7){ transition-delay: 420ms; }
+  [data-stagger].is-visible > *:nth-child(8){ transition-delay: 490ms; }
+  [data-stagger].is-visible > *:nth-child(9){ transition-delay: 560ms; }
+  [data-stagger].is-visible > *:nth-child(10){ transition-delay: 630ms; }
 
   :focus-visible { outline: 2px solid var(--violet-2); outline-offset: 3px; border-radius: 6px; }
 
@@ -366,6 +419,7 @@
     .ring-fg { stroke-dashoffset: 114 !important; }
     .spark i { transform: scaleY(1) !important; }
     .eq-dot { opacity: 1 !important; }
+    .cal-day { opacity: 1 !important; transform: none !important; }
     .blob { animation: none !important; }
   }
 </style>
@@ -632,11 +686,70 @@
 
         <article class="feature">
           <div class="f-ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+          </div>
+          <h3>Playbooks &amp; setups</h3>
+          <p>Define each setup once, then track its win rate, expectancy and R:R over time. Trade only the playbooks that actually pay.</p>
+        </article>
+
+        <article class="feature">
+          <div class="f-ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6c0 2 1 3.2 2 4.5.6.8 1 1.5 1 2.5h6c0-1 .4-1.7 1-2.5 1-1.3 2-2.5 2-4.5a6 6 0 0 0-6-6Z"/><path d="M9 21h6"/><path d="M10 18h4"/></svg>
+          </div>
+          <h3>AI insight engine</h3>
+          <p>Edge Pro reads your history and flags what's helping — and what's quietly bleeding your account, from overtrading to holding losers too long.</p>
+        </article>
+
+        <article class="feature">
+          <div class="f-ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>
+          </div>
+          <h3>Goals &amp; Edge Score</h3>
+          <p>Set targets for win rate, risk and consistency, then watch your composite Edge Score climb as your discipline improves.</p>
+        </article>
+
+        <article class="feature">
+          <div class="f-ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          </div>
+          <h3>Every market, one view</h3>
+          <p>Stocks, options, futures, forex and crypto — across all your accounts, normalized into a single, comparable performance picture.</p>
+        </article>
+
+        <article class="feature">
+          <div class="f-ico">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           </div>
           <h3>Bank-grade security</h3>
-          <p>Read-only broker connections, 256-bit encryption, and SOC 2 compliance. Your data is yours — we never place trades.</p>
+          <p>Read-only broker connections, 256-bit encryption, and SOC 2 practices. Your data is yours — we never place trades.</p>
         </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ P&L CALENDAR HIGHLIGHT ============ -->
+  <section style="padding:60px 0;">
+    <div class="wrap">
+      <div class="cal-section">
+        <div class="cal-copy" data-reveal>
+          <span class="eyebrow">See your month at a glance</span>
+          <h2>Your P&amp;L, mapped to every trading day</h2>
+          <p>A colour-coded calendar turns a wall of numbers into an instant read on your month — spot hot streaks, tilt days, and the sessions worth studying.</p>
+          <ul class="cal-points">
+            <li><span class="tick"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Green and red days with net P&amp;L and trade count</li>
+            <li><span class="tick"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Weekly and monthly totals rolled up automatically</li>
+            <li><span class="tick"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Click any day to jump straight into that session's journal</li>
+          </ul>
+        </div>
+
+        <div class="cal-card" data-reveal>
+          <div class="cal-head">
+            <span class="m">March 2026</span>
+            <span class="tot">Net +$4,824</span>
+          </div>
+          <div class="cal-dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -678,8 +791,76 @@
     </div>
   </section>
 
-  <!-- ============ CTA / PRICING ============ -->
-  <section id="pricing" style="padding:60px 0 40px;">
+  <!-- ============ PRICING ============ -->
+  <section id="pricing" style="padding:80px 0 40px;">
+    <div class="wrap">
+      <div class="section-head" data-reveal style="margin-bottom:0;">
+        <span class="eyebrow">Simple, honest pricing</span>
+        <h2 class="h2">Pick the plan that fits your trading</h2>
+        <p class="lead">Every plan starts with a 7-day free trial. No credit card to start, cancel anytime.</p>
+        <div class="billing-toggle" role="group" aria-label="Billing period">
+          <button type="button" id="billMonthly">Monthly</button>
+          <button type="button" id="billAnnual" class="active">Annual<span class="save-badge">Save 20%</span></button>
+        </div>
+      </div>
+
+      <div class="price-grid" data-reveal data-stagger>
+        <!-- Basic -->
+        <div class="price-card">
+          <div class="price-name">Basic</div>
+          <div class="price-desc">For traders getting serious about review.</div>
+          <div class="price-amt">$<span class="num" data-monthly="29" data-annual="23">23</span><span class="per">/mo</span></div>
+          <div class="price-bill" data-annualbill="Billed $276/year" data-monthlybill="Billed monthly">Billed $276/year</div>
+          <a href="login.html" class="btn btn-ghost">Start free trial</a>
+          <ul class="price-feats">
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Sync 1 broker account</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Core analytics &amp; reports</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Trade journal &amp; notebook</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>P&amp;L calendar</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>90-day trade history</li>
+          </ul>
+        </div>
+
+        <!-- Pro -->
+        <div class="price-card popular">
+          <div class="price-name">Pro</div>
+          <div class="price-desc">Everything you need to find and keep your edge.</div>
+          <div class="price-amt">$<span class="num" data-monthly="49" data-annual="39">39</span><span class="per">/mo</span></div>
+          <div class="price-bill" data-annualbill="Billed $468/year" data-monthlybill="Billed monthly">Billed $468/year</div>
+          <a href="login.html" class="btn btn-primary">Start free trial</a>
+          <ul class="price-feats">
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Everything in Basic, plus:</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Unlimited broker accounts</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Advanced analytics · 40+ metrics</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Trade replay</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Playbooks &amp; setup tracking</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Backtesting &amp; unlimited history</li>
+          </ul>
+        </div>
+
+        <!-- Elite -->
+        <div class="price-card">
+          <div class="price-name">Elite</div>
+          <div class="price-desc">For full-time and funded traders.</div>
+          <div class="price-amt">$<span class="num" data-monthly="99" data-annual="79">79</span><span class="per">/mo</span></div>
+          <div class="price-bill" data-annualbill="Billed $948/year" data-monthlybill="Billed monthly">Billed $948/year</div>
+          <a href="login.html" class="btn btn-ghost">Start free trial</a>
+          <ul class="price-feats">
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Everything in Pro, plus:</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>AI insight engine</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Strategy optimizer</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Mentor mode &amp; sharing</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Data export &amp; API access</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Priority support</li>
+          </ul>
+        </div>
+      </div>
+      <p class="price-note">Prices in USD. Switch or cancel anytime — your exported data is always yours to keep.</p>
+    </div>
+  </section>
+
+  <!-- ============ CTA ============ -->
+  <section id="get-started" style="padding:60px 0 40px;">
     <div class="wrap">
       <div class="cta-card" data-reveal>
         <span class="pill" style="margin-bottom:22px;"><span class="dot-live"></span>Start in minutes</span>
@@ -774,6 +955,63 @@
   addEventListener('scroll', () => {
     nav.style.boxShadow = window.scrollY > 10 ? '0 8px 30px rgba(0,0,0,0.5)' : 'none';
   }, { passive: true });
+
+  // ---- P&L Calendar (March 2026, internally consistent: net = +$4,824) ----
+  (function buildCalendar() {
+    const grid = document.getElementById('calGrid');
+    if (!grid) return;
+    // day -> { pl, trades }; missing weekdays = flat / no-trade
+    const data = {
+      2:{pl:420,n:4}, 3:{pl:-180,n:3}, 4:{pl:640,n:5}, 5:{pl:90,n:2}, 6:{pl:-260,n:4},
+      9:{pl:510,n:3}, 10:{pl:160,n:2}, 12:{pl:720,n:6}, 13:{pl:-340,n:4},
+      16:{pl:230,n:3}, 17:{pl:-410,n:5}, 18:{pl:180,n:2}, 19:{pl:710,n:4},
+      23:{pl:-220,n:3}, 24:{pl:600,n:4}, 25:{pl:260,n:3}, 26:{pl:640,n:5}, 27:{pl:-130,n:2},
+      30:{pl:790,n:4}, 31:{pl:414,n:3}
+    };
+    const daysInMonth = 31;
+    const firstDow = (new Date(2026, 2, 1).getDay() + 6) % 7; // Mon-start; Mar 1 2026 = Sun -> 6
+    let idx = 0, net = 0;
+    const cells = [];
+    for (let i = 0; i < firstDow; i++) cells.push('<div></div>');
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dow = new Date(2026, 2, d).getDay();
+      const weekend = dow === 0 || dow === 6;
+      const t = data[d];
+      let cls = 'cal-day', inner = `<span>${d}</span>`;
+      if (t) {
+        net += t.pl;
+        cls += t.pl >= 0 ? ' win' : ' loss';
+        const sign = t.pl >= 0 ? '+' : '-';
+        inner += `<span class="pl">${sign}$${Math.abs(t.pl)}</span>`;
+      } else {
+        inner = `<span${weekend ? ' style="opacity:.4"' : ''}>${d}</span>`;
+      }
+      const delay = reduce ? 0 : (idx++ * 16);
+      cells.push(`<div class="${cls}" style="animation-delay:${delay}ms">${inner}</div>`);
+    }
+    grid.innerHTML = cells.join('');
+    const tot = document.querySelector('.cal-head .tot');
+    if (tot) tot.textContent = 'Net +$' + net.toLocaleString();
+  })();
+
+  // ---- Pricing billing toggle ----
+  (function pricing() {
+    const monthlyBtn = document.getElementById('billMonthly');
+    const annualBtn = document.getElementById('billAnnual');
+    if (!monthlyBtn) return;
+    function setPeriod(annual) {
+      annualBtn.classList.toggle('active', annual);
+      monthlyBtn.classList.toggle('active', !annual);
+      document.querySelectorAll('.price-amt .num').forEach(n => {
+        n.textContent = annual ? n.dataset.annual : n.dataset.monthly;
+      });
+      document.querySelectorAll('.price-bill').forEach(b => {
+        b.textContent = annual ? b.dataset.annualbill : b.dataset.monthlybill;
+      });
+    }
+    monthlyBtn.addEventListener('click', () => setPeriod(false));
+    annualBtn.addEventListener('click', () => setPeriod(true));
+  })();
 </script>
 
 </body>
