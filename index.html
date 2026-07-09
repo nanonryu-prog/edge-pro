@@ -3,311 +3,667 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Edge Pro — Ship faster with less busywork</title>
-<meta name="description" content="Edge Pro turns your team's repetitive workflows into one-click automations. No code, no waiting on engineering." />
+<title>Edge Pro — The trading journal that sharpens your edge</title>
+<meta name="description" content="Edge Pro is the all-in-one trading journal, analytics and backtesting platform. Auto-import your trades, review with replay, and find your edge with data-driven insights." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-<link rel="stylesheet" href="assets-tailwind.css" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
 
 <style>
-  :root { color-scheme: light; }
+  /* ============================================================
+     EDGE PRO — TradeZella-inspired dark trading-analytics theme
+     ============================================================ */
+  :root {
+    color-scheme: dark;
 
-  /* One clean typeface for the whole page — Swiss / minimal */
-  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; letter-spacing: -0.01em; }
-  h1, h2, h3, .font-display { font-family: 'Inter', system-ui, sans-serif; letter-spacing: -0.02em; }
+    /* Surfaces */
+    --bg:        #0A0A16;   /* deep near-black navy */
+    --bg-2:      #0E0E20;
+    --surface:   #14142A;   /* card base */
+    --surface-2: #1A1A36;
+    --border:    rgba(255,255,255,0.08);
+    --border-2:  rgba(255,255,255,0.14);
 
-  /* Flat surfaces — no blur, no saturation, just a hairline border */
-  .glass {
-    background: #ffffff;
-    border: 1px solid rgba(9, 9, 11, 0.08);
-  }
-  .glass-dark {
-    background: rgb(9, 9, 11);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    /* Text */
+    --text:      #F4F4FB;
+    --muted:     rgba(244,244,251,0.62);
+    --faint:     rgba(244,244,251,0.40);
+
+    /* Brand — violet/purple with pink lean (TradeZella signature) */
+    --violet:    #7C5CFC;
+    --violet-2:  #9D7BFF;
+    --pink:      #E15CC6;
+    --grad:      linear-gradient(135deg, #7C5CFC 0%, #A45CFC 45%, #E15CC6 100%);
+
+    /* Trading semantics */
+    --win:       #24D19B;   /* green */
+    --loss:      #F5476B;   /* red */
+
+    --radius:    18px;
+    --ease:      cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  /* Clean top bar */
-  .topbar {
-    background: rgba(250, 250, 250, 0.8);
-    backdrop-filter: saturate(120%) blur(8px);
-    -webkit-backdrop-filter: saturate(120%) blur(8px);
-    border-bottom: 1px solid rgba(9, 9, 11, 0.06);
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.011em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+  h1, h2, h3, .font-display {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    letter-spacing: -0.02em;
+  }
+  a { color: inherit; text-decoration: none; }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  /* ---------- Layout helpers ---------- */
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  .wrap-narrow { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- Ambient background glow ---------- */
+  .aurora { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+  .blob {
+    position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.55;
+    will-change: transform;
+  }
+  .blob.b1 { width: 640px; height: 640px; top: -220px; left: -120px;
+             background: radial-gradient(circle, rgba(124,92,252,0.55), transparent 68%);
+             animation: drift1 22s var(--ease) infinite alternate; }
+  .blob.b2 { width: 520px; height: 520px; top: 120px; right: -160px;
+             background: radial-gradient(circle, rgba(225,92,198,0.42), transparent 68%);
+             animation: drift2 26s var(--ease) infinite alternate; }
+  .blob.b3 { width: 560px; height: 560px; top: 900px; left: 30%;
+             background: radial-gradient(circle, rgba(36,209,155,0.20), transparent 70%);
+             animation: drift1 30s var(--ease) infinite alternate; }
+  @keyframes drift1 { from { transform: translate(0,0) scale(1); } to { transform: translate(70px, 60px) scale(1.12); } }
+  @keyframes drift2 { from { transform: translate(0,0) scale(1); } to { transform: translate(-60px, 40px) scale(1.1); } }
+
+  /* Subtle grid texture */
+  .grid-tex {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.5;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 55% at 50% 0%, #000 40%, transparent 85%);
+            mask-image: radial-gradient(ellipse 80% 55% at 50% 0%, #000 40%, transparent 85%);
   }
 
-  [data-reveal] {
-    opacity: 0;
-    transform: translateY(16px);
-    transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  /* ---------- Nav ---------- */
+  .nav {
+    position: fixed; top: 0; inset-inline: 0; z-index: 50;
+    background: rgba(10,10,22,0.72);
+    -webkit-backdrop-filter: saturate(150%) blur(14px);
+            backdrop-filter: saturate(150%) blur(14px);
+    border-bottom: 1px solid var(--border);
   }
-  [data-reveal].is-visible {
-    opacity: 1;
-    transform: translateY(0);
+  .nav-inner { height: 68px; display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-family: 'Space Grotesk'; font-weight: 700; font-size: 19px; }
+  .brand-mark {
+    width: 34px; height: 34px; border-radius: 10px; background: var(--grad);
+    display: grid; place-items: center; box-shadow: 0 6px 20px rgba(124,92,252,0.5);
   }
-  [data-reveal-stagger] > * {
-    opacity: 0;
-    transform: translateY(16px);
-    transition: opacity 550ms cubic-bezier(0.16, 1, 0.3, 1), transform 550ms cubic-bezier(0.16, 1, 0.3, 1);
+  .nav-links { display: none; gap: 34px; font-size: 14.5px; font-weight: 500; color: var(--muted); }
+  .nav-links a { position: relative; transition: color .2s var(--ease); }
+  .nav-links a::after {
+    content: ""; position: absolute; left: 0; bottom: -6px; height: 2px; width: 0;
+    background: var(--grad); border-radius: 2px; transition: width .28s var(--ease);
   }
-  [data-reveal-stagger].is-visible > * { opacity: 1; transform: translateY(0); }
-  [data-reveal-stagger].is-visible > *:nth-child(1) { transition-delay: 0ms; }
-  [data-reveal-stagger].is-visible > *:nth-child(2) { transition-delay: 80ms; }
-  [data-reveal-stagger].is-visible > *:nth-child(3) { transition-delay: 160ms; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-cta { display: flex; align-items: center; gap: 12px; }
+  @media (min-width: 900px) { .nav-links { display: flex; } }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 46px; padding: 0 22px; border-radius: 999px; font-weight: 600; font-size: 14.5px;
+    cursor: pointer; border: 1px solid transparent; transition: transform .18s var(--ease), box-shadow .25s var(--ease), background .2s var(--ease);
+    white-space: nowrap;
+  }
+  .btn-primary { background: var(--grad); color: #fff; box-shadow: 0 8px 26px rgba(124,92,252,0.45); background-size: 160% 160%; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(124,92,252,0.6); animation: shimmer 2.2s linear infinite; }
+  @keyframes shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 160% 50%; } }
+  .btn-primary:active { transform: translateY(0) scale(.98); }
+  .btn-ghost { background: rgba(255,255,255,0.05); color: var(--text); border-color: var(--border-2); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+  .btn-ghost:active { transform: translateY(0) scale(.98); }
+  .btn-sm { height: 40px; padding: 0 18px; font-size: 14px; }
+  .btn-lg { height: 54px; padding: 0 30px; font-size: 16px; }
+  .link-quiet { color: var(--muted); font-weight: 500; font-size: 14.5px; transition: color .2s var(--ease); }
+  .link-quiet:hover { color: var(--text); }
+
+  .icon-btn {
+    width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border); cursor: pointer; color: var(--text);
+  }
+  @media (min-width: 900px) { .icon-btn.menu { display: none; } }
+
+  /* ---------- Pills / badges ---------- */
+  .pill {
+    display: inline-flex; align-items: center; gap: 9px; padding: 7px 15px; border-radius: 999px;
+    background: rgba(124,92,252,0.12); border: 1px solid rgba(124,92,252,0.32);
+    font-size: 12.5px; font-weight: 600; color: var(--violet-2);
+  }
+  .dot-live { width: 7px; height: 7px; border-radius: 50%; background: var(--win); box-shadow: 0 0 0 0 rgba(36,209,155,0.6); animation: ping 1.8s ease-out infinite; }
+  @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(36,209,155,0.55); } 100% { box-shadow: 0 0 0 9px rgba(36,209,155,0); } }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: 150px 0 70px; text-align: center; position: relative; }
+  .hero h1 { font-size: clamp(38px, 6.2vw, 74px); line-height: 1.04; font-weight: 700; margin: 22px auto 0; max-width: 15ch; }
+  .grad-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p.sub { margin: 24px auto 0; max-width: 60ch; font-size: clamp(16px, 2.2vw, 20px); color: var(--muted); line-height: 1.6; }
+  .hero-actions { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+  .hero-note { margin-top: 18px; font-size: 12.5px; color: var(--faint); }
+
+  /* ---------- Dashboard mockup ---------- */
+  .dash-shell {
+    margin: 64px auto 0; max-width: 1080px; border-radius: 24px; overflow: hidden;
+    background: linear-gradient(180deg, var(--surface), var(--bg-2));
+    border: 1px solid var(--border-2);
+    box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,92,252,0.08), 0 0 80px rgba(124,92,252,0.18);
+  }
+  .dash-top { display: flex; align-items: center; gap: 8px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .tl { width: 11px; height: 11px; border-radius: 50%; background: rgba(255,255,255,0.16); }
+  .dash-tabpill { margin-left: auto; font-size: 11.5px; color: var(--faint); display: flex; gap: 16px; }
+  .dash-tabpill span.on { color: var(--violet-2); }
+  .dash-body { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 20px; }
+  @media (min-width: 760px) { .dash-body { grid-template-columns: 1.6fr 1fr; } }
+
+  .card {
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 16px; padding: 20px;
+  }
+  .card-label { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--faint); font-weight: 600; }
+
+  .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .kpi { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+  .kpi .v { font-family: 'Space Grotesk'; font-size: clamp(18px, 3vw, 26px); font-weight: 700; margin-top: 6px; }
+  .kpi .v.win { color: var(--win); }
+  .kpi .v.loss { color: var(--loss); }
+
+  .equity-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+  .equity-val { font-family: 'Space Grotesk'; font-size: clamp(24px, 4vw, 34px); font-weight: 700; }
+  .equity-chg { color: var(--win); font-weight: 600; font-size: 14px; }
+
+  /* animated equity line */
+  .eq-path { stroke-dasharray: 1400; stroke-dashoffset: 1400; }
+  .is-visible .eq-path { animation: draw 1.8s var(--ease) .25s forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  .eq-area { opacity: 0; }
+  .is-visible .eq-area { animation: fadein 1.2s ease 1.1s forwards; }
+  @keyframes fadein { to { opacity: 1; } }
+
+  /* donut */
+  .donut-num { font-family: 'Space Grotesk'; font-weight: 700; font-size: 30px; }
+  .ring-fg { stroke-dasharray: 264; stroke-dashoffset: 264; transform: rotate(-90deg); transform-origin: 50% 50%; }
+  .is-visible .ring-fg { animation: ring 1.6s var(--ease) .5s forwards; }
+  @keyframes ring { to { stroke-dashoffset: 74; } } /* ~72% */
+
+  .zella { display: flex; flex-direction: column; gap: 10px; }
+  .barrow { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
+  .bartrack { flex: 1; height: 7px; border-radius: 6px; background: rgba(255,255,255,0.07); overflow: hidden; }
+  .barfill { display: block; height: 100%; border-radius: 6px; background: var(--grad); width: 0; }
+  .is-visible .barfill { transition: width 1.3s var(--ease) .6s; }
+
+  /* ---------- Section shells ---------- */
+  section { position: relative; }
+  .eyebrow { font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; color: var(--violet-2); }
+  .h2 { font-size: clamp(28px, 4.4vw, 44px); font-weight: 700; line-height: 1.1; margin: 14px 0 0; }
+  .lead { color: var(--muted); font-size: 17px; line-height: 1.6; margin: 16px auto 0; max-width: 58ch; }
+  .section-head { text-align: center; margin-bottom: 56px; }
+
+  /* ---------- Marquee ---------- */
+  .marquee-wrap { padding: 44px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); overflow: hidden; }
+  .marquee-label { text-align: center; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); margin-bottom: 26px; font-weight: 600; }
+  .marquee { display: flex; gap: 60px; width: max-content; animation: scrollx 26s linear infinite; }
+  .marquee:hover { animation-play-state: paused; }
+  .marquee .logo { font-family: 'Space Grotesk'; font-weight: 600; font-size: 20px; color: var(--faint); white-space: nowrap; transition: color .2s; }
+  .marquee .logo:hover { color: var(--text); }
+  @keyframes scrollx { to { transform: translateX(-50%); } }
+  .fade-edge { position: relative; }
+  .fade-edge::before, .fade-edge::after { content:""; position:absolute; top:0; bottom:0; width:120px; z-index:2; pointer-events:none; }
+  .fade-edge::before { left:0; background: linear-gradient(90deg, var(--bg), transparent); }
+  .fade-edge::after { right:0; background: linear-gradient(270deg, var(--bg), transparent); }
+
+  /* ---------- Stats band ---------- */
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; text-align: center; }
+  @media (min-width: 760px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+  .stat .num { font-family: 'Space Grotesk'; font-size: clamp(30px, 5vw, 46px); font-weight: 700; }
+  .stat .lbl { color: var(--muted); font-size: 14px; margin-top: 6px; }
+
+  /* ---------- Feature grid (bento) ---------- */
+  .bento { display: grid; grid-template-columns: 1fr; gap: 18px; }
+  @media (min-width: 700px) { .bento { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1000px) { .bento { grid-template-columns: repeat(3, 1fr); } }
+  .feature {
+    background: linear-gradient(180deg, var(--surface), var(--bg-2));
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 26px;
+    position: relative; overflow: hidden; transition: transform .3s var(--ease), border-color .3s var(--ease), box-shadow .3s var(--ease);
+  }
+  .feature::before {
+    content:""; position:absolute; inset:0; border-radius: var(--radius); padding:1px;
+    background: var(--grad);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: opacity .3s var(--ease);
+  }
+  .feature:hover { transform: translateY(-6px); box-shadow: 0 24px 60px rgba(0,0,0,0.45); }
+  .feature:hover::before { opacity: 1; }
+  .feature.span-2 { grid-column: span 1; }
+  @media (min-width: 700px) { .feature.span-2 { grid-column: span 2; } }
+  .f-ico {
+    width: 48px; height: 48px; border-radius: 13px; display: grid; place-items: center; margin-bottom: 18px;
+    background: rgba(124,92,252,0.14); border: 1px solid rgba(124,92,252,0.28); color: var(--violet-2);
+  }
+  .feature h3 { font-size: 19px; font-weight: 600; margin: 0; }
+  .feature p { color: var(--muted); font-size: 14.5px; line-height: 1.6; margin: 8px 0 0; }
+
+  /* mini sparkline inside span-2 */
+  .spark { margin-top: 18px; display: flex; align-items: flex-end; gap: 5px; height: 70px; }
+  .spark i { flex: 1; border-radius: 4px 4px 0 0; background: linear-gradient(180deg, var(--violet), rgba(124,92,252,0.15)); transform: scaleY(0); transform-origin: bottom; }
+  .is-visible .spark i { animation: grow .7s var(--ease) forwards; }
+  @keyframes grow { to { transform: scaleY(1); } }
+
+  /* ---------- Steps ---------- */
+  .steps { display: grid; grid-template-columns: 1fr; gap: 20px; counter-reset: step; }
+  @media (min-width: 820px) { .steps { grid-template-columns: repeat(3, 1fr); } }
+  .step { padding: 28px; border-radius: var(--radius); background: rgba(255,255,255,0.03); border: 1px solid var(--border); }
+  .step-n { width: 40px; height: 40px; border-radius: 11px; background: var(--grad); display: grid; place-items: center; font-family: 'Space Grotesk'; font-weight: 700; margin-bottom: 16px; }
+  .step h3 { font-size: 18px; margin: 0 0 6px; font-weight: 600; }
+  .step p { color: var(--muted); font-size: 14.5px; line-height: 1.6; margin: 0; }
+
+  /* ---------- Testimonial ---------- */
+  .quote-card { max-width: 760px; margin: 0 auto; text-align: center; padding: 44px 28px; border-radius: 24px;
+    background: linear-gradient(180deg, var(--surface), var(--bg-2)); border: 1px solid var(--border); }
+  .quote-card p { font-family: 'Space Grotesk'; font-size: clamp(20px, 3vw, 27px); line-height: 1.4; font-weight: 500; }
+  .stars { color: #FBBF24; letter-spacing: 3px; margin-bottom: 18px; }
+  .who { display: flex; gap: 12px; align-items: center; justify-content: center; margin-top: 24px; }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--grad); display:grid; place-items:center; font-weight:700; }
+
+  /* ---------- Big CTA ---------- */
+  .cta-card {
+    position: relative; overflow: hidden; text-align: center; border-radius: 28px; padding: 72px 28px;
+    background: radial-gradient(120% 140% at 50% 0%, rgba(124,92,252,0.28), transparent 60%), linear-gradient(180deg, var(--surface-2), var(--bg-2));
+    border: 1px solid var(--border-2);
+  }
+  .cta-card h2 { font-size: clamp(30px, 5vw, 52px); font-weight: 700; line-height: 1.08; }
+  .cta-form { margin: 32px auto 0; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-width: 460px; }
+  .cta-form input {
+    flex: 1; min-width: 220px; height: 54px; border-radius: 999px; padding: 0 22px; font-size: 15px;
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border-2); color: var(--text);
+  }
+  .cta-form input::placeholder { color: var(--faint); }
+  .cta-form input:focus { outline: 2px solid var(--violet); outline-offset: 1px; }
+
+  /* ---------- Footer ---------- */
+  footer { border-top: 1px solid var(--border); padding: 44px 0; margin-top: 40px; }
+  .foot { display: flex; flex-direction: column; gap: 20px; align-items: center; justify-content: space-between; text-align: center; }
+  @media (min-width: 700px) { .foot { flex-direction: row; text-align: left; } }
+  .foot-links { display: flex; gap: 26px; font-size: 14px; color: var(--muted); }
+  .foot-links a:hover { color: var(--text); }
+
+  /* ---------- Mobile menu ---------- */
+  .mobile-menu { display: none; margin: 10px 0 16px; padding: 12px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); flex-direction: column; gap: 4px; }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a { padding: 12px 14px; border-radius: 10px; font-weight: 500; color: var(--muted); }
+  .mobile-menu a:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+
+  /* ---------- Scroll reveal ---------- */
+  [data-reveal] { opacity: 0; transform: translateY(22px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
+  [data-reveal].is-visible { opacity: 1; transform: none; }
+  [data-stagger] > * { opacity: 0; transform: translateY(20px); transition: opacity .6s var(--ease), transform .6s var(--ease); }
+  [data-stagger].is-visible > * { opacity: 1; transform: none; }
+  [data-stagger].is-visible > *:nth-child(1){ transition-delay: 0ms; }
+  [data-stagger].is-visible > *:nth-child(2){ transition-delay: 70ms; }
+  [data-stagger].is-visible > *:nth-child(3){ transition-delay: 140ms; }
+  [data-stagger].is-visible > *:nth-child(4){ transition-delay: 210ms; }
+  [data-stagger].is-visible > *:nth-child(5){ transition-delay: 280ms; }
+  [data-stagger].is-visible > *:nth-child(6){ transition-delay: 350ms; }
+
+  :focus-visible { outline: 2px solid var(--violet-2); outline-offset: 3px; border-radius: 6px; }
 
   @media (prefers-reduced-motion: reduce) {
-    [data-reveal], [data-reveal-stagger] > * {
-      opacity: 1 !important;
-      transform: none !important;
-      transition: none !important;
-    }
-  }
-
-  .focus-ring:focus-visible {
-    outline: 2px solid #09090b;
-    outline-offset: 3px;
+    *, [data-reveal], [data-stagger] > * { animation: none !important; transition: none !important; }
+    [data-reveal], [data-stagger] > * { opacity: 1 !important; transform: none !important; }
+    .eq-path { stroke-dashoffset: 0 !important; }
+    .eq-area { opacity: 1 !important; }
+    .ring-fg { stroke-dashoffset: 74 !important; }
+    .spark i { transform: scaleY(1) !important; }
+    .blob { animation: none !important; }
   }
 </style>
 </head>
 
-<body class="bg-paper text-ink font-body antialiased">
+<body>
 
-<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:bg-ink focus:text-white focus:px-4 focus:py-2 focus:rounded-full">
-  Skip to main content
-</a>
+<a href="#main" class="sr-only" style="position:absolute;left:-9999px;">Skip to main content</a>
+
+<!-- ambient background -->
+<div class="aurora" aria-hidden="true">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+</div>
+<div class="grid-tex" aria-hidden="true"></div>
 
 <!-- ============ NAV ============ -->
-<header class="fixed top-0 inset-x-0 z-50 topbar">
-  <nav class="mx-auto max-w-6xl px-5 sm:px-8">
-    <div class="h-16 flex items-center justify-between">
-      <a href="#main" class="flex items-center gap-2 focus-ring rounded-full">
-        <span class="w-8 h-8 rounded-xl bg-ink flex items-center justify-center">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"/></svg>
-        </span>
-        <span class="font-display font-semibold text-lg tracking-tight">Edge Pro</span>
-      </a>
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a href="#main" class="brand">
+      <span class="brand-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>
+      </span>
+      Edge Pro
+    </a>
 
-      <div class="hidden md:flex items-center gap-8 text-sm font-medium text-ink/60">
-        <a href="#features" class="hover:text-ink transition-colors duration-200 focus-ring rounded">Features</a>
-        <a href="#proof" class="hover:text-ink transition-colors duration-200 focus-ring rounded">Customers</a>
-        <a href="#cta" class="hover:text-ink transition-colors duration-200 focus-ring rounded">Pricing</a>
-      </div>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#stats">Results</a>
+      <a href="#pricing">Pricing</a>
+    </nav>
 
-      <div class="flex items-center gap-3">
-        <a href="#cta" class="hidden sm:inline-flex items-center justify-center h-11 px-5 rounded-full bg-ink text-white text-sm font-semibold hover:bg-ink/85 active:scale-[0.97] transition-all duration-200 cursor-pointer focus-ring">
-          Start free trial
-        </a>
-        <button id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu" class="md:hidden w-11 h-11 flex items-center justify-center rounded-full hover:bg-ink/5 transition-colors cursor-pointer focus-ring">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
-      </div>
+    <div class="nav-cta">
+      <a href="#pricing" class="link-quiet" style="display:none;" id="loginLink">Log in</a>
+      <a href="#pricing" class="btn btn-primary btn-sm">Start free trial</a>
+      <button id="menuBtn" class="icon-btn menu" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
     </div>
-
-    <div id="mobileMenu" class="hidden md:hidden glass rounded-2xl mt-2 mb-4 p-3 flex flex-col gap-1 text-sm font-medium">
-      <a href="#features" class="px-4 py-3 rounded-xl hover:bg-ink/5 transition-colors focus-ring">Features</a>
-      <a href="#proof" class="px-4 py-3 rounded-xl hover:bg-ink/5 transition-colors focus-ring">Customers</a>
-      <a href="#cta" class="px-4 py-3 rounded-xl hover:bg-ink/5 transition-colors focus-ring">Pricing</a>
-      <a href="#cta" class="mt-1 px-4 py-3 rounded-xl bg-ink text-white text-center focus-ring">Start free trial</a>
+  </div>
+  <div class="wrap">
+    <div id="mobileMenu" class="mobile-menu">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#stats">Results</a>
+      <a href="#pricing">Pricing</a>
     </div>
-  </nav>
+  </div>
 </header>
 
 <main id="main">
 
   <!-- ============ HERO ============ -->
-  <section class="pt-40 pb-24 sm:pt-48 sm:pb-32">
-    <div class="mx-auto max-w-4xl px-5 sm:px-8 text-center">
-      <div data-reveal class="inline-flex items-center gap-2 rounded-full border border-ink/10 px-4 py-1.5 text-xs font-semibold text-ink/60 mb-8">
-        <span class="w-1.5 h-1.5 rounded-full bg-ink"></span>
-        Now with AI workflow suggestions
-      </div>
+  <section class="hero">
+    <div class="wrap">
+      <span class="pill" data-reveal><span class="dot-live"></span>Now syncing live with 20+ brokers</span>
 
-      <h1 data-reveal class="font-display font-semibold tracking-tight text-4xl sm:text-6xl leading-[1.08] text-ink">
-        Ship faster with
-        <br class="hidden sm:block" />
-        a whole lot less busywork.
+      <h1 data-reveal>
+        Journal, analyze, and
+        <span class="grad-text">master your edge.</span>
       </h1>
 
-      <p data-reveal class="mt-6 text-lg sm:text-xl text-ink/60 leading-relaxed max-w-2xl mx-auto">
-        Edge Pro turns repetitive, multi-step tasks into one-click automations —
-        no code, no engineering backlog, live in minutes.
+      <p class="sub" data-reveal>
+        Edge Pro is the all-in-one trading journal and analytics platform. Auto-import every trade,
+        replay your sessions, and let the data show you exactly what's working — and what's costing you.
       </p>
 
-      <div data-reveal class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
-        <a href="#cta" class="w-full sm:w-auto inline-flex items-center justify-center h-12 px-7 rounded-full bg-ink text-white font-semibold hover:bg-ink/85 active:scale-[0.97] transition-all duration-200 cursor-pointer focus-ring">
-          Start free trial
-        </a>
-        <a href="#features" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-12 px-7 rounded-full border border-ink/15 font-semibold text-ink hover:bg-ink/5 active:scale-[0.97] transition-all duration-200 cursor-pointer focus-ring">
+      <div class="hero-actions" data-reveal>
+        <a href="#pricing" class="btn btn-primary btn-lg">Start your free trial</a>
+        <a href="#how" class="btn btn-ghost btn-lg">
           See how it works
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
         </a>
       </div>
-
-      <p data-reveal class="mt-5 text-xs text-ink/40">No credit card required · Free 14-day trial · Cancel anytime</p>
+      <p class="hero-note" data-reveal>No credit card required · 7-day free trial · Cancel anytime</p>
     </div>
 
-    <!-- product mockup -->
-    <div data-reveal class="mx-auto max-w-5xl px-5 sm:px-8 mt-16 sm:mt-20">
-      <div class="rounded-3xl border border-ink/10 bg-white overflow-hidden shadow-sm shadow-black/5">
-        <div class="flex items-center gap-1.5 px-4 py-3 border-b border-ink/5">
-          <span class="w-2.5 h-2.5 rounded-full bg-ink/15"></span>
-          <span class="w-2.5 h-2.5 rounded-full bg-ink/15"></span>
-          <span class="w-2.5 h-2.5 rounded-full bg-ink/15"></span>
+    <!-- ===== Dashboard mockup ===== -->
+    <div class="wrap">
+      <div class="dash-shell" data-reveal id="dash">
+        <div class="dash-top">
+          <span class="tl"></span><span class="tl"></span><span class="tl"></span>
+          <span class="dash-tabpill"><span class="on">Dashboard</span><span>Trades</span><span>Journal</span><span>Reports</span></span>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-px bg-ink/5">
-          <div class="bg-white p-6 sm:col-span-2">
-            <div class="h-3 w-24 rounded-full bg-ink/10 mb-5"></div>
-            <div class="space-y-3">
-              <div class="h-16 rounded-xl border border-ink/10 flex items-center px-4 gap-3">
-                <div class="w-8 h-8 rounded-lg bg-ink/10"></div>
-                <div class="flex-1 space-y-1.5">
-                  <div class="h-2.5 w-2/3 rounded-full bg-ink/10"></div>
-                  <div class="h-2 w-1/3 rounded-full bg-ink/5"></div>
+        <div class="dash-body">
+
+          <!-- Equity + KPIs -->
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="card">
+              <div class="equity-head">
+                <div>
+                  <div class="card-label">Net P&amp;L · This month</div>
+                  <div class="equity-val tabular">$<span data-count="24680">0</span></div>
                 </div>
-                <div class="h-6 w-14 rounded-full bg-ink/10"></div>
+                <div class="equity-chg">▲ 18.4%</div>
               </div>
-              <div class="h-16 rounded-xl border border-ink/10 flex items-center px-4 gap-3">
-                <div class="w-8 h-8 rounded-lg bg-ink/10"></div>
-                <div class="flex-1 space-y-1.5">
-                  <div class="h-2.5 w-1/2 rounded-full bg-ink/10"></div>
-                  <div class="h-2 w-1/4 rounded-full bg-ink/5"></div>
-                </div>
-                <div class="h-6 w-14 rounded-full bg-ink/10"></div>
+              <svg viewBox="0 0 500 150" width="100%" height="150" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="eqfill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="rgba(124,92,252,0.35)"/>
+                    <stop offset="100%" stop-color="rgba(124,92,252,0)"/>
+                  </linearGradient>
+                  <linearGradient id="eqline" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="#7C5CFC"/>
+                    <stop offset="100%" stop-color="#E15CC6"/>
+                  </linearGradient>
+                </defs>
+                <path class="eq-area" d="M0,120 L0,110 C40,112 70,95 110,98 C150,101 175,70 210,72 C250,74 280,55 320,48 C360,41 390,30 430,26 C460,23 480,18 500,14 L500,150 L0,150 Z" fill="url(#eqfill)"/>
+                <path class="eq-path" d="M0,110 C40,112 70,95 110,98 C150,101 175,70 210,72 C250,74 280,55 320,48 C360,41 390,30 430,26 C460,23 480,18 500,14" fill="none" stroke="url(#eqline)" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+
+            <div class="kpi-row">
+              <div class="kpi">
+                <div class="card-label">Win rate</div>
+                <div class="v win tabular"><span data-count="72" data-suffix="%">0</span></div>
               </div>
-              <div class="h-16 rounded-xl border border-ink/10 flex items-center px-4 gap-3">
-                <div class="w-8 h-8 rounded-lg bg-ink/10"></div>
-                <div class="flex-1 space-y-1.5">
-                  <div class="h-2.5 w-3/5 rounded-full bg-ink/10"></div>
-                  <div class="h-2 w-1/3 rounded-full bg-ink/5"></div>
-                </div>
-                <div class="h-6 w-14 rounded-full bg-ink/10"></div>
+              <div class="kpi">
+                <div class="card-label">Profit factor</div>
+                <div class="v tabular"><span data-count="2.8" data-decimals="1">0</span></div>
+              </div>
+              <div class="kpi">
+                <div class="card-label">Avg loss</div>
+                <div class="v loss tabular">-$<span data-count="118">0</span></div>
               </div>
             </div>
           </div>
-          <div class="bg-ink p-6 flex flex-col justify-between">
-            <div>
-              <div class="h-2.5 w-16 rounded-full bg-white/30 mb-4"></div>
-              <div class="text-white font-display text-3xl font-semibold">128<span class="text-white/40 text-lg">h</span></div>
-              <div class="text-white/50 text-xs mt-1">saved this month</div>
+
+          <!-- Win-rate donut + Zella score -->
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="card" style="text-align:center;">
+              <div class="card-label" style="text-align:left;">Win / loss ratio</div>
+              <div style="position:relative; width:130px; height:130px; margin:12px auto 6px;">
+                <svg width="130" height="130" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10"/>
+                  <circle class="ring-fg" cx="50" cy="50" r="42" fill="none" stroke="url(#eqline)" stroke-width="10" stroke-linecap="round"/>
+                </svg>
+                <div style="position:absolute; inset:0; display:grid; place-items:center;">
+                  <div>
+                    <div class="donut-num grad-text tabular"><span data-count="72" data-suffix="%">0</span></div>
+                    <div style="font-size:11px;color:var(--faint);">203 trades</div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="h-9 rounded-full bg-white/15 mt-6"></div>
+
+            <div class="card">
+              <div class="card-label">Edge Score</div>
+              <div style="display:flex; align-items:baseline; gap:8px; margin:6px 0 14px;">
+                <span class="donut-num grad-text tabular"><span data-count="88">0</span></span>
+                <span style="color:var(--faint);font-size:12px;">/ 100</span>
+              </div>
+              <div class="zella">
+                <div class="barrow"><span style="width:74px;">Discipline</span><span class="bartrack"><i class="barfill" data-w="92%"></i></span></div>
+                <div class="barrow"><span style="width:74px;">Risk mgmt</span><span class="bartrack"><i class="barfill" data-w="80%"></i></span></div>
+                <div class="barrow"><span style="width:74px;">Consistency</span><span class="bartrack"><i class="barfill" data-w="88%"></i></span></div>
+              </div>
+            </div>
           </div>
+
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ============ SOCIAL PROOF ============ -->
-  <section id="proof" class="py-16 sm:py-20 border-y border-ink/5">
-    <div class="mx-auto max-w-6xl px-5 sm:px-8">
-      <p data-reveal class="text-center text-xs font-semibold tracking-widest uppercase text-ink/40 mb-10">
-        Trusted by fast-moving teams at
-      </p>
-
-      <div data-reveal-stagger class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 items-center">
-        <div class="flex items-center justify-center h-10 font-display font-semibold text-ink/40">Northwind</div>
-        <div class="flex items-center justify-center h-10 font-display font-semibold text-ink/40">Solace</div>
-        <div class="flex items-center justify-center h-10 font-display font-semibold text-ink/40">Marrow</div>
-        <div class="flex items-center justify-center h-10 font-display font-semibold text-ink/40">Circuit</div>
-        <div class="flex items-center justify-center h-10 font-display font-semibold text-ink/40">Kindred</div>
-        <div class="flex items-center justify-center h-10 font-display font-semibold text-ink/40">Vantage</div>
+  <!-- ============ BROKER MARQUEE ============ -->
+  <div class="marquee-wrap">
+    <p class="marquee-label">Auto-imports from every broker &amp; platform you use</p>
+    <div class="fade-edge">
+      <div class="marquee">
+        <span class="logo">TradingView</span>
+        <span class="logo">Interactive Brokers</span>
+        <span class="logo">MetaTrader</span>
+        <span class="logo">Thinkorswim</span>
+        <span class="logo">Webull</span>
+        <span class="logo">Tradovate</span>
+        <span class="logo">NinjaTrader</span>
+        <span class="logo">Robinhood</span>
+        <!-- duplicate for seamless loop -->
+        <span class="logo">TradingView</span>
+        <span class="logo">Interactive Brokers</span>
+        <span class="logo">MetaTrader</span>
+        <span class="logo">Thinkorswim</span>
+        <span class="logo">Webull</span>
+        <span class="logo">Tradovate</span>
+        <span class="logo">NinjaTrader</span>
+        <span class="logo">Robinhood</span>
       </div>
+    </div>
+  </div>
 
-      <div data-reveal class="mt-14 max-w-2xl mx-auto text-center">
-        <p class="font-display text-xl sm:text-2xl leading-snug text-ink/80">
-          "We cut our onboarding workflow from four days to twenty minutes.
-          Edge Pro paid for itself in the first week."
-        </p>
-        <div class="mt-5 flex items-center justify-center gap-3">
-          <div class="w-9 h-9 rounded-full bg-ink/10"></div>
-          <div class="text-left">
-            <div class="text-sm font-semibold text-ink">Mira Chen</div>
-            <div class="text-xs text-ink/50">Head of Ops, Solace</div>
-          </div>
-        </div>
+  <!-- ============ STATS ============ -->
+  <section id="stats" style="padding:90px 0;">
+    <div class="wrap">
+      <div class="stats" data-reveal data-stagger>
+        <div class="stat"><div class="num grad-text tabular">$<span data-count="9" data-suffix="B+">0</span></div><div class="lbl">Trades tracked</div></div>
+        <div class="stat"><div class="num grad-text tabular"><span data-count="70" data-suffix="K+">0</span></div><div class="lbl">Active traders</div></div>
+        <div class="stat"><div class="num grad-text tabular"><span data-count="4.9" data-decimals="1">0</span>★</div><div class="lbl">Average rating</div></div>
+        <div class="stat"><div class="num grad-text tabular"><span data-count="20" data-suffix="+">0</span></div><div class="lbl">Broker integrations</div></div>
       </div>
     </div>
   </section>
 
   <!-- ============ FEATURES ============ -->
-  <section id="features" class="py-24 sm:py-32">
-    <div class="mx-auto max-w-6xl px-5 sm:px-8">
-      <div data-reveal class="max-w-2xl mx-auto text-center mb-16">
-        <span class="text-xs font-semibold tracking-widest uppercase text-ink/40">Why teams switch</span>
-        <h2 class="font-display font-semibold text-3xl sm:text-4xl tracking-tight mt-3">
-          Everything your workflow needs, nothing it doesn't
-        </h2>
-        <p class="mt-4 text-ink/60 leading-relaxed">
-          Built for operations teams who need to move fast without waiting on a sprint cycle.
-        </p>
+  <section id="features" style="padding:70px 0;">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Everything in one place</span>
+        <h2 class="h2">A complete cockpit for your trading</h2>
+        <p class="lead">Stop juggling spreadsheets. Edge Pro brings journaling, analytics, backtesting and review together so you can improve every single session.</p>
       </div>
 
-      <div data-reveal-stagger class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <div class="glass rounded-2xl p-7 hover:shadow-lg hover:shadow-black/5 transition-shadow duration-300">
-          <div class="w-11 h-11 rounded-xl bg-ink flex items-center justify-center mb-5">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"/></svg>
+      <div class="bento" data-stagger data-reveal>
+        <!-- Wide analytics card with sparkline -->
+        <article class="feature span-2">
+          <div class="f-ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="4" width="3" height="14"/></svg>
           </div>
-          <h3 class="font-display font-semibold text-lg text-ink">Instant automations</h3>
-          <p class="mt-2 text-sm text-ink/60 leading-relaxed">
-            Drag, drop, and connect any tool in your stack. No code, no waiting on engineering
-            to ship a fix.
-          </p>
-        </div>
+          <h3>Deep performance analytics</h3>
+          <p>Win rate, profit factor, expectancy, R-multiples, drawdown, and 40+ metrics — sliced by symbol, setup, time of day, and emotion. Find your real edge in seconds.</p>
+          <div class="spark" aria-hidden="true">
+            <i style="--h:40%; height:40%"></i><i style="height:62%"></i><i style="height:48%"></i><i style="height:78%"></i>
+            <i style="height:55%"></i><i style="height:90%"></i><i style="height:70%"></i><i style="height:100%"></i>
+            <i style="height:82%"></i><i style="height:95%"></i>
+          </div>
+        </article>
 
-        <div class="glass rounded-2xl p-7 hover:shadow-lg hover:shadow-black/5 transition-shadow duration-300">
-          <div class="w-11 h-11 rounded-xl bg-ink flex items-center justify-center mb-5">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        <article class="feature">
+          <div class="f-ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/></svg>
           </div>
-          <h3 class="font-display font-semibold text-lg text-ink">Real-time visibility</h3>
-          <p class="mt-2 text-sm text-ink/60 leading-relaxed">
-            Track every run, catch failures before they cascade, and see exactly where time
-            gets saved.
-          </p>
-        </div>
+          <h3>One-click auto-import</h3>
+          <p>Connect your broker once and every trade syncs automatically — entries, exits, fees, and commissions. No manual entry, ever.</p>
+        </article>
 
-        <div class="glass rounded-2xl p-7 hover:shadow-lg hover:shadow-black/5 transition-shadow duration-300">
-          <div class="w-11 h-11 rounded-xl bg-ink flex items-center justify-center mb-5">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <article class="feature">
+          <div class="f-ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           </div>
-          <h3 class="font-display font-semibold text-lg text-ink">Enterprise-grade security</h3>
-          <p class="mt-2 text-sm text-ink/60 leading-relaxed">
-            SOC 2 Type II, SSO, and granular permissions — built in from day one, not bolted
-            on later.
-          </p>
+          <h3>Trade replay</h3>
+          <p>Step back through any trade bar-by-bar to see exactly where you nailed the entry — or hesitated on the exit.</p>
+        </article>
+
+        <article class="feature">
+          <div class="f-ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          </div>
+          <h3>Smart journaling</h3>
+          <p>Tag setups, attach screenshots, and log your mindset. Turn daily notes into a searchable playbook of what actually works.</p>
+        </article>
+
+        <article class="feature">
+          <div class="f-ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+          </div>
+          <h3>Strategy backtesting</h3>
+          <p>Test any idea against historical data before you risk a dollar. Validate your edge, then trade it with conviction.</p>
+        </article>
+
+        <article class="feature">
+          <div class="f-ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h3>Bank-grade security</h3>
+          <p>Read-only broker connections, 256-bit encryption, and SOC 2 compliance. Your data is yours — we never place trades.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section id="how" style="padding:80px 0;">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Live in minutes</span>
+        <h2 class="h2">From messy history to clear edge in 3 steps</h2>
+      </div>
+      <div class="steps" data-stagger data-reveal>
+        <div class="step">
+          <div class="step-n">1</div>
+          <h3>Connect your broker</h3>
+          <p>Securely link your accounts or drag in a CSV. Your entire trade history imports in seconds.</p>
+        </div>
+        <div class="step">
+          <div class="step-n">2</div>
+          <h3>Review &amp; journal</h3>
+          <p>Replay trades, tag your setups, and note the emotion behind each decision as you go.</p>
+        </div>
+        <div class="step">
+          <div class="step-n">3</div>
+          <h3>Find your edge</h3>
+          <p>Let the analytics surface your most profitable patterns — and the leaks quietly draining your account.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ============ CTA ============ -->
-  <section id="cta" class="py-24 sm:py-32">
-    <div class="mx-auto max-w-5xl px-5 sm:px-8">
-      <div data-reveal class="rounded-3xl glass-dark px-6 sm:px-16 py-16 sm:py-20 text-center">
-        <h2 class="font-display font-semibold text-3xl sm:text-5xl tracking-tight text-white leading-tight">
-          Give your team back
-          <br class="hidden sm:block" />
-          its most valuable hours.
-        </h2>
-        <p class="mt-5 text-white/60 max-w-md mx-auto">
-          Start automating in minutes. Free for 14 days, no credit card required.
-        </p>
+  <!-- ============ TESTIMONIAL ============ -->
+  <section style="padding:70px 0;">
+    <div class="wrap">
+      <div class="quote-card" data-reveal>
+        <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
+        <p>"Within a month Edge Pro showed me that 80% of my losses came from one revenge-trading habit after lunch. Cutting it turned a break-even year into my best ever."</p>
+        <div class="who">
+          <span class="avatar">JR</span>
+          <div style="text-align:left;">
+            <div style="font-weight:600;font-size:15px;">Jordan Reyes</div>
+            <div style="color:var(--faint);font-size:13px;">Full-time futures trader</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-        <form class="mt-9 flex flex-col sm:flex-row gap-3 max-w-md mx-auto" onsubmit="return false;">
-          <label for="cta-email" class="sr-only">Work email</label>
-          <input
-            id="cta-email"
-            type="email"
-            required
-            autocomplete="email"
-            placeholder="you@company.com"
-            class="w-full h-12 rounded-full bg-white/10 border border-white/15 px-5 text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-white/60 transition-shadow"
-          />
-          <button type="submit" class="h-12 px-7 rounded-full bg-white text-ink font-semibold text-sm hover:bg-white/90 active:scale-[0.97] transition-all duration-200 cursor-pointer whitespace-nowrap focus-ring">
-            Start free trial
-          </button>
+  <!-- ============ CTA / PRICING ============ -->
+  <section id="pricing" style="padding:60px 0 40px;">
+    <div class="wrap">
+      <div class="cta-card" data-reveal>
+        <span class="pill" style="margin-bottom:22px;"><span class="dot-live"></span>Join 70,000+ traders</span>
+        <h2>Find your edge.<br/>Start trading with data.</h2>
+        <p class="lead" style="max-width:44ch;">Free for 7 days. No credit card required. Cancel anytime, keep your exported data forever.</p>
+        <form class="cta-form" onsubmit="return false;">
+          <label for="email" class="sr-only" style="position:absolute;left:-9999px;">Work email</label>
+          <input id="email" type="email" required autocomplete="email" placeholder="you@email.com" />
+          <button type="submit" class="btn btn-primary btn-lg">Start free trial</button>
         </form>
-        <p class="mt-4 text-xs text-white/35">Join 2,400+ teams already automating with Edge Pro</p>
+        <p class="hero-note" style="margin-top:16px;">Trusted by traders at prop firms, hedge funds and trading desks worldwide.</p>
       </div>
     </div>
   </section>
@@ -315,49 +671,82 @@
 </main>
 
 <!-- ============ FOOTER ============ -->
-<footer class="border-t border-ink/5 py-12">
-  <div class="mx-auto max-w-6xl px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-    <a href="#main" class="flex items-center gap-2 focus-ring rounded-full">
-      <span class="w-7 h-7 rounded-lg bg-ink flex items-center justify-center">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"/></svg>
+<footer>
+  <div class="wrap foot">
+    <a href="#main" class="brand" style="font-size:17px;">
+      <span class="brand-mark" style="width:30px;height:30px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>
       </span>
-      <span class="font-display font-semibold text-ink/80">Edge Pro</span>
+      Edge Pro
     </a>
-
-    <nav class="flex items-center gap-6 text-sm text-ink/50">
-      <a href="#features" class="hover:text-ink transition-colors focus-ring rounded">Features</a>
-      <a href="#proof" class="hover:text-ink transition-colors focus-ring rounded">Customers</a>
-      <a href="#cta" class="hover:text-ink transition-colors focus-ring rounded">Pricing</a>
+    <nav class="foot-links" aria-label="Footer">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#stats">Results</a>
     </nav>
-
-    <p class="text-xs text-ink/35">© 2026 Edge Pro, Inc. All rights reserved.</p>
+    <p style="color:var(--faint);font-size:12.5px;">© 2026 Edge Pro, Inc. All rights reserved.</p>
   </div>
 </footer>
 
 <script>
-  // Mobile menu toggle
+  // ---- Mobile menu ----
   const menuBtn = document.getElementById('menuBtn');
   const mobileMenu = document.getElementById('mobileMenu');
   menuBtn.addEventListener('click', () => {
-    const isOpen = !mobileMenu.classList.contains('hidden');
-    mobileMenu.classList.toggle('hidden');
-    menuBtn.setAttribute('aria-expanded', String(!isOpen));
+    const open = mobileMenu.classList.toggle('open');
+    menuBtn.setAttribute('aria-expanded', String(open));
   });
+  mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    mobileMenu.classList.remove('open');
+    menuBtn.setAttribute('aria-expanded', 'false');
+  }));
 
-  // Scroll-reveal animations (respects prefers-reduced-motion via CSS above)
-  const revealTargets = document.querySelectorAll('[data-reveal], [data-reveal-stagger]');
-  const io = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-          io.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
-  );
-  revealTargets.forEach((el) => io.observe(el));
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- Count-up numbers ----
+  function animateCount(el) {
+    const target = parseFloat(el.dataset.count);
+    const decimals = parseInt(el.dataset.decimals || '0', 10);
+    const suffix = el.dataset.suffix || '';
+    if (reduce) { el.textContent = target.toFixed(decimals) + suffix; return; }
+    const dur = 1400, start = performance.now();
+    function tick(now) {
+      const p = Math.min((now - start) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = (target * eased).toFixed(decimals) + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // ---- Reveal + trigger nested animations ----
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      el.classList.add('is-visible');
+
+      // count-ups inside this block
+      el.querySelectorAll('[data-count]').forEach(n => { if (!n.dataset.done) { n.dataset.done = '1'; animateCount(n); } });
+      // bar fills inside this block
+      el.querySelectorAll('.barfill').forEach(b => { b.style.width = b.dataset.w; });
+
+      io.unobserve(el);
+    });
+  }, { threshold: 0.2, rootMargin: '0px 0px -50px 0px' });
+
+  document.querySelectorAll('[data-reveal]').forEach(el => io.observe(el));
+
+  // dashboard has counts + bars but is revealed early — make sure it's observed
+  const dash = document.getElementById('dash');
+  if (dash) io.observe(dash);
+
+  // ---- Nav shadow on scroll ----
+  const nav = document.querySelector('.nav');
+  addEventListener('scroll', () => {
+    nav.style.boxShadow = window.scrollY > 10 ? '0 8px 30px rgba(0,0,0,0.5)' : 'none';
+  }, { passive: true });
 </script>
 
 </body>
