@@ -235,10 +235,22 @@
 .insight{transition:transform .2s var(--ease),border-color .2s} .insight:hover{transform:translateX(3px);border-color:var(--border-2)}
 tr{transition:background .15s}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}}
+
+/* ambient animated backdrop — fills empty space with life */
+.aurora{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+.aurora .blob{position:absolute;border-radius:50%;filter:blur(100px);opacity:.5;will-change:transform;}
+.aurora .b1{width:520px;height:520px;top:-140px;right:6%;background:radial-gradient(circle,rgba(124,92,252,.5),transparent 68%);animation:aur1 26s var(--ease) infinite alternate;}
+.aurora .b2{width:480px;height:480px;bottom:-160px;left:24%;background:radial-gradient(circle,rgba(225,92,198,.36),transparent 68%);animation:aur2 30s var(--ease) infinite alternate;}
+.aurora .b3{width:420px;height:420px;top:40%;right:30%;background:radial-gradient(circle,rgba(36,209,155,.14),transparent 70%);animation:aur1 34s var(--ease) infinite alternate;}
+@keyframes aur1{to{transform:translate(-60px,50px) scale(1.15)}}
+@keyframes aur2{to{transform:translate(50px,-40px) scale(1.1)}}
+[data-theme="light"] .aurora .blob{opacity:.26;}
+.shell{position:relative;z-index:1;}
 </style>
 <script>(function(){var p=localStorage.getItem("edgepro_theme")||"auto";var t=p;if(p==="auto"){var h=new Date().getHours();t=(h>=7&&h<19)?"light":"dark";}document.documentElement.setAttribute("data-theme",t);})();</script>
 </head>
 <body>
+<div class="aurora" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 <div class="scrim" id="scrim" onclick="toggleNav(false)"></div>
 <div class="shell">
   <aside class="sidebar" id="sidebar">
@@ -514,9 +526,33 @@ VIEWS.calendar=function(){
     <div class="cal-dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div><div class="cal-grid">${cells}</div></div>`;
 };
 VIEWS.achievements=function(){
-  const s=stats(); const streak=discStreak();
-  const A=[['🥇','First Trade','Log your first trade',s.tr.length>=1],['📓','10 Trades','Build the habit',s.tr.length>=10],['🏅','50-Trade Record','Complete your track record',s.tr.length>=50],['🔥','Discipline Streak','5 rule-following trades in a row',streak>=5],['💎','Discipline 90+','Reach a 90+ discipline score',s.dis>=90&&s.tr.length>0],['🖼️','Visual Journal','Attach your first screenshot',s.tr.some(t=>t.shot)],['📝','Weekly Reviewer','Complete a weekly check-in',(Store.get('weeks',[])||[]).length>=1],['✨','Clean Week','A full week with zero broken rules',s.tr.length>=5&&s.broken===0]];
-  $('#view').innerHTML=`<div class="card"><div class="ach-grid">${A.map(([i,n,d,on])=>`<div class="ach ${on?'on':''}"><div class="ic">${i}</div><div class="an">${n}</div><div class="ad">${d}</div></div>`).join('')}</div></div>`;
+  const s=stats(); const streak=discStreak(); const weeks=(Store.get('weeks',[])||[]).length;
+  const A=[
+    {i:'🥇',n:'First Trade',d:'Log your first trade',cur:s.tr.length,goal:1},
+    {i:'📓',n:'10 Trades',d:'Build the habit',cur:s.tr.length,goal:10},
+    {i:'🏅',n:'50-Trade Record',d:'Complete your track record',cur:s.tr.length,goal:50},
+    {i:'🔥',n:'Discipline Streak',d:'5 rule-following trades in a row',cur:streak,goal:5},
+    {i:'💎',n:'Discipline 90+',d:'Reach a 90+ discipline score',cur:s.tr.length?s.dis:0,goal:90},
+    {i:'🖼️',n:'Visual Journal',d:'Attach your first screenshot',cur:s.tr.some(t=>t.shot)?1:0,goal:1},
+    {i:'📝',n:'Weekly Reviewer',d:'Complete a weekly check-in',cur:weeks,goal:1},
+    {i:'✨',n:'Clean Week',d:'A full week with zero broken rules',cur:(s.tr.length>=5&&s.broken===0)?1:0,goal:1},
+  ];
+  A.forEach(a=>a.on=a.cur>=a.goal);
+  const unlocked=A.filter(a=>a.on).length, pct=Math.round(unlocked/A.length*100);
+  const next=A.filter(a=>!a.on).sort((x,y)=>(y.cur/y.goal)-(x.cur/x.goal))[0];
+  const badge='<div style="margin-top:10px;font-size:10.5px;font-weight:700;color:var(--win);background:rgba(36,209,155,.14);border:1px solid rgba(36,209,155,.3);padding:3px 9px;border-radius:6px;display:inline-block">Unlocked ✓</div>';
+  $('#view').innerHTML=`
+    <div class="two-col">
+      <div class="card"><div class="row-sb"><div><div class="card-title">Your badges</div><div class="card-sub">${unlocked} of ${A.length} unlocked · keep going</div></div><div class="kval violet" style="font-size:36px">${pct}%</div></div>
+        <div class="mtrack" style="margin-top:16px"><div class="mfill" style="width:${pct}%"></div></div>
+      </div>
+      ${next?`<div class="card"><div class="card-sub">Next up</div><div style="display:flex;gap:14px;align-items:center;margin-top:10px"><div style="font-size:38px">${next.i}</div><div style="flex:1"><b>${next.n}</b><div class="hint" style="margin:2px 0 9px">${next.d}</div><div class="mtrack"><div class="mfill" style="width:${Math.min(100,next.cur/next.goal*100)}%"></div></div><div class="hint" style="margin-top:6px">${Math.min(next.cur,next.goal)} / ${next.goal}</div></div></div></div>`
+        :`<div class="card" style="display:grid;place-items:center;text-align:center"><div><div style="font-size:40px">🏆</div><b style="font-size:16px">All unlocked!</b><div class="hint" style="margin-top:4px">You have earned every badge — legend.</div></div></div>`}
+    </div>
+    <div class="card section-gap"><div class="ach-grid" style="grid-template-columns:repeat(auto-fill,minmax(215px,1fr))">${A.map(a=>`
+      <div class="ach ${a.on?'on':''}"><div class="ic">${a.i}</div><div class="an">${a.n}</div><div class="ad">${a.d}</div>
+        ${a.on?badge:`<div class="mtrack" style="margin-top:12px"><div class="mfill" style="width:${Math.min(100,a.cur/a.goal*100)}%"></div></div><div class="hint" style="margin-top:6px">${Math.min(a.cur,a.goal)} / ${a.goal}</div>`}
+      </div>`).join('')}</div></div>`;
 };
 VIEWS.weekly=function(){
   const s=stats();
