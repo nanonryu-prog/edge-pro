@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Edge Pro — The trading journal that sharpens your edge</title>
-<meta name="description" content="Edge Pro is the all-in-one trading journal, analytics and backtesting platform. Auto-import your trades, review with replay, and find your edge with data-driven insights." />
+<title>EDGE Pro — Trade with discipline, not guesswork</title>
+<meta name="description" content="EDGE Pro grades every trade against your own rules, tracks your prop-firm evaluation live, and turns discipline into a game you actually want to win." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -355,6 +355,11 @@
   .cal-day.win .pl { color: var(--win); }
   .cal-day.loss { background: rgba(245,71,107,0.13); border-color: rgba(245,71,107,0.3); color: rgba(244,244,251,0.7); }
   .cal-day.loss .pl { color: var(--loss); }
+  .cal-day.slip { background: rgba(255,196,0,0.13); border-color: rgba(255,196,0,0.34); color: rgba(244,244,251,0.7); }
+  .cal-day.slip .pl { color: #FFC43D; }
+  .cal-legend { display: flex; gap: 16px; margin-top: 14px; flex-wrap: wrap; }
+  .cal-legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--faint); }
+  .cal-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 
   /* ---------- Pricing ---------- */
   .billing-toggle { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 999px; padding: 5px; margin: 22px auto 0; }
@@ -444,7 +449,7 @@
       <span class="brand-mark">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>
       </span>
-      Edge Pro
+      EDGE Pro
     </a>
 
     <nav class="nav-links" aria-label="Primary">
@@ -477,26 +482,26 @@
   <!-- ============ HERO ============ -->
   <section class="hero">
     <div class="wrap">
-      <span class="pill" data-reveal><span class="dot-live"></span>Your trading edge, backed by data</span>
+      <span class="pill" data-reveal><span class="dot-live"></span>Trading journal · built for funded accounts</span>
 
       <h1 data-reveal>
-        Journal, analyze, and
-        <span class="grad-text">master your edge.</span>
+        Discipline is <span class="grad-text">the edge</span>
+        most traders never track.
       </h1>
 
       <p class="sub" data-reveal>
-        Edge Pro is the all-in-one trading journal and analytics platform. Auto-import every trade,
-        replay your sessions, and let the data show you exactly what's working — and what's costing you.
+        EDGE Pro grades every trade against your own rules, tracks your prop-firm evaluation
+        live, and turns discipline into a game you actually want to win.
       </p>
 
       <div class="hero-actions" data-reveal>
-        <a href="login.html" class="btn btn-primary btn-lg">Start your free trial</a>
-        <a href="#how" class="btn btn-ghost btn-lg">
-          See how it works
+        <a href="login.html" class="btn btn-primary btn-lg">Start 7-day free trial</a>
+        <a href="#features" class="btn btn-ghost btn-lg">
+          See features
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
         </a>
       </div>
-      <p class="hero-note" data-reveal>No credit card required · 7-day free trial · Cancel anytime</p>
+      <p class="hero-note" data-reveal>No card required for trial · 2-min setup · Built by a funded trader</p>
     </div>
 
     <!-- ===== Dashboard mockup ===== -->
@@ -573,7 +578,7 @@
             </div>
 
             <div class="card">
-              <div class="card-label">Edge Score</div>
+              <div class="card-label">Discipline Score</div>
               <div style="display:flex; align-items:baseline; gap:8px; margin:6px 0 14px;">
                 <span class="donut-num grad-text tabular"><span data-count="74">0</span></span>
                 <span style="color:var(--faint);font-size:12px;">/ 100</span>
@@ -593,24 +598,24 @@
 
   <!-- ============ IMPORT METHODS ============ -->
   <div class="marquee-wrap">
-    <p class="marquee-label">Get your trades in, any way you like</p>
+    <p class="marquee-label">How EDGE keeps you disciplined, every session</p>
     <div class="wrap">
       <div class="import-row" data-reveal data-stagger>
         <div class="import-chip">
           <span class="chip-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></span>
-          <div><div class="chip-t">Broker sync</div><div class="chip-d">Secure read-only connection</div></div>
+          <div><div class="chip-t">Plan the session</div><div class="chip-d">Set your bias &amp; levels</div></div>
         </div>
         <div class="import-chip">
           <span class="chip-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg></span>
-          <div><div class="chip-t">CSV / spreadsheet</div><div class="chip-d">Drag, drop, auto-mapped</div></div>
+          <div><div class="chip-t">Confirm checklist</div><div class="chip-d">Every rule, before you click</div></div>
         </div>
         <div class="import-chip">
           <span class="chip-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="m3 14 4-4 4 4 3-3 7 6"/><circle cx="8.5" cy="9" r="1.5"/></svg></span>
-          <div><div class="chip-t">Screenshot &amp; note</div><div class="chip-d">Attach chart context</div></div>
+          <div><div class="chip-t">Log the trade</div><div class="chip-d">Emotion, notes &amp; a screenshot</div></div>
         </div>
         <div class="import-chip">
           <span class="chip-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
-          <div><div class="chip-t">Manual entry</div><div class="chip-d">Fast keyboard-first form</div></div>
+          <div><div class="chip-t">Get graded</div><div class="chip-d">Discipline score &amp; XP</div></div>
         </div>
       </div>
     </div>
@@ -620,10 +625,10 @@
   <section id="stats" style="padding:90px 0;">
     <div class="wrap">
       <div class="stats" data-reveal data-stagger>
-        <div class="stat"><div class="num grad-text tabular"><span data-count="40" data-suffix="+">0</span></div><div class="lbl">Performance metrics</div></div>
-        <div class="stat"><div class="num grad-text">1-click</div><div class="lbl">Broker sync &amp; import</div></div>
-        <div class="stat"><div class="num grad-text">Bar&nbsp;×&nbsp;bar</div><div class="lbl">Trade replay</div></div>
-        <div class="stat"><div class="num grad-text">Read-only</div><div class="lbl">We never place trades</div></div>
+        <div class="stat"><div class="num grad-text tabular"><span data-count="100" data-suffix="">0</span></div><div class="lbl">Discipline score, 0&ndash;100</div></div>
+        <div class="stat"><div class="num grad-text">Prop-firm</div><div class="lbl">Evaluation tracking, live</div></div>
+        <div class="stat"><div class="num grad-text">XP &amp; levels</div><div class="lbl">Discipline, gamified</div></div>
+        <div class="stat"><div class="num grad-text">50-trade</div><div class="lbl">Verified track record</div></div>
       </div>
     </div>
   </section>
@@ -634,94 +639,67 @@
       <div class="section-head" data-reveal>
         <span class="eyebrow">Everything in one place</span>
         <h2 class="h2">A complete cockpit for your trading</h2>
-        <p class="lead">Stop juggling spreadsheets. Edge Pro brings journaling, analytics, backtesting and review together so you can improve every single session.</p>
+        <p class="lead">Stop juggling spreadsheets. EDGE Pro brings journaling, analytics, backtesting and review together so you can improve every single session.</p>
       </div>
 
       <div class="bento" data-stagger data-reveal>
-        <!-- Wide analytics card with sparkline -->
         <article class="feature span-2">
-          <div class="f-ico">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="4" width="3" height="14"/></svg>
-          </div>
-          <h3>Deep performance analytics</h3>
-          <p>Win rate, profit factor, expectancy, R-multiples, drawdown, and 40+ metrics — sliced by symbol, setup, time of day, and emotion. Find your real edge in seconds.</p>
+          <div class="f-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg></div>
+          <h3>Discipline scoring</h3>
+          <p>Every trade is graded 0&ndash;100 on how well you followed your own rules &mdash; not just whether it won. See exactly where slips cost you, and watch your score climb as you tighten up.</p>
           <div class="spark" aria-hidden="true">
-            <i style="--h:40%; height:40%"></i><i style="height:62%"></i><i style="height:48%"></i><i style="height:78%"></i>
+            <i style="height:40%"></i><i style="height:62%"></i><i style="height:48%"></i><i style="height:78%"></i>
             <i style="height:55%"></i><i style="height:90%"></i><i style="height:70%"></i><i style="height:100%"></i>
             <i style="height:82%"></i><i style="height:95%"></i>
           </div>
         </article>
 
         <article class="feature">
-          <div class="f-ico">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/></svg>
-          </div>
-          <h3>One-click auto-import</h3>
-          <p>Connect your broker once and every trade syncs automatically — entries, exits, fees, and commissions. No manual entry, ever.</p>
+          <div class="f-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+          <h3>Prop-firm evaluation, live</h3>
+          <p>Track your FTMO-style challenge in real time &mdash; profit target, daily loss limit and max trailing drawdown &mdash; so you never blow the account on a rule you forgot.</p>
         </article>
 
         <article class="feature">
-          <div class="f-ico">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          </div>
-          <h3>Trade replay</h3>
-          <p>Step back through any trade bar-by-bar to see exactly where you nailed the entry — or hesitated on the exit.</p>
+          <div class="f-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="m8 9 2 2 4-4"/><path d="M8 16h8"/></svg></div>
+          <h3>Pre-trade checklist</h3>
+          <p>Confirm every rule from your playbook before you click buy. If the setup is not clean, EDGE tells you to stand down.</p>
         </article>
 
         <article class="feature">
-          <div class="f-ico">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-          </div>
-          <h3>Smart journaling</h3>
-          <p>Tag setups, attach screenshots, and log your mindset. Turn daily notes into a searchable playbook of what actually works.</p>
-        </article>
-
-        <article class="feature">
-          <div class="f-ico">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
-          </div>
-          <h3>Strategy backtesting</h3>
-          <p>Test any idea against historical data before you risk a dollar. Validate your edge, then trade it with conviction.</p>
-        </article>
-
-        <article class="feature">
-          <div class="f-ico">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
-          </div>
+          <div class="f-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></div>
           <h3>Playbooks &amp; setups</h3>
-          <p>Define each setup once, then track its win rate, expectancy and R:R over time. Trade only the playbooks that actually pay.</p>
+          <p>Define each strategy and its rules once. EDGE tracks which setups actually work and uses them to power your checklist and grading.</p>
         </article>
 
         <article class="feature">
-          <div class="f-ico">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6c0 2 1 3.2 2 4.5.6.8 1 1.5 1 2.5h6c0-1 .4-1.7 1-2.5 1-1.3 2-2.5 2-4.5a6 6 0 0 0-6-6Z"/><path d="M9 21h6"/><path d="M10 18h4"/></svg>
-          </div>
-          <h3>AI insight engine</h3>
-          <p>Edge Pro reads your history and flags what's helping — and what's quietly bleeding your account, from overtrading to holding losers too long.</p>
+          <div class="f-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></div>
+          <h3>XP, levels &amp; achievements</h3>
+          <p>Turn discipline into a game. Earn XP for following your plan, level up, and unlock achievements for streaks and clean, rule-following weeks.</p>
         </article>
 
         <article class="feature">
-          <div class="f-ico">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>
-          </div>
-          <h3>Goals &amp; Edge Score</h3>
-          <p>Set targets for win rate, risk and consistency, then watch your composite Edge Score climb as your discipline improves.</p>
+          <div class="f-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8"/><path d="M8 10h8"/><path d="M8 14h3"/><path d="M8 18h3"/><path d="M15 14h1"/><path d="M15 18h1"/></svg></div>
+          <h3>Built-in calculators</h3>
+          <p>Size every position to your risk and check reward-to-risk before you enter &mdash; no spreadsheets, no guesswork, no oversized trades.</p>
         </article>
 
         <article class="feature">
-          <div class="f-ico">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-          </div>
-          <h3>Every market, one view</h3>
-          <p>Stocks, options, futures, forex and crypto — across all your accounts, normalized into a single, comparable performance picture.</p>
+          <div class="f-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 2a2.5 2.5 0 0 0-2.5 2.5A2.5 2.5 0 0 0 4.5 7 2.5 2.5 0 0 0 5 12a2.5 2.5 0 0 0 2 4.5 2.5 2.5 0 0 0 5 0"/><path d="M14.5 2a2.5 2.5 0 0 1 2.5 2.5A2.5 2.5 0 0 1 19.5 7 2.5 2.5 0 0 1 19 12a2.5 2.5 0 0 1-2 4.5 2.5 2.5 0 0 1-5 0V2"/></svg></div>
+          <h3>Emotion &amp; context on every trade</h3>
+          <p>Log your mindset, tag the setup, and attach a chart screenshot. A Tilt Meter surfaces the emotional days that quietly drain your account.</p>
         </article>
 
         <article class="feature">
-          <div class="f-ico">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </div>
-          <h3>Bank-grade security</h3>
-          <p>Read-only broker connections, 256-bit encryption, and SOC 2 practices. Your data is yours — we never place trades.</p>
+          <div class="f-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></div>
+          <h3>Weekly reviews &amp; goals</h3>
+          <p>Guided weekly check-ins plus personal targets kept separate from your prop-firm eval &mdash; so you are always working on one clear thing.</p>
+        </article>
+
+        <article class="feature">
+          <div class="f-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v2M12 19v2M5 12H3M21 12h-2"/><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="m18 6-1.5 1.5M7.5 16.5 6 18"/></svg></div>
+          <h3>AI trade review</h3>
+          <p>Get an instant, honest read on any trade &mdash; what you did well, what broke your rules, and the one change to make next.</p>
         </article>
       </div>
     </div>
@@ -733,12 +711,12 @@
       <div class="cal-section">
         <div class="cal-copy" data-reveal>
           <span class="eyebrow">See your month at a glance</span>
-          <h2>Your P&amp;L, mapped to every trading day</h2>
-          <p>A colour-coded calendar turns a wall of numbers into an instant read on your month — spot hot streaks, tilt days, and the sessions worth studying.</p>
+          <h2>Your whole month, colour-coded by discipline</h2>
+          <p>Green for profit, red for loss — and gold for the days you made money but broke a rule. Because a win that ignored your plan is the trade most likely to blow the account next time.</p>
           <ul class="cal-points">
-            <li><span class="tick"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Green and red days with net P&amp;L and trade count</li>
-            <li><span class="tick"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Weekly and monthly totals rolled up automatically</li>
-            <li><span class="tick"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Click any day to jump straight into that session's journal</li>
+            <li><span class="tick"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Net P&amp;L and trade count on every day</li>
+            <li><span class="tick"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Gold rule-slip days surface hidden bad habits</li>
+            <li><span class="tick"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Click any day to open that session's journal</li>
           </ul>
         </div>
 
@@ -749,6 +727,11 @@
           </div>
           <div class="cal-dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
           <div class="cal-grid" id="calGrid"></div>
+          <div class="cal-legend">
+            <span><i style="background:rgba(36,209,155,0.6)"></i>Profit</span>
+            <span><i style="background:rgba(245,71,107,0.6)"></i>Loss</span>
+            <span><i style="background:#FFC43D"></i>Rule slip</span>
+          </div>
         </div>
       </div>
     </div>
@@ -759,23 +742,23 @@
     <div class="wrap">
       <div class="section-head" data-reveal>
         <span class="eyebrow">Live in minutes</span>
-        <h2 class="h2">From messy history to clear edge in 3 steps</h2>
+        <h2 class="h2">From first rule to funded, in 3 steps</h2>
       </div>
       <div class="steps" data-stagger data-reveal>
         <div class="step">
           <div class="step-n">1</div>
-          <h3>Connect your broker</h3>
-          <p>Securely link your accounts or drag in a CSV. Your entire trade history imports in seconds.</p>
+          <h3>Build your playbook</h3>
+          <p>Write your setups and rules once. They power your pre-trade checklist and every discipline grade.</p>
         </div>
         <div class="step">
           <div class="step-n">2</div>
-          <h3>Review &amp; journal</h3>
-          <p>Replay trades, tag your setups, and note the emotion behind each decision as you go.</p>
+          <h3>Log every trade</h3>
+          <p>Confirm your checklist, log the trade, and add your emotion and a screenshot while it is fresh.</p>
         </div>
         <div class="step">
           <div class="step-n">3</div>
-          <h3>Find your edge</h3>
-          <p>Let the analytics surface your most profitable patterns — and the leaks quietly draining your account.</p>
+          <h3>Level up your discipline</h3>
+          <p>Get graded, review each week, and watch your discipline score, XP and funding progress climb.</p>
         </div>
       </div>
     </div>
@@ -785,8 +768,8 @@
   <section style="padding:70px 0;">
     <div class="wrap">
       <div class="quote-card" data-reveal>
-        <span class="eyebrow">The Edge Pro idea</span>
-        <p style="margin-top:14px;">The best traders aren't the luckiest — they're the ones who <span class="grad-text">review</span>. Edge Pro turns every trade into a lesson, so your next decision is sharper than your last.</p>
+        <span class="eyebrow">Why EDGE Pro exists</span>
+        <p style="margin-top:14px;">Most traders blow funded accounts on rules they already knew. EDGE Pro makes <span class="grad-text">discipline</span> impossible to ignore — and genuinely fun to build, one graded trade at a time.</p>
       </div>
     </div>
   </section>
@@ -795,67 +778,61 @@
   <section id="pricing" style="padding:80px 0 40px;">
     <div class="wrap">
       <div class="section-head" data-reveal style="margin-bottom:0;">
-        <span class="eyebrow">Simple, honest pricing</span>
-        <h2 class="h2">Pick the plan that fits your trading</h2>
-        <p class="lead">Every plan starts with a 7-day free trial. No credit card to start, cancel anytime.</p>
-        <div class="billing-toggle" role="group" aria-label="Billing period">
-          <button type="button" id="billMonthly">Monthly</button>
-          <button type="button" id="billAnnual" class="active">Annual<span class="save-badge">Save 20%</span></button>
-        </div>
+        <span class="eyebrow">Simple pricing</span>
+        <h2 class="h2">Three plans, one goal: your discipline</h2>
+        <p class="lead">Every plan starts with a 7-day free trial. No card to start, cancel anytime.</p>
       </div>
 
       <div class="price-grid" data-reveal data-stagger>
-        <!-- Basic -->
+        <!-- Starter -->
         <div class="price-card">
-          <div class="price-name">Basic</div>
-          <div class="price-desc">For traders getting serious about review.</div>
-          <div class="price-amt">$<span class="num" data-monthly="29" data-annual="23">23</span><span class="per">/mo</span></div>
-          <div class="price-bill" data-annualbill="Billed $276/year" data-monthlybill="Billed monthly">Billed $276/year</div>
+          <div class="price-name">Starter</div>
+          <div class="price-desc">For traders just starting to journal seriously.</div>
+          <div class="price-amt">$<span class="num">9</span><span class="per">/mo</span></div>
+          <div class="price-bill">Billed monthly</div>
           <a href="login.html" class="btn btn-ghost">Start free trial</a>
           <ul class="price-feats">
-            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Sync 1 broker account</li>
-            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Core analytics &amp; reports</li>
-            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Trade journal &amp; notebook</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Up to 50 trades / month</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Win rate, profit factor, equity curve</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Basic discipline score</li>
             <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>P&amp;L calendar</li>
-            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>90-day trade history</li>
           </ul>
         </div>
 
         <!-- Pro -->
         <div class="price-card popular">
           <div class="price-name">Pro</div>
-          <div class="price-desc">Everything you need to find and keep your edge.</div>
-          <div class="price-amt">$<span class="num" data-monthly="49" data-annual="39">39</span><span class="per">/mo</span></div>
-          <div class="price-bill" data-annualbill="Billed $468/year" data-monthlybill="Billed monthly">Billed $468/year</div>
+          <div class="price-desc">For traders actively mid-evaluation.</div>
+          <div class="price-amt">$<span class="num">15</span><span class="per">/mo</span></div>
+          <div class="price-bill">Billed monthly</div>
           <a href="login.html" class="btn btn-primary">Start free trial</a>
           <ul class="price-feats">
-            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Everything in Basic, plus:</li>
-            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Unlimited broker accounts</li>
-            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Advanced analytics · 40+ metrics</li>
-            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Trade replay</li>
-            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Playbooks &amp; setup tracking</li>
-            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Backtesting &amp; unlimited history</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Unlimited trades</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Full discipline scoring + rule checklist</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Screenshots, emotion &amp; notes on every trade</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>XP, levels &amp; achievements</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Position size &amp; R:R calculators</li>
           </ul>
         </div>
 
-        <!-- Elite -->
+        <!-- Funded -->
         <div class="price-card">
-          <div class="price-name">Elite</div>
-          <div class="price-desc">For full-time and funded traders.</div>
-          <div class="price-amt">$<span class="num" data-monthly="99" data-annual="79">79</span><span class="per">/mo</span></div>
-          <div class="price-bill" data-annualbill="Billed $948/year" data-monthlybill="Billed monthly">Billed $948/year</div>
+          <div class="price-name">Funded</div>
+          <div class="price-desc">For live funded accounts &amp; multi-account traders.</div>
+          <div class="price-amt">$<span class="num">25</span><span class="per">/mo</span></div>
+          <div class="price-bill">Billed monthly</div>
           <a href="login.html" class="btn btn-ghost">Start free trial</a>
           <ul class="price-feats">
             <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Everything in Pro, plus:</li>
-            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>AI insight engine</li>
-            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Strategy optimizer</li>
-            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Mentor mode &amp; sharing</li>
-            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Data export &amp; API access</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Multi-account tracking</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Live drawdown &amp; daily-loss alerts</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Session countdown &amp; weekly check-ins</li>
+            <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>AI trade review</li>
             <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Priority support</li>
           </ul>
         </div>
       </div>
-      <p class="price-note">Prices in USD. Switch or cancel anytime — your exported data is always yours to keep.</p>
+      <p class="price-note">Prices in USD. Cancel anytime — your data is always yours to export and keep.</p>
     </div>
   </section>
 
@@ -864,7 +841,7 @@
     <div class="wrap">
       <div class="cta-card" data-reveal>
         <span class="pill" style="margin-bottom:22px;"><span class="dot-live"></span>Start in minutes</span>
-        <h2>Find your edge.<br/>Start trading with data.</h2>
+        <h2>Trade with discipline,<br/>not guesswork.</h2>
         <p class="lead" style="max-width:44ch;">Free for 7 days. No credit card required. Cancel anytime, and keep your exported data forever.</p>
         <form class="cta-form" action="login.html" method="get">
           <label for="email" class="sr-only" style="position:absolute;left:-9999px;">Email</label>
@@ -885,7 +862,7 @@
       <span class="brand-mark" style="width:30px;height:30px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>
       </span>
-      Edge Pro
+      EDGE Pro
     </a>
     <nav class="foot-links" aria-label="Footer">
       <a href="#features">Features</a>
@@ -893,7 +870,7 @@
       <a href="#pricing">Pricing</a>
       <a href="#stats">Why us</a>
     </nav>
-    <p style="color:var(--faint);font-size:12.5px;">© 2026 Edge Pro, Inc. All rights reserved.</p>
+    <p style="color:var(--faint);font-size:12.5px;">© 2026 EDGE Pro, Inc. All rights reserved.</p>
   </div>
 </footer>
 
@@ -962,10 +939,10 @@
     if (!grid) return;
     // day -> { pl, trades }; missing weekdays = flat / no-trade
     const data = {
-      2:{pl:420,n:4}, 3:{pl:-180,n:3}, 4:{pl:640,n:5}, 5:{pl:90,n:2}, 6:{pl:-260,n:4},
+      2:{pl:420,n:4}, 3:{pl:-180,n:3}, 4:{pl:640,n:5}, 5:{pl:90,n:2,slip:true}, 6:{pl:-260,n:4},
       9:{pl:510,n:3}, 10:{pl:160,n:2}, 12:{pl:720,n:6}, 13:{pl:-340,n:4},
       16:{pl:230,n:3}, 17:{pl:-410,n:5}, 18:{pl:180,n:2}, 19:{pl:710,n:4},
-      23:{pl:-220,n:3}, 24:{pl:600,n:4}, 25:{pl:260,n:3}, 26:{pl:640,n:5}, 27:{pl:-130,n:2},
+      23:{pl:-220,n:3}, 24:{pl:600,n:4,slip:true}, 25:{pl:260,n:3}, 26:{pl:640,n:5}, 27:{pl:-130,n:2},
       30:{pl:790,n:4}, 31:{pl:414,n:3}
     };
     const daysInMonth = 31;
@@ -980,7 +957,7 @@
       let cls = 'cal-day', inner = `<span>${d}</span>`;
       if (t) {
         net += t.pl;
-        cls += t.pl >= 0 ? ' win' : ' loss';
+        cls += t.slip ? ' slip' : (t.pl >= 0 ? ' win' : ' loss');
         const sign = t.pl >= 0 ? '+' : '-';
         inner += `<span class="pl">${sign}$${Math.abs(t.pl)}</span>`;
       } else {
