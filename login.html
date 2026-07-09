@@ -406,13 +406,13 @@
       saveUsers(users);
       localStorage.setItem(SESSION_KEY, JSON.stringify({ email, name: users[email].name }));
       showMsg('Account created! Opening your journal…', true);
-      setTimeout(() => location.href = 'trading_journal_3.html', 700);
+      setTimeout(() => location.href = 'app.html', 700);
     } else {
       const u = users[email];
       if (!u || u.pw !== await hash(pw)) { showMsg('Wrong email or password.', false); return; }
       localStorage.setItem(SESSION_KEY, JSON.stringify({ email, name: u.name }));
       showMsg('Welcome back! Opening your journal…', true);
-      setTimeout(() => location.href = 'trading_journal_3.html', 600);
+      setTimeout(() => location.href = 'app.html', 600);
     }
   });
 
