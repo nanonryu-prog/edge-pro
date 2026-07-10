@@ -474,6 +474,61 @@
   [data-theme="light"] .cal-day.win,
   [data-theme="light"] .cal-day.loss,
   [data-theme="light"] .cal-day.slip { color: rgba(20,22,45,0.72); }
+
+  /* ===== Showcase / flip / about / contact / rich footer / support ===== */
+  [data-flip]{opacity:0;transform:perspective(1400px) rotateX(22deg) translateY(34px);transform-origin:center bottom;transition:opacity .8s var(--ease),transform .9s var(--ease);}
+  [data-flip].is-visible{opacity:1;transform:none;}
+  .browser{max-width:1000px;margin:44px auto 0;border-radius:18px;overflow:hidden;border:1px solid var(--border-2);background:linear-gradient(180deg,var(--surface),var(--bg-2));box-shadow:0 50px 120px rgba(0,0,0,.5),0 0 80px rgba(124,92,252,.16);}
+  [data-theme="light"] .browser{box-shadow:0 50px 110px rgba(20,22,45,.18),0 0 80px rgba(124,92,252,.14);}
+  .browser .bar{display:flex;gap:7px;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);}
+  .browser .bar i{width:11px;height:11px;border-radius:50%;background:var(--border-2);display:inline-block;}
+  .browser .bar span{margin-left:auto;font-size:11px;color:var(--faint);}
+  .mk-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .mk-tile{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;}
+  .mk-tile .l{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);font-weight:600;}
+  .mk-tile .v{font-family:'Space Grotesk';font-weight:700;font-size:22px;margin-top:6px;}
+  .mk-tile .v.g{color:var(--win);} .mk-tile .v.p{color:var(--violet-2);}
+  .shot-grid{display:grid;grid-template-columns:1fr;gap:18px;margin-top:22px;}
+  @media(min-width:800px){.shot-grid{grid-template-columns:repeat(3,1fr);}}
+  .shot{border-radius:16px;border:1px solid var(--border);background:linear-gradient(180deg,var(--surface),var(--bg-2));overflow:hidden;}
+  .shot .pic{height:132px;border-bottom:1px solid var(--border);padding:16px;display:flex;}
+  .shot .cap{padding:15px 18px;} .shot .cap b{font-size:15px;} .shot .cap p{font-size:13px;color:var(--muted);margin:4px 0 0;line-height:1.5;}
+  .facts{display:grid;grid-template-columns:1fr;gap:16px;} @media(min-width:640px){.facts{grid-template-columns:repeat(2,1fr);}}
+  .fact{background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--border);border-radius:16px;padding:24px;}
+  .fact .fi{width:44px;height:44px;border-radius:12px;background:rgba(124,92,252,.14);border:1px solid rgba(124,92,252,.28);color:var(--violet-2);display:grid;place-items:center;margin-bottom:14px;}
+  .fact h3{font-size:17px;font-weight:600;margin:0;} .fact p{color:var(--muted);font-size:14.5px;line-height:1.6;margin:8px 0 0;}
+  .contact-card{max-width:760px;margin:44px auto 0;text-align:center;border-radius:22px;padding:44px 28px;background:radial-gradient(120% 140% at 50% 0%,rgba(124,92,252,.2),transparent 60%),linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--border-2);}
+  .contact-methods{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:26px;}
+  .contact-mail{font-family:'Space Grotesk';font-weight:600;}
+  /* rich footer */
+  .footer-rich{border-top:1px solid var(--border);margin-top:40px;padding:56px 0 30px;}
+  .foot-grid{display:grid;grid-template-columns:1fr;gap:34px;} @media(min-width:760px){.foot-grid{grid-template-columns:1.5fr 1fr 1fr 1fr;}}
+  .foot-col h4{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin:0 0 14px;font-weight:700;}
+  .foot-col a{display:block;color:var(--muted);font-size:14px;padding:5px 0;transition:color .2s var(--ease);} .foot-col a:hover{color:var(--text);}
+  .foot-disc{color:var(--faint);font-size:12px;line-height:1.6;margin:16px 0 0;max-width:38ch;}
+  .foot-social{display:flex;gap:10px;margin-top:20px;}
+  .foot-social a{width:38px;height:38px;border-radius:10px;background:rgba(124,92,252,.1);border:1px solid var(--border);display:grid;place-items:center;color:var(--muted);transition:.2s;} .foot-social a:hover{color:var(--violet-2);border-color:rgba(124,92,252,.4);transform:translateY(-2px);}
+  .foot-bottom{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;border-top:1px solid var(--border);margin-top:40px;padding-top:22px;color:var(--faint);font-size:12.5px;}
+  /* support bubble */
+  .support-fab{position:fixed;right:22px;bottom:22px;z-index:60;display:inline-flex;align-items:center;gap:9px;height:52px;padding:0 20px 0 16px;border-radius:999px;background:var(--grad);color:#fff;font-weight:600;font-size:14px;box-shadow:0 12px 34px rgba(124,92,252,.5);cursor:pointer;transition:transform .2s var(--ease),box-shadow .2s;}
+  .support-fab:hover{transform:translateY(-2px);box-shadow:0 16px 44px rgba(124,92,252,.62);}
+  @media(max-width:520px){.support-fab span{display:none;} .support-fab{padding:0;width:54px;justify-content:center;}}
+
+  /* premium gradient showcase cards */
+  .gnum{font-family:'Space Grotesk';font-weight:700;font-size:clamp(80px,13vw,150px);line-height:.7;text-align:center;background:linear-gradient(180deg,rgba(124,92,252,.20),transparent 75%);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:-24px;user-select:none;}
+  .big-h{font-size:clamp(38px,6vw,68px);font-weight:700;line-height:1.05;letter-spacing:-.02em;margin:10px 0 0;}
+  .gcards{display:grid;grid-template-columns:1fr;gap:20px;margin-top:50px;}
+  @media(min-width:900px){.gcards{grid-template-columns:repeat(3,1fr);}}
+  .gcard{position:relative;border-radius:22px;overflow:hidden;padding:28px 26px 0;background:linear-gradient(155deg,#5B3FE0 0%,#7C5CFC 45%,#C24BDB 100%);box-shadow:0 34px 80px rgba(124,92,252,.34);display:flex;flex-direction:column;transition:transform .3s var(--ease),box-shadow .3s var(--ease);}
+  .gcard:hover{transform:translateY(-6px);box-shadow:0 44px 100px rgba(124,92,252,.46);}
+  .gcard h3{color:#fff;font-size:21px;font-weight:700;margin:0;max-width:13ch;line-height:1.2;}
+  .gcard p{color:rgba(255,255,255,.86);font-size:14px;line-height:1.55;margin:12px 0 20px;max-width:26ch;}
+  .gcard .arw{position:absolute;top:26px;right:26px;width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(255,255,255,.45);display:grid;place-items:center;color:#fff;transition:.2s;}
+  .gcard:hover .arw{background:#fff;color:#7C5CFC;transform:rotate(-45deg);}
+  .gcard .mock{background:#fff;border-radius:12px 12px 0 0;padding:14px;margin-top:auto;box-shadow:0 -12px 44px rgba(0,0,0,.22);color:#14142A;font-family:'Inter',sans-serif;}
+  .gm-row{display:flex;justify-content:space-between;font-size:11.5px;padding:6px 0;border-bottom:1px solid #eef0f6;}
+  .gm-row:last-child{border-bottom:none;} .gm-row b{font-variant-numeric:tabular-nums;}
+  .gm-t{font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.04em;margin-bottom:6px;}
 </style>
 <script>(function(){var p=localStorage.getItem("edgepro_theme")||"auto";var t=p;if(p==="auto"){var h=new Date().getHours();t=(h>=7&&h<19)?"light":"dark";}document.documentElement.setAttribute("data-theme",t);})();</script>
 </head>
@@ -505,6 +560,7 @@
       <a href="#how">How it works</a>
       <a href="#stats">Why us</a>
       <a href="#pricing">Pricing</a>
+      <a href="#contact">Contact</a>
     </nav>
 
     <div class="nav-cta">
@@ -522,6 +578,7 @@
       <a href="#how">How it works</a>
       <a href="#stats">Why us</a>
       <a href="#pricing">Pricing</a>
+      <a href="#contact">Contact</a>
     </div>
   </div>
 </header>
@@ -921,6 +978,69 @@
     </div>
   </section>
 
+  <!-- ============ SHOWCASE ============ -->
+  <section id="inside" style="padding:90px 0;">
+    <div class="wrap">
+      <div class="section-head" data-reveal style="margin-bottom:0">
+        <div class="gnum" aria-hidden="true">01</div>
+        <span class="eyebrow">A look inside</span>
+        <h2 class="big-h">See your discipline <span class="grad-text">take shape.</span></h2>
+        <p class="lead">Fifty-plus reports, a colour-coded calendar and a live evaluation tracker — the whole cockpit, built for calm, focused review.</p>
+        <a href="login.html" class="btn btn-primary btn-lg" style="margin-top:26px">Get started now →</a>
+      </div>
+      <div class="gcards">
+        <article class="gcard" data-flip><span class="arw"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><h3>Dive deeper into your strategy</h3><p>40+ reports to visualize your performance and find your real edge.</p><div class="mock"><div class="gm-t">YOUR STATS</div>
+            <div class="gm-row"><span>Total P&amp;L</span><b style="color:#0FA678">+$4,824</b></div>
+            <div class="gm-row"><span>Win rate</span><b>57%</b></div>
+            <div class="gm-row"><span>Profit factor</span><b>2.3</b></div>
+            <div class="gm-row"><span>Avg winner</span><b style="color:#0FA678">$360</b></div>
+            <div class="gm-row"><span>Avg loser</span><b style="color:#E23860">-$212</b></div>
+            <div class="gm-row"><span>Expectancy</span><b style="color:#0FA678">+$114</b></div></div></article>
+        <article class="gcard" data-flip><span class="arw"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><h3>See your month at a glance</h3><p>Green wins, red losses, gold rule-slips — your discipline, colour-coded.</p><div class="mock"><div class="gm-t">MARCH · +$4,824</div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px"><div style="aspect-ratio:1;border-radius:4px;background:#eef0f6"></div><div style="aspect-ratio:1;border-radius:4px;background:#eef0f6"></div><div style="aspect-ratio:1;border-radius:4px;background:#eef0f6"></div><div style="aspect-ratio:1;border-radius:4px;background:#eef0f6"></div><div style="aspect-ratio:1;border-radius:4px;background:#d6f5ea"></div><div style="aspect-ratio:1;border-radius:4px;background:#eef0f6"></div><div style="aspect-ratio:1;border-radius:4px;background:#eef0f6"></div><div style="aspect-ratio:1;border-radius:4px;background:#d6f5ea"></div><div style="aspect-ratio:1;border-radius:4px;background:#ffe9b8"></div><div style="aspect-ratio:1;border-radius:4px;background:#d6f5ea"></div><div style="aspect-ratio:1;border-radius:4px;background:#ffd9e0"></div><div style="aspect-ratio:1;border-radius:4px;background:#d6f5ea"></div><div style="aspect-ratio:1;border-radius:4px;background:#eef0f6"></div><div style="aspect-ratio:1;border-radius:4px;background:#eef0f6"></div><div style="aspect-ratio:1;border-radius:4px;background:#d6f5ea"></div><div style="aspect-ratio:1;border-radius:4px;background:#d6f5ea"></div><div style="aspect-ratio:1;border-radius:4px;background:#ffd9e0"></div><div style="aspect-ratio:1;border-radius:4px;background:#d6f5ea"></div><div style="aspect-ratio:1;border-radius:4px;background:#d6f5ea"></div><div style="aspect-ratio:1;border-radius:4px;background:#eef0f6"></div><div style="aspect-ratio:1;border-radius:4px;background:#eef0f6"></div><div style="aspect-ratio:1;border-radius:4px;background:#d6f5ea"></div><div style="aspect-ratio:1;border-radius:4px;background:#ffe9b8"></div><div style="aspect-ratio:1;border-radius:4px;background:#d6f5ea"></div></div>
+            <div style="display:flex;gap:12px;margin-top:10px;font-size:10px;color:#6b7280"><span>🟢 Profit</span><span>🔴 Loss</span><span>🟡 Slip</span></div></div></article>
+        <article class="gcard" data-flip><span class="arw"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><h3>Track your road to funded</h3><p>Profit target, daily loss and trailing drawdown, live as you trade.</p><div class="mock"><div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="font-size:16px">🚀</span><b style="font-size:13px">FTMO · $10K</b></div>
+            <div class="gm-row"><span>Win rate</span><b style="color:#0FA678">57%</b></div>
+            <div class="gm-row"><span>Net P&amp;L</span><b style="color:#0FA678">+$4,824</b></div>
+            <div class="gm-row"><span>Profit factor</span><b>2.3</b></div>
+            <div style="margin-top:10px"><div style="font-size:10px;color:#6b7280;margin-bottom:4px">Profit target · 75%</div><div style="height:7px;border-radius:6px;background:#eef0f6;overflow:hidden"><div style="width:75%;height:100%;background:linear-gradient(90deg,#7C5CFC,#C24BDB)"></div></div></div></div></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section id="about" style="padding:70px 0;">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">About EDGE Pro</span>
+        <h2 class="h2">Built by a funded trader, for funded traders</h2>
+        <p class="lead">EDGE Pro started as one trader's own spreadsheet for staying disciplined through prop-firm evaluations. It grew into the journal we wished existed.</p>
+      </div>
+      <div class="facts" data-reveal data-stagger>
+        <div class="fact"><div class="fi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg></div><h3>Discipline-first</h3><p>Every trade is graded against your own rules — not just whether it won. The habit is the edge.</p></div>
+        <div class="fact"><div class="fi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h3>Your data is yours</h3><p>Export or delete it anytime. We never sell your data, and EDGE Pro never places trades on your behalf.</p></div>
+        <div class="fact"><div class="fi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5Z"/><path d="m9 12 2 2 4-4"/></svg></div><h3>Made for evaluations</h3><p>Track FTMO-style targets, daily loss limits and trailing drawdown live, so you never break a rule you forgot.</p></div>
+        <div class="fact"><div class="fi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22h16"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/></svg></div><h3>Journaling that sticks</h3><p>XP, streaks and a colour-coded calendar turn review into a habit you actually look forward to.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section id="contact" style="padding:60px 0;">
+    <div class="wrap">
+      <div class="contact-card" data-reveal>
+        <span class="eyebrow">We're here to help</span>
+        <h2 class="h2" style="margin-top:12px">Questions? Talk to a human.</h2>
+        <p class="lead" style="max-width:46ch">Real support from people who actually trade. Most emails are answered within a day.</p>
+        <div class="contact-methods">
+          <a href="mailto:support@edgeprojournal.com" class="btn btn-primary btn-lg">Email support</a>
+          <a href="mailto:hello@edgeprojournal.com" class="btn btn-ghost btn-lg">Say hello</a>
+        </div>
+        <p class="hero-note" style="margin-top:18px">support@edgeprojournal.com · hello@edgeprojournal.com</p>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ CTA ============ -->
   <section id="get-started" style="padding:60px 0 40px;">
     <div class="wrap">
@@ -941,23 +1061,50 @@
 </main>
 
 <!-- ============ FOOTER ============ -->
-<footer>
-  <div class="wrap foot">
-    <a href="#main" class="brand" style="font-size:17px;">
-      <span class="brand-mark" style="width:30px;height:30px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>
-      </span>
-      EDGE Pro
-    </a>
-    <nav class="foot-links" aria-label="Footer">
-      <a href="#features">Features</a>
-      <a href="#how">How it works</a>
-      <a href="#pricing">Pricing</a>
-      <a href="#stats">Why us</a>
-    </nav>
-    <p style="color:var(--faint);font-size:12.5px;">© 2026 EDGE Pro, Inc. All rights reserved.</p>
+<footer class="footer-rich">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-col">
+        <a href="#main" class="brand" style="font-size:18px;">
+          <span class="brand-mark" style="width:30px;height:30px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg></span>
+          EDGE Pro
+        </a>
+        <p class="foot-disc">The trading journal that grades your discipline. Trading involves substantial risk and is not suitable for everyone — EDGE Pro is a journaling &amp; analytics tool, not financial advice, and never places trades. Past performance does not guarantee future results.</p>
+        <div class="foot-social">
+          <a href="#" aria-label="X / Twitter" title="Add your link"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.3 8.3L23 22h-6.8l-5-6.6L5.3 22H2l7.7-8.8L1.5 2h6.9l4.6 6.1L18.9 2Zm-2.4 18h1.9L7.6 3.9H5.6L16.5 20Z"/></svg></a>
+          <a href="#" aria-label="Instagram" title="Add your link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+          <a href="#" aria-label="Discord" title="Add your link"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M20 5.3A17 17 0 0 0 15.9 4l-.3.5a13 13 0 0 1 3.6 1.8 12 12 0 0 0-10.4 0A13 13 0 0 1 12.4 4.5L12 4a17 17 0 0 0-4 1.3C5 8.9 4.3 12.4 4.5 15.8A17 17 0 0 0 9.7 18l.6-1a11 11 0 0 1-1.8-.9l.4-.3a8.6 8.6 0 0 0 7.4 0l.4.3a11 11 0 0 1-1.8.9l.6 1a17 17 0 0 0 5.2-2.2c.3-4-.8-7.4-2.9-10.5ZM9.7 14c-.7 0-1.3-.7-1.3-1.5s.6-1.5 1.3-1.5 1.3.7 1.3 1.5-.6 1.5-1.3 1.5Zm4.6 0c-.7 0-1.3-.7-1.3-1.5s.6-1.5 1.3-1.5 1.3.7 1.3 1.5-.6 1.5-1.3 1.5Z"/></svg></a>
+        </div>
+      </div>
+      <div class="foot-col">
+        <h4>Product</h4>
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#inside">See inside</a>
+        <a href="#pricing">Pricing</a>
+        <a href="login.html">Log in</a>
+      </div>
+      <div class="foot-col">
+        <h4>Company</h4>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+        <a href="mailto:careers@edgeprojournal.com">Careers</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <div class="foot-col">
+        <h4>Legal &amp; support</h4>
+        <a href="mailto:support@edgeprojournal.com">support@edgeprojournal.com</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms &amp; Conditions</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 EDGE Pro. All rights reserved.</span>
+      <span>Made for traders who review.</span>
+    </div>
   </div>
 </footer>
+<a href="#contact" class="support-fab" aria-label="Contact support"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Support</span></a>
 
 <script>
   // ---- Mobile menu ----
@@ -1006,7 +1153,7 @@
     });
   }, { threshold: 0.2, rootMargin: '0px 0px -50px 0px' });
 
-  document.querySelectorAll('[data-reveal]').forEach(el => io.observe(el));
+  document.querySelectorAll('[data-reveal],[data-flip]').forEach(el => io.observe(el));
 
   // dashboard has counts + bars but is revealed early — make sure it's observed
   const dash = document.getElementById('dash');
