@@ -35,3 +35,16 @@ begin
   end if;
 end;
 $$;
+
+-- 3) Creator / affiliate promo codes (one per creator email)
+create table if not exists public.creators (
+  email      text primary key,
+  code       text unique not null,
+  created_at timestamptz default now()
+);
+alter table public.creators enable row level security;
+drop policy if exists "own creator row" on public.creators;
+create policy "own creator row" on public.creators
+  for all
+  using (auth.jwt() ->> 'email' = email)
+  with check (auth.jwt() ->> 'email' = email);

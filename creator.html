@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237C5CFC'/%3E%3Cpath d='M7 21l6-6 4 4 8-8' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<title>Creator dashboard · EDGE Pro</title>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<script>(function(){var p=localStorage.getItem("edgepro_theme")||"dark";var t=p;if(p==="auto"){var h=new Date().getHours();t=(h>=7&&h<19)?"light":"dark";}document.documentElement.setAttribute("data-theme",t);})();</script>
+<style>
+  :root{color-scheme:dark;--bg:#0A0A16;--bg-2:#0E0E20;--surface:#14142A;--surface-2:#181836;--border:rgba(255,255,255,.08);--border-2:rgba(255,255,255,.14);--text:#F4F4FB;--muted:rgba(244,244,251,.62);--faint:rgba(244,244,251,.4);--violet:#7C5CFC;--violet-2:#9D7BFF;--pink:#E15CC6;--grad:linear-gradient(135deg,#7C5CFC,#A45CFC 45%,#E15CC6);--win:#24D19B;--ease:cubic-bezier(.16,1,.3,1);}
+  :root[data-theme="light"]{color-scheme:light;--bg:#F4F5FB;--bg-2:#fff;--surface:#fff;--surface-2:#EEF0F7;--border:rgba(18,20,45,.1);--border-2:rgba(18,20,45,.16);--text:#141428;--muted:rgba(20,22,45,.64);--faint:rgba(20,22,45,.46);}
+  *{box-sizing:border-box;} body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;letter-spacing:-.011em;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Space Grotesk','Inter',sans-serif;letter-spacing:-.02em;margin:0;} a{color:inherit;text-decoration:none;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .aurora{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;} .blob{position:absolute;border-radius:50%;filter:blur(100px);opacity:.45;}
+  .b1{width:520px;height:520px;top:-160px;right:-100px;background:radial-gradient(circle,rgba(124,92,252,.5),transparent 68%);}
+  .b2{width:440px;height:440px;bottom:-160px;left:-100px;background:radial-gradient(circle,rgba(225,92,198,.34),transparent 68%);}
+  [data-theme="light"] .blob{opacity:.24;}
+  .wrap{max-width:900px;margin:0 auto;padding:0 24px 80px;position:relative;z-index:1;}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:70px;}
+  .brand{display:inline-flex;align-items:center;gap:10px;font-family:'Space Grotesk';font-weight:700;font-size:19px;}
+  .mark{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;box-shadow:0 6px 20px rgba(124,92,252,.5);}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:0 22px;border-radius:999px;font-weight:600;font-size:14.5px;cursor:pointer;border:1px solid transparent;transition:transform .18s var(--ease),box-shadow .25s,background .2s;font-family:inherit;}
+  .btn-primary{background:var(--grad);color:#fff;box-shadow:0 8px 24px rgba(124,92,252,.42);} .btn-primary:hover{transform:translateY(-2px);}
+  .btn-ghost{background:rgba(255,255,255,.05);border-color:var(--border-2);color:var(--text);} [data-theme="light"] .btn-ghost{background:rgba(18,20,45,.04);}
+  .btn-sm{height:40px;padding:0 16px;font-size:13.5px;}
+  .eyebrow{font-size:12.5px;text-transform:uppercase;letter-spacing:.14em;font-weight:700;color:var(--violet-2);}
+  .card{background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--border);border-radius:18px;padding:26px;margin-bottom:18px;}
+  h1.title{font-size:clamp(30px,5vw,44px);font-weight:700;margin:14px 0 6px;}
+  .sub{color:var(--muted);font-size:16px;line-height:1.6;}
+  .field{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap;}
+  .code-box{flex:1;min-width:220px;background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.32);border-radius:12px;padding:14px 16px;font-family:'JetBrains Mono';font-size:18px;font-weight:600;color:var(--violet-2);display:flex;align-items:center;justify-content:space-between;gap:10px;overflow:hidden;}
+  .code-box .val{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .lbl{font-size:12px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:6px;}
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;} @media(min-width:640px){.stats{grid-template-columns:repeat(4,1fr);}}
+  .stat{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:16px;} [data-theme="light"] .stat{background:rgba(18,20,45,.02);}
+  .stat .v{font-family:'Space Grotesk';font-weight:700;font-size:26px;} .stat .v.g{color:var(--win);} .stat .l{font-size:12px;color:var(--faint);margin-top:4px;}
+  .steps{display:grid;grid-template-columns:1fr;gap:14px;} @media(min-width:760px){.steps{grid-template-columns:repeat(3,1fr);}}
+  .step{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:20px;} [data-theme="light"] .step{background:rgba(18,20,45,.02);}
+  .step .n{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;font-family:'Space Grotesk';font-weight:700;margin-bottom:12px;}
+  .step b{font-size:15px;} .step p{color:var(--muted);font-size:13.5px;line-height:1.55;margin:6px 0 0;}
+  .share-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+  .icon-btn{width:42px;height:42px;border-radius:11px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--muted);display:grid;place-items:center;cursor:pointer;} [data-theme="light"] .icon-btn{background:rgba(18,20,45,.04);}
+  .note{font-size:12.5px;color:var(--faint);margin-top:12px;line-height:1.6;}
+  .gate{text-align:center;padding:60px 20px;}
+  .hidden{display:none;}
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-2);border:1px solid var(--border-2);color:var(--text);padding:12px 20px;border-radius:12px;font-size:14px;font-weight:500;box-shadow:0 16px 40px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:.3s var(--ease);z-index:100;} #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div></div>
+<div class="wrap">
+  <nav class="nav">
+    <a href="index.html" class="brand"><span class="mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg></span>EDGE Pro</a>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="icon-btn" id="themeBtn" onclick="cycleTheme()" aria-label="Theme"></button>
+      <a href="affiliates.html" class="btn btn-ghost btn-sm">About the program</a>
+    </div>
+  </nav>
+
+  <!-- logged-out gate -->
+  <div id="gate" class="hidden">
+    <div class="card gate">
+      <span class="eyebrow">Creator program</span>
+      <h1 class="title">Get your promo code &amp; earn 10%</h1>
+      <p class="sub" style="max-width:44ch;margin:12px auto 0">Log in (or create a free account) to generate your unique promo code and referral link, then share it in your videos to earn 10% recurring on every subscriber.</p>
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:24px;flex-wrap:wrap">
+        <a href="login.html" class="btn btn-primary">Log in / Sign up</a>
+        <a href="affiliates.html" class="btn btn-ghost">How it works</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- logged-in dashboard -->
+  <div id="dash" class="hidden">
+    <header style="margin:18px 0 24px">
+      <span class="eyebrow">Creator dashboard</span>
+      <h1 class="title">Welcome, <span id="uName">trader</span> 👋</h1>
+      <p class="sub">Share your code and link everywhere you post. Every trader who subscribes with it earns you <b>10% recurring</b>.</p>
+    </header>
+
+    <div class="card">
+      <div class="lbl">Your promo code</div>
+      <div class="field">
+        <div class="code-box"><span class="val" id="code">—</span><button class="icon-btn" style="width:32px;height:32px" onclick="copyText(document.getElementById('code').textContent,'Code copied')" title="Copy code"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div>
+      </div>
+      <div class="lbl" style="margin-top:18px">Your referral link</div>
+      <div class="field">
+        <div class="code-box" style="font-size:14px"><span class="val" id="link">—</span><button class="icon-btn" style="width:32px;height:32px" onclick="copyText(document.getElementById('link').textContent,'Link copied')" title="Copy link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div>
+        <button class="btn btn-primary btn-sm" onclick="copyText(document.getElementById('link').textContent,'Link copied — go share it!')">Copy link</button>
+      </div>
+      <div class="share-row">
+        <a class="btn btn-ghost btn-sm" id="shareX" target="_blank" rel="noopener">Share on X</a>
+        <a class="btn btn-ghost btn-sm" id="shareWA" target="_blank" rel="noopener">Share on WhatsApp</a>
+        <a class="btn btn-ghost btn-sm" id="shareTG" target="_blank" rel="noopener">Share on Telegram</a>
+      </div>
+      <p class="note">Tip: put your link in your YouTube description, TikTok/IG bio, and pin it in your Discord. Your code is what ties every sale back to you.</p>
+    </div>
+
+    <div class="card">
+      <div class="lbl">Your earnings</div>
+      <div class="stats" style="margin-top:12px">
+        <div class="stat"><div class="v" id="stClicks">0</div><div class="l">Link clicks</div></div>
+        <div class="stat"><div class="v" id="stSignups">0</div><div class="l">Sign-ups</div></div>
+        <div class="stat"><div class="v" id="stSubs">0</div><div class="l">Paid subscribers</div></div>
+        <div class="stat"><div class="v g" id="stEarn">$0</div><div class="l">Earned (10%)</div></div>
+      </div>
+      <p class="note">Live earnings tracking turns on once the payout engine is connected (Tolt + Stripe). Until then, every sale through your code is recorded on our side and paid out monthly.</p>
+    </div>
+
+    <div class="card">
+      <div class="lbl" style="margin-bottom:14px">How to earn</div>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><b>Make a short video</b><p>Show how you journal with EDGE Pro — a review, a funded run, your discipline score. Authentic beats polished.</p></div>
+        <div class="step"><div class="n">2</div><b>Share your code &amp; link</b><p>Drop them in the description, your bio, and your community. Your audience can use the code at checkout.</p></div>
+        <div class="step"><div class="n">3</div><b>Earn 10% recurring</b><p>Get 10% of every subscription they pay — every month they stay. Paid out to you monthly.</p></div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:8px"><a href="mailto:creators@edgeprojournal.com?subject=Creator%20payout" class="btn btn-ghost btn-sm">Set up payouts</a></div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+  // theme
+  const _S='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+  const _M='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>';
+  const gp=()=>localStorage.getItem('edgepro_theme')||'dark';
+  const rt=p=>{if(p!=='auto')return p;const h=new Date().getHours();return (h>=7&&h<19)?'light':'dark';};
+  function applyTheme(){const t=rt(gp());document.documentElement.setAttribute('data-theme',t);const b=document.getElementById('themeBtn');if(b)b.innerHTML=t==='light'?_S:_M;}
+  function cycleTheme(){const o=['auto','light','dark'];localStorage.setItem('edgepro_theme',o[(o.indexOf(gp())+1)%3]);applyTheme();}
+  applyTheme();
+  function toast(m){const t=document.getElementById('toast');t.textContent=m;t.className='show';setTimeout(()=>t.className='',2200);}
+  function copyText(t,msg){navigator.clipboard.writeText(t).then(()=>toast(msg||'Copied')).catch(()=>toast('Copy failed — select & copy'));}
+
+  // auth: use our app session
+  function session(){ try{return JSON.parse(localStorage.getItem('edgepro_session'));}catch{return null;} }
+  function makeCode(email,name){ let base=(name||email.split('@')[0]||'trader').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8)||'TRADER'; let h=0; for(const c of email)h=(h*31+c.charCodeAt(0))>>>0; return base+(h%1000); }
+
+  const s=session();
+  if(!s){ document.getElementById('gate').classList.remove('hidden'); }
+  else {
+    document.getElementById('dash').classList.remove('hidden');
+    document.getElementById('uName').textContent=(s.name||'trader').split(' ')[0];
+    // stable per-user code (stored so it never changes)
+    let code=localStorage.getItem('edgepro_creator_code');
+    if(!code){ code=makeCode(s.email,s.name); localStorage.setItem('edgepro_creator_code',code); }
+    const origin=location.origin.includes('localhost')?'https://edgeprojournal.com':location.origin;
+    const link=origin+'/?ref='+code;
+    document.getElementById('code').textContent=code;
+    document.getElementById('link').textContent=link;
+    const msg=encodeURIComponent('I journal every trade with EDGE Pro — grades your discipline & tracks your prop-firm eval. Try it: ');
+    document.getElementById('shareX').href='https://twitter.com/intent/tweet?text='+msg+'&url='+encodeURIComponent(link);
+    document.getElementById('shareWA').href='https://wa.me/?text='+msg+encodeURIComponent(link);
+    document.getElementById('shareTG').href='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+msg;
+    // best-effort: register the code in Supabase (if configured + authenticated)
+    (async function(){ try{ const c=(window.EDGE_CONFIG||{}).supabase||{}; if(c.url&&c.anonKey&&window.supabase){ const sb=window.supabase.createClient(c.url,c.anonKey); const { data:{ user } } = await sb.auth.getUser(); if(user){ await sb.from('creators').upsert({ email:s.email, code }, { onConflict:'email' }); } } }catch(e){} })();
+  }
+</script>
+</body>
+</html>
