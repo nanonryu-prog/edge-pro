@@ -467,12 +467,12 @@ VIEWS.playbooks=function(){
   <div class="two-col">
     <div class="card"><div class="row-sb"><div><div class="card-title">Your playbooks</div><div class="card-sub">${pb.length} playbook${pb.length!==1?'s':''} · ${rules} rules powering your grade</div></div><div class="kval violet" style="font-size:32px">${rules}</div></div>
       <div class="mtrack" style="margin-top:14px"><div class="mfill" style="width:${Math.min(100,rules*10)}%"></div></div>
-      <div class="hint" style="margin-top:8px">${rules<5?'Aim for 5+ rules for a meaningful Discipline Score.':'Solid rulebook — your grading is sharp. 🎯'}</div>
+      <div class="hint" style="margin-top:8px">${rules<5?'Aim for 5+ rules for a meaningful Discipline Score.':'Solid rulebook — your grading is sharp.'}</div>
     </div>
     <div class="card" style="background:radial-gradient(120% 100% at 100% 0,rgba(124,92,252,0.14),transparent 60%)"><div class="card-title" style="font-size:15px">Why it matters</div><p class="hint" style="margin-top:8px;color:var(--muted);line-height:1.6">Every rule you tick before a trade is graded. Tight, specific rules mean a sharper score and a track record backers trust.</p></div>
   </div>
   <div class="card section-gap"><div class="card-title" style="margin-bottom:14px">Rulebooks</div>
-    ${pb.map((p,pi)=>`<div class="card" style="background:var(--card);margin-bottom:12px"><div class="row-sb"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📘</span><b>${p.name}</b><span class="chip">${p.rules.length} rules</span></div><button class="del-x" onclick="delPlaybook(${pi})" title="Delete">✕</button></div>
+    ${pb.map((p,pi)=>`<div class="card" style="background:var(--card);margin-bottom:12px"><div class="row-sb"><div style="display:flex;align-items:center;gap:10px">${svgi('book',20,'var(--violet-2)')}<b>${p.name}</b><span class="chip">${p.rules.length} rules</span></div><button class="del-x" onclick="delPlaybook(${pi})" title="Delete">✕</button></div>
       <div class="chip-list" style="margin-top:12px">${p.rules.map((r,ri)=>`<span class="rule-chip">${r}<button onclick="delRule(${pi},${ri})">×</button></span>`).join('')||'<span class="hint">No rules yet — add your first below.</span>'}</div>
       <div style="display:flex;gap:8px;margin-top:12px"><input class="finp" id="nr${pi}" placeholder="Add a rule…" style="flex:1" onkeydown="if(event.key==='Enter'){addRule(${pi})}"><button class="btn btn-ghost btn-sm" onclick="addRule(${pi})">Add</button></div></div>`).join('')}
     <div style="display:flex;gap:8px;margin-top:8px"><input class="finp" id="newPb" placeholder="New playbook name (e.g. London breakout)…" style="flex:1"><button class="btn btn-primary btn-sm" onclick="addPlaybook()">+ New playbook</button></div>
@@ -501,16 +501,17 @@ VIEWS.reports=function(){
 VIEWS.journal=function(){
   const j=Store.journal(); const today=new Date().toISOString().slice(0,10); const ex=j.find(e=>e.date===today);
   let streak=0; { let d=new Date(); for(;;){ const ds=d.toISOString().slice(0,10); if(j.find(e=>e.date===ds)){streak++; d.setDate(d.getDate()-1);} else break; } }
-  const moods=[['😌','Calm'],['💪','Confident'],['🎯','Focused'],['😰','Anxious'],['😵','FOMO'],['😴','Tired'],['🤑','Greedy']];
+  const moods=[['Calm','Calm'],['Confident','Confident'],['Focused','Focused'],['Fear','Anxious'],['FOMO','FOMO'],['moon','Tired'],['Greed','Greedy']];
+  const micon=k=> k==='moon'? svgi('moon',15,'currentColor') : '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px">'+emoIcon(k)+'</svg>';
   $('#view').innerHTML=`
   <div class="two-col">
     <div class="card"><div class="card-title">Today’s entry</div>
       <div class="flbl" style="margin:14px 0 8px">How are you feeling before the session?</div>
-      <div class="chip-list" id="jMoods">${moods.map(([e,m])=>`<button type="button" class="rule-chip${ex&&ex.mood===m?' sel':''}" data-m="${m}" style="cursor:pointer${ex&&ex.mood===m?';background:var(--violet);color:#fff':''}" onclick="document.querySelectorAll('#jMoods .rule-chip').forEach(x=>{x.classList.remove('sel');x.style.background='';x.style.color=''});this.classList.add('sel');this.style.background='var(--violet)';this.style.color='#fff'">${e} ${m}</button>`).join('')}</div>
+      <div class="chip-list" id="jMoods">${moods.map(([e,m])=>`<button type="button" class="rule-chip${ex&&ex.mood===m?' sel':''}" data-m="${m}" style="cursor:pointer${ex&&ex.mood===m?';background:var(--violet);color:#fff':''}" onclick="document.querySelectorAll('#jMoods .rule-chip').forEach(x=>{x.classList.remove('sel');x.style.background='';x.style.color=''});this.classList.add('sel');this.style.background='var(--violet)';this.style.color='#fff'">${micon(e)} ${m}</button>`).join('')}</div>
       <div class="fgrp full" style="margin-top:14px"><label class="flbl">Pre-market plan</label><textarea class="finp" id="j-plan" placeholder="What are you watching for today? What will you NOT do?">${ex?ex.plan||'':''}</textarea></div>
       <button class="btn btn-primary section-gap" onclick="saveJournal()">Save today’s entry (+10 XP)</button>
     </div>
-    <div class="card" style="display:flex;flex-direction:column;justify-content:center;text-align:center"><div style="font-size:46px">🔥</div><div class="kval violet" style="font-size:42px;margin-top:4px">${streak}</div><div class="hint">day journaling streak</div><div class="hint" style="margin-top:10px">${streak===0?'Write today’s entry to start a streak.':streak<3?'Keep it going — consistency compounds.':'You’re building a real habit. 💪'}</div></div>
+    <div class="card" style="display:flex;flex-direction:column;justify-content:center;text-align:center"><div style="display:flex;justify-content:center">${svgi('flame',42,'var(--violet-2)')}</div><div class="kval violet" style="font-size:42px;margin-top:4px">${streak}</div><div class="hint">day journaling streak</div><div class="hint" style="margin-top:10px">${streak===0?'Write today’s entry to start a streak.':streak<3?'Keep it going — consistency compounds.':'You’re building a real habit.'}</div></div>
   </div>
   <div class="card section-gap"><div class="card-title">Past entries</div><div style="margin-top:12px">${j.slice().reverse().map(e=>`<div class="card" style="background:var(--card);margin-bottom:8px"><div class="row-sb"><b>${fmtDate(e.date)}</b><span class="tag long">${e.mood}</span></div>${e.plan?`<p class="hint" style="margin:8px 0 0;color:var(--muted);line-height:1.5">${e.plan}</p>`:''}</div>`).join('')||'<div class="empty" style="padding:30px"><div class="hint">No entries yet — your journal timeline grows here.</div></div>'}</div></div>`;
 };
@@ -524,11 +525,11 @@ VIEWS.checklist=function(){
       <button class="btn btn-primary btn-full" id="clGo" disabled style="opacity:.5" onclick="openLog()">Checklist clear — log this trade →</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:16px">
-      <div class="card" style="text-align:center"><div style="font-size:42px">⚡</div><div class="kval violet" style="font-size:40px">${streak}</div><div class="hint">clean-trade streak</div></div>
+      <div class="card" style="text-align:center"><div style="display:flex;justify-content:center">${svgi('bolt',40,'var(--gold)')}</div><div class="kval violet" style="font-size:40px">${streak}</div><div class="hint">clean-trade streak</div></div>
       <div class="card"><div class="card-title" style="font-size:15px">The stand-down rule</div><p class="hint" style="margin-top:8px;color:var(--muted);line-height:1.6">If you can’t tick every box, the setup isn’t there. Standing down IS the trade — and your Discipline Score rewards it.</p></div>
     </div>
   </div>`;
-  document.querySelectorAll('#cl .rule').forEach(r=>r.onclick=()=>{ r.classList.toggle('on'); const n=document.querySelectorAll('#cl .rule.on').length,tot=rules.length,p=tot?Math.round(n/tot*100):0; $('#clTxt').textContent=`${n} of ${tot} confirmed`; $('#clPct').textContent=p+'%'; $('#clFill').style.width=p+'%'; const go=$('#clGo'); const ok=n===tot&&tot>0; go.disabled=!ok; go.style.opacity=ok?1:.5; go.textContent=(ok?'✅ ':'')+'Checklist clear — log this trade →'; });
+  document.querySelectorAll('#cl .rule').forEach(r=>r.onclick=()=>{ r.classList.toggle('on'); const n=document.querySelectorAll('#cl .rule.on').length,tot=rules.length,p=tot?Math.round(n/tot*100):0; $('#clTxt').textContent=`${n} of ${tot} confirmed`; $('#clPct').textContent=p+'%'; $('#clFill').style.width=p+'%'; const go=$('#clGo'); const ok=n===tot&&tot>0; go.disabled=!ok; go.style.opacity=ok?1:.5; go.textContent='Checklist clear — log this trade →'; });
 };
 VIEWS.goals=function(){
   const g=Store.goals(); const s=stats();
@@ -551,7 +552,7 @@ VIEWS.goals=function(){
       <button class="btn btn-primary btn-sm section-gap" onclick="addGoal()">Add goal</button>
     </div>
   </div>
-  <div class="section-gap grid" style="grid-template-columns:1fr;gap:12px">${g.map((goal,i)=>{const p=prog(goal),d=p>=100;return `<div class="card"><div class="row-sb"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${d?'🏆':'🎯'}</span><b>${goal.type}</b>${d?'<span class="chip" style="color:var(--win);border-color:rgba(36,209,155,.4)">Reached</span>':''}</div><button class="del-x" onclick="delGoal(${i})">✕</button></div><div class="meter" style="margin-bottom:0"><div class="mrow"><span class="hint">${Math.round(cur(goal))} / ${goal.target}${goal.deadline?' · by '+fmtDate(goal.deadline):''}</span><b>${Math.round(p)}%</b></div><div class="mtrack"><div class="mfill ${d?'win':''}" style="width:${p}%"></div></div></div></div>`;}).join('')||'<div class="card"><div class="empty" style="padding:30px"><div class="hint">No goals yet — add one above to start your climb.</div></div></div>'}</div>`;
+  <div class="section-gap grid" style="grid-template-columns:1fr;gap:12px">${g.map((goal,i)=>{const p=prog(goal),d=p>=100;return `<div class="card"><div class="row-sb"><div style="display:flex;align-items:center;gap:10px">${svgi(d?'trophy':'target',20,d?'var(--gold)':'var(--violet-2)')}<b>${goal.type}</b>${d?'<span class="chip" style="color:var(--win);border-color:rgba(36,209,155,.4)">Reached</span>':''}</div><button class="del-x" onclick="delGoal(${i})">✕</button></div><div class="meter" style="margin-bottom:0"><div class="mrow"><span class="hint">${Math.round(cur(goal))} / ${goal.target}${goal.deadline?' · by '+fmtDate(goal.deadline):''}</span><b>${Math.round(p)}%</b></div><div class="mtrack"><div class="mfill ${d?'win':''}" style="width:${p}%"></div></div></div></div>`;}).join('')||'<div class="card"><div class="empty" style="padding:30px"><div class="hint">No goals yet — add one above to start your climb.</div></div></div>'}</div>`;
 };
 VIEWS.calc=function(){
   $('#view').innerHTML=`<div class="two-col">
@@ -594,7 +595,7 @@ VIEWS.eval=function(){
       ${meter('Daily loss limit · '+money0(e.dailyLoss),Math.abs(worstDay),e.dailyLoss,'loss')}
       ${meter('Max trailing drawdown · '+money0(e.maxDD),Math.abs(dd),e.maxDD,'loss')}
     </div>
-    <div class="card" style="text-align:center;display:flex;flex-direction:column;justify-content:center"><div class="card-title" style="font-size:15px">Target progress</div>${ring(tgtP)}<div class="hint">${profit>=e.target?'Target smashed — verification time! 🎉':money0(Math.max(0,e.target-profit))+' to go'}</div></div>
+    <div class="card" style="text-align:center;display:flex;flex-direction:column;justify-content:center"><div class="card-title" style="font-size:15px">Target progress</div>${ring(tgtP)}<div class="hint">${profit>=e.target?'Target smashed — verification time!':money0(Math.max(0,e.target-profit))+' to go'}</div></div>
   </div>
   <div class="card section-gap"><div class="card-title">50-trade track record</div><div class="card-sub" style="margin-bottom:12px">Verified history for backers</div>
     ${meter(tr.length+' of 50 trades logged',tr.length,50,'')}
@@ -632,21 +633,21 @@ VIEWS.calendar=function(){
         <div class="dbrk"><span>Best day</span><b class="mono pos">${money(best)}</b></div>
         <div class="dbrk"><span>Worst day</span><b class="mono neg">${money(worst)}</b></div>
       </div>
-      <div class="card" style="text-align:center"><div style="font-size:34px">${green>=red?'📈':'📉'}</div><div class="hint" style="margin-top:6px">${days.length?(green>=red?'More green than red — keep stacking clean days.':'Tough patch — lean on your rules and reset.'):'Log trades to fill your month.'}</div></div>
+      <div class="card" style="text-align:center"><div style="display:flex;justify-content:center">${svgi(green>=red?'chartup':'chartdown',34,green>=red?'var(--win)':'var(--loss)')}</div><div class="hint" style="margin-top:6px">${days.length?(green>=red?'More green than red — keep stacking clean days.':'Tough patch — lean on your rules and reset.'):'Log trades to fill your month.'}</div></div>
     </div>
   </div>`;
 };
 VIEWS.achievements=function(){
   const s=stats(); const streak=discStreak(); const weeks=(Store.get('weeks',[])||[]).length;
   const A=[
-    {i:'🥇',n:'First Trade',d:'Log your first trade',cur:s.tr.length,goal:1},
-    {i:'📓',n:'10 Trades',d:'Build the habit',cur:s.tr.length,goal:10},
-    {i:'🏅',n:'50-Trade Record',d:'Complete your track record',cur:s.tr.length,goal:50},
-    {i:'🔥',n:'Discipline Streak',d:'5 rule-following trades in a row',cur:streak,goal:5},
-    {i:'💎',n:'Discipline 90+',d:'Reach a 90+ discipline score',cur:s.tr.length?s.dis:0,goal:90},
-    {i:'🖼️',n:'Visual Journal',d:'Attach your first screenshot',cur:s.tr.some(t=>t.shot)?1:0,goal:1},
-    {i:'📝',n:'Weekly Reviewer',d:'Complete a weekly check-in',cur:weeks,goal:1},
-    {i:'✨',n:'Clean Week',d:'A full week with zero broken rules',cur:(s.tr.length>=5&&s.broken===0)?1:0,goal:1},
+    {i:'medal',n:'First Trade',d:'Log your first trade',cur:s.tr.length,goal:1},
+    {i:'book',n:'10 Trades',d:'Build the habit',cur:s.tr.length,goal:10},
+    {i:'trophy',n:'50-Trade Record',d:'Complete your track record',cur:s.tr.length,goal:50},
+    {i:'flame',n:'Discipline Streak',d:'5 rule-following trades in a row',cur:streak,goal:5},
+    {i:'diamond',n:'Discipline 90+',d:'Reach a 90+ discipline score',cur:s.tr.length?s.dis:0,goal:90},
+    {i:'image',n:'Visual Journal',d:'Attach your first screenshot',cur:s.tr.some(t=>t.shot)?1:0,goal:1},
+    {i:'pencil',n:'Weekly Reviewer',d:'Complete a weekly check-in',cur:weeks,goal:1},
+    {i:'sparkle',n:'Clean Week',d:'A full week with zero broken rules',cur:(s.tr.length>=5&&s.broken===0)?1:0,goal:1},
   ];
   A.forEach(a=>a.on=a.cur>=a.goal);
   const unlocked=A.filter(a=>a.on).length, pct=Math.round(unlocked/A.length*100);
@@ -657,11 +658,11 @@ VIEWS.achievements=function(){
       <div class="card"><div class="row-sb"><div><div class="card-title">Your badges</div><div class="card-sub">${unlocked} of ${A.length} unlocked · keep going</div></div><div class="kval violet" style="font-size:36px">${pct}%</div></div>
         <div class="mtrack" style="margin-top:16px"><div class="mfill" style="width:${pct}%"></div></div>
       </div>
-      ${next?`<div class="card"><div class="card-sub">Next up</div><div style="display:flex;gap:14px;align-items:center;margin-top:10px"><div style="font-size:38px">${next.i}</div><div style="flex:1"><b>${next.n}</b><div class="hint" style="margin:2px 0 9px">${next.d}</div><div class="mtrack"><div class="mfill" style="width:${Math.min(100,next.cur/next.goal*100)}%"></div></div><div class="hint" style="margin-top:6px">${Math.min(next.cur,next.goal)} / ${next.goal}</div></div></div></div>`
-        :`<div class="card" style="display:grid;place-items:center;text-align:center"><div><div style="font-size:40px">🏆</div><b style="font-size:16px">All unlocked!</b><div class="hint" style="margin-top:4px">You have earned every badge — legend.</div></div></div>`}
+      ${next?`<div class="card"><div class="card-sub">Next up</div><div style="display:flex;gap:14px;align-items:center;margin-top:10px"><div class="ach-next-ic">${svgi(next.i,30,'var(--violet-2)')}</div><div style="flex:1"><b>${next.n}</b><div class="hint" style="margin:2px 0 9px">${next.d}</div><div class="mtrack"><div class="mfill" style="width:${Math.min(100,next.cur/next.goal*100)}%"></div></div><div class="hint" style="margin-top:6px">${Math.min(next.cur,next.goal)} / ${next.goal}</div></div></div></div>`
+        :`<div class="card" style="display:grid;place-items:center;text-align:center"><div><div style="display:flex;justify-content:center;margin-bottom:6px">${svgi('trophy',40,'var(--gold)')}</div><b style="font-size:16px">All unlocked!</b><div class="hint" style="margin-top:4px">You have earned every badge — legend.</div></div></div>`}
     </div>
     <div class="card section-gap"><div class="ach-grid" style="grid-template-columns:repeat(auto-fill,minmax(215px,1fr))">${A.map(a=>`
-      <div class="ach ${a.on?'on':''}"><div class="ic">${a.i}</div><div class="an">${a.n}</div><div class="ad">${a.d}</div>
+      <div class="ach ${a.on?'on':''}"><div class="ic">${svgi(a.i,28,a.on?'var(--gold)':'var(--violet-2)')}</div><div class="an">${a.n}</div><div class="ad">${a.d}</div>
         ${a.on?badge:`<div class="mtrack" style="margin-top:12px"><div class="mfill" style="width:${Math.min(100,a.cur/a.goal*100)}%"></div></div><div class="hint" style="margin-top:6px">${Math.min(a.cur,a.goal)} / ${a.goal}</div>`}
       </div>`).join('')}</div></div>`;
 };
@@ -679,11 +680,11 @@ VIEWS.weekly=function(){
       <button class="btn btn-primary section-gap" onclick="saveWeek()">Complete weekly check-in (+30 XP)</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:16px">
-      <div class="card" style="text-align:center"><div style="font-size:42px">📅</div><div class="kval violet" style="font-size:40px">${weeks.length}</div><div class="hint">weekly reviews done</div></div>
+      <div class="card" style="text-align:center"><div style="display:flex;justify-content:center">${svgi('calendar',40,'var(--violet-2)')}</div><div class="kval violet" style="font-size:40px;margin-top:6px">${weeks.length}</div><div class="hint">weekly reviews done</div></div>
       <div class="card"><div class="card-title" style="font-size:15px">Why weekly?</div><p class="hint" style="margin-top:8px;color:var(--muted);line-height:1.6">Pros review religiously. Ten minutes a week to close one leak compounds into a completely different account by year-end.</p></div>
     </div>
   </div>
-  ${weeks.length?`<div class="card section-gap"><div class="card-title">Past reviews</div><div style="margin-top:12px">${weeks.slice().reverse().map(w=>`<div class="card" style="background:var(--card);margin-bottom:8px"><b>${fmtDate(w.date)}</b>${w.change?`<div class="hint" style="margin-top:6px;color:var(--muted)"><b style="color:var(--violet-2)">Change:</b> ${w.change}</div>`:''}${w.good?`<div class="hint" style="margin-top:4px">✅ ${w.good}</div>`:''}</div>`).join('')}</div></div>`:''}`;
+  ${weeks.length?`<div class="card section-gap"><div class="card-title">Past reviews</div><div style="margin-top:12px">${weeks.slice().reverse().map(w=>`<div class="card" style="background:var(--card);margin-bottom:8px"><b>${fmtDate(w.date)}</b>${w.change?`<div class="hint" style="margin-top:6px;color:var(--muted)"><b style="color:var(--violet-2)">Change:</b> ${w.change}</div>`:''}${w.good?`<div class="hint" style="margin-top:4px;display:flex;align-items:flex-start;gap:6px">${svgi('sparkle',14,'var(--win)')}<span>${w.good}</span></div>`:''}</div>`).join('')}</div></div>`:''}`;
 };
 VIEWS.settings=function(){
   const st=Store.settings(); const n=st.notif||{session:true,journal:true,goals:false}; const pref=getThemePref(); const s=stats(); const li=levelInfo();
@@ -751,7 +752,7 @@ function openLog(editId){ window._editId=editId||null;
       <div class="fgrp"><label class="flbl">P&L ($)</label><input class="finp mono" type="number" step="any" id="m-pnl" placeholder="auto"></div>
       <div class="fgrp"><label class="flbl">R:R</label><input class="finp mono" id="m-rr" placeholder="auto" readonly></div>
       <div class="fgrp"><label class="flbl">Tilt (1–5)</label><input class="finp" type="number" min="1" max="5" id="m-tilt" placeholder="1"></div>
-      <div class="fgrp full"><label class="flbl">Screenshot (optional)</label><label class="shotzone" id="shotZone"><input type="file" accept="image/*" style="display:none" onchange="loadShot(this)">📷 Attach chart screenshot</label></div>
+      <div class="fgrp full"><label class="flbl">Screenshot (optional)</label><label class="shotzone" id="shotZone"><input type="file" accept="image/*" style="display:none" onchange="loadShot(this)"><span style="display:inline-flex;align-items:center;gap:7px">${svgi('image',16,'currentColor')} Attach chart screenshot</span></label></div>
       <div class="fgrp full"><label class="flbl">Notes</label><textarea class="finp" id="m-notes" placeholder="What was the setup?"></textarea></div>
     </div>
     <div style="display:flex;gap:12px;margin-top:16px"><button type="submit" class="btn btn-primary">${editId?'Save changes':'Save trade (+10 XP)'}</button><button type="button" class="btn btn-ghost" onclick="closeLog()">Cancel</button></div></form>`;
@@ -841,6 +842,24 @@ function emoIcon(n){ const p={
   Fear:'<path d="M8 2.1l6 10.8H2z"/><path d="M8 6.4v3.2"/><circle cx="8" cy="11.3" r=".8" fill="currentColor" stroke="none"/>',
   Revenge:'<path d="M8 1.5c2.2 2.8 3.9 4 3.9 7A3.9 3.9 0 018 12a3.6 3.6 0 01-2.5-6.2C5.9 7.6 8 7.3 8 5.4c0-1.3-.4-2.5 0-3.9z"/>'
 }; return p[n]||''; }
+/* premium line-icon set (replaces emoji app-wide) */
+function svgi(n,size,color){ size=size||24; color=color||'var(--violet-2)'; const p={
+  medal:'<circle cx="12" cy="14" r="6"/><path d="M12 11.4l1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.3-2.4 1.3.5-2.6-1.9-1.8 2.6-.4z"/><path d="M8.5 3l2.5 5M15.5 3L13 8"/>',
+  book:'<path d="M5 4.5h11a1.5 1.5 0 011.5 1.5v13.5a1 1 0 00-1-1H5z"/><path d="M5 4.5v14"/><path d="M9 8.5h5M9 11.5h4"/>',
+  trophy:'<path d="M7 4h10v3.5a5 5 0 01-10 0z"/><path d="M7 5H4.5v1.5A2.5 2.5 0 007 9M17 5h2.5v1.5A2.5 2.5 0 0117 9"/><path d="M9.5 20h5M12 12.5V16"/>',
+  flame:'<path d="M12 3c2.2 2.9 4.4 4.4 4.4 7.9a4.4 4.4 0 11-8.8 0c0-1.3.5-2.4 1.2-3 .1 2.2 3.2 2 3.2-.4 0-1.5-.5-2.9 0-4.5z"/>',
+  diamond:'<path d="M6.5 4h11l3 5-8.5 11L3.5 9z"/><path d="M3.5 9h17M9 4l-2.5 5L12 20M15 4l2.5 5L12 20"/>',
+  image:'<rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M4 17l4.5-4.5 3.5 3.5 3-3L20 17"/>',
+  pencil:'<path d="M4 20l1-4L16 5l3 3L8 19z"/><path d="M14 7l3 3"/>',
+  sparkle:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M18.5 15.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>',
+  calendar:'<rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/>',
+  chartup:'<path d="M4 4v16h16"/><path d="M7.5 15l3.2-3.4 2.4 2.2L20 7.5"/><path d="M20 11V7.5h-3.5"/>',
+  chartdown:'<path d="M4 4v16h16"/><path d="M7.5 9l3.2 3.4 2.4-2.2L20 16.5"/><path d="M20 13v3.5h-3.5"/>',
+  bolt:'<path d="M13 3L5.5 13.5H11l-1 7.5 8-11H12.5z"/>',
+  target:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>',
+  moon:'<path d="M20.5 14.5A8.5 8.5 0 019.5 3.5a8.5 8.5 0 1011 11z"/>',
+  wave:'<path d="M12 21a9 9 0 009-9M3 12a9 9 0 019-9"/><path d="M8.5 12.5l2 2 4-4"/>'
+}; return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="color:'+color+';flex:0 0 auto">'+(p[n]||'')+'</svg>'; }
 function emotionRadar(s){
   const tr=s.tr; const cnt={Calm:0,Confident:0,Focused:0,Fear:0,FOMO:0,Greed:0,Revenge:0}; let tagged=0;
   tr.forEach(t=>{ if(t.emotion&&cnt.hasOwnProperty(t.emotion)){cnt[t.emotion]++;tagged++;} });
@@ -909,7 +928,7 @@ function tickSession(){ const st=Store.settings(); const p=(st.sessionStart||'09
 /* ---- onboarding (first run after signup) ---- */
 function openOnboarding(){
   const MK=['Forex','Futures','Stocks','Options','Crypto','Indices'];
-  $('#logModalInner').innerHTML=`<div class="card-title" style="font-size:20px">Welcome to EDGE Pro 👋</div>
+  $('#logModalInner').innerHTML=`<div class="card-title" style="font-size:20px">Welcome to EDGE Pro</div>
     <div class="card-sub" style="margin:4px 0 18px">A few quick questions so your journal fits how you actually trade.</div>
     <form id="obForm">
       <div class="fgrp full" style="margin-bottom:16px"><label class="flbl">What do you trade? (pick any)</label>
@@ -948,12 +967,12 @@ function confetti(){
   let t=0;(function f(){ctx.clearRect(0,0,c.width,c.height);t++;P.forEach(p=>{p.vy+=0.35;p.x+=p.vx;p.y+=p.vy;p.rot+=.2;p.a=Math.max(0,1-t/95);ctx.save();ctx.globalAlpha=p.a;ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.r,-p.r,p.r*2,p.r*1.2);ctx.restore();});t<100?requestAnimationFrame(f):c.remove();})();
 }
 function achList(){ const s=stats(); const streak=discStreak(); const weeks=(Store.get('weeks',[])||[]).length; return [
- {i:'🥇',n:'First Trade',cur:s.tr.length,goal:1},{i:'📓',n:'10 Trades',cur:s.tr.length,goal:10},
- {i:'🏅',n:'50-Trade Record',cur:s.tr.length,goal:50},{i:'🔥',n:'Discipline Streak',cur:streak,goal:5},
- {i:'💎',n:'Discipline 90+',cur:s.tr.length?s.dis:0,goal:90},{i:'🖼️',n:'Visual Journal',cur:s.tr.some(t=>t.shot)?1:0,goal:1},
- {i:'📝',n:'Weekly Reviewer',cur:weeks,goal:1},{i:'✨',n:'Clean Week',cur:(s.tr.length>=5&&s.broken===0)?1:0,goal:1}]; }
+ {i:'medal',n:'First Trade',cur:s.tr.length,goal:1},{i:'book',n:'10 Trades',cur:s.tr.length,goal:10},
+ {i:'trophy',n:'50-Trade Record',cur:s.tr.length,goal:50},{i:'flame',n:'Discipline Streak',cur:streak,goal:5},
+ {i:'diamond',n:'Discipline 90+',cur:s.tr.length?s.dis:0,goal:90},{i:'image',n:'Visual Journal',cur:s.tr.some(t=>t.shot)?1:0,goal:1},
+ {i:'pencil',n:'Weekly Reviewer',cur:weeks,goal:1},{i:'sparkle',n:'Clean Week',cur:(s.tr.length>=5&&s.broken===0)?1:0,goal:1}]; }
 function achCount(){ return achList().filter(a=>a.cur>=a.goal).length; }
-function celebrateNewAch(before){ const now=achList().filter(a=>a.cur>=a.goal); if(now.length>before){ confetti(); const last=now[now.length-1]; toast('🏆 Achievement unlocked: '+last.n,'good'); } }
+function celebrateNewAch(before){ const now=achList().filter(a=>a.cur>=a.goal); if(now.length>before){ confetti(); const last=now[now.length-1]; toast('Achievement unlocked: '+last.n,'good'); } }
 function loadShot(input){ const f=input.files[0]; if(!f)return; const img=new Image(); img.onload=()=>{ const cv=document.createElement('canvas'); const sc=Math.min(1,720/img.width); cv.width=img.width*sc; cv.height=img.height*sc; cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height); window._pendingShot=cv.toDataURL('image/jpeg',0.6); const z=document.getElementById('shotZone'); if(z)z.innerHTML='<img src="'+window._pendingShot+'" style="max-width:100%;border-radius:8px;max-height:180px">'; }; img.src=URL.createObjectURL(f); }
 function openTradeDetail(id){ const t=Store.trades().find(x=>x.id===id); if(!t)return;
   document.getElementById('detailInner').innerHTML=`<div class="row-sb"><div class="card-title">${t.symbol} · <span class="tag ${t.side}">${t.side}</span></div><button class="modal-x" onclick="closeDetail()">✕</button></div>
@@ -1040,7 +1059,7 @@ function injectDemoBanner(){
   if(document.getElementById('demoBanner')) return;
   const d=document.createElement('div'); d.id='demoBanner';
   d.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:90;display:flex;align-items:center;gap:14px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:999px;padding:8px 8px 8px 18px;box-shadow:0 16px 40px rgba(0,0,0,.5);font-size:13.5px;max-width:calc(100vw - 24px)';
-  d.innerHTML='<span>\ud83d\udc40 <b>Live demo</b> \u2014 exploring with sample data</span><a href="login.html" class="btn btn-primary btn-sm" style="white-space:nowrap">Create free account \u2192</a>';
+  d.innerHTML='<span style="display:inline-flex;align-items:center;gap:8px">'+svgi('target',16,'var(--violet-2)')+'<b>Live demo</b> \u2014 exploring with sample data</span><a href="login.html" class="btn btn-primary btn-sm" style="white-space:nowrap">Create free account \u2192</a>';
   document.body.appendChild(d);
 }
 (async function boot(){
