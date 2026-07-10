@@ -85,19 +85,19 @@
   .btn-full{width:100%;}
 
   /* cards + grid */
-  .grid{display:grid;gap:16px;}
+  .grid{display:grid;gap:20px;}
   .kpis{grid-template-columns:repeat(2,1fr);}
   @media(min-width:760px){ .kpis{grid-template-columns:repeat(4,1fr);} }
-  .card{background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--border);border-radius:16px;padding:20px;}
+  .card{background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--border);border-radius:18px;padding:26px;}
   .kcard{position:relative;}
-  .klabel{font-family:'JetBrains Mono';font-size:11px;text-transform:uppercase;letter-spacing:0.09em;color:var(--faint);font-weight:500;}
-  .kval{font-family:'JetBrains Mono';font-weight:700;font-size:30px;margin-top:12px;letter-spacing:-.01em;}
+  .klabel{font-family:'JetBrains Mono';font-size:12px;text-transform:uppercase;letter-spacing:0.09em;color:var(--faint);font-weight:500;}
+  .kval{font-family:'JetBrains Mono';font-weight:700;font-size:42px;margin-top:14px;letter-spacing:-.02em;line-height:1;}
   .kval.win{color:var(--win);} .kval.loss{color:var(--loss);} .kval.violet{color:var(--violet-2);}
-  .ksub{font-size:12px;color:var(--faint);margin-top:8px;}
+  .ksub{font-size:13px;color:var(--faint);margin-top:10px;}
   .badge{position:absolute;top:18px;right:18px;font-family:'JetBrains Mono';font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;letter-spacing:.05em;}
   .badge.good{background:rgba(36,209,155,0.14);color:var(--win);border:1px solid rgba(36,209,155,0.3);}
   .grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
-  .card-title{font-size:17px;font-weight:600;} .card-sub{font-size:12.5px;color:var(--faint);margin-top:2px;}
+  .card-title{font-size:20px;font-weight:600;} .card-sub{font-size:12.5px;color:var(--faint);margin-top:2px;}
   .row-sb{display:flex;align-items:center;justify-content:space-between;gap:12px;}
   .two-col{display:grid;gap:16px;grid-template-columns:1fr;} @media(min-width:960px){ .two-col{grid-template-columns:1.5fr 1fr;} }
   .section-gap{margin-top:16px;}
@@ -300,10 +300,10 @@ tr{transition:background .15s}
 .app{min-height:100dvh;}
 .hdr{position:sticky;top:0;z-index:30;background:rgba(10,10,22,0.8);-webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3);border-bottom:1px solid var(--border);}
 [data-theme="light"] .hdr{background:rgba(244,245,251,0.82);}
-.hdr-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 30px;max-width:1720px;margin:0 auto;}
+.hdr-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 30px;max-width:1800px;margin:0 auto;}
 .hdr .brand{display:flex;align-items:center;font-family:'Space Grotesk';font-weight:700;font-size:20px;flex:0 0 auto;text-decoration:none;color:var(--text);}
 .hdr .brand .p{color:var(--violet-2);margin-left:5px;}
-.topnav{display:flex;gap:3px;overflow-x:auto;scrollbar-width:none;padding:0 24px 10px;max-width:1720px;margin:0 auto;}
+.topnav{display:flex;gap:3px;overflow-x:auto;scrollbar-width:none;padding:0 24px 10px;max-width:1800px;margin:0 auto;}
 .topnav::-webkit-scrollbar{display:none;}
 .tab{flex:1 1 0;min-width:96px;display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 10px;border-radius:11px;border:none;background:transparent;color:var(--muted);font-weight:500;font-size:13px;cursor:pointer;white-space:nowrap;position:relative;transition:background .16s var(--ease),color .16s var(--ease),transform .16s var(--ease);}
 .tab svg{width:16px;height:16px;flex:none;opacity:.85;}
@@ -311,8 +311,8 @@ tr{transition:background .15s}
 [data-theme="light"] .tab:hover{background:rgba(18,20,45,0.05);}
 .tab.active{background:rgba(124,92,252,0.15);color:var(--violet-2);font-weight:600;}
 .tab.active::after{content:"";position:absolute;left:22%;right:22%;bottom:-2px;height:2.5px;border-radius:3px;background:var(--grad);animation:popIn .3s var(--ease);}
-.pagehead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:24px 32px 2px;max-width:1640px;margin:0 auto;width:100%;}
-.pagehead h1{font-size:27px;}
+.pagehead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:26px 40px 2px;max-width:1800px;margin:0 auto;width:100%;}
+.pagehead h1{font-size:34px;letter-spacing:-.02em;}
 .pagehead .sub{font-size:13px;color:var(--faint);margin-top:4px;}
 .ph-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 .xp-mini{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:6px 13px;}
@@ -324,7 +324,7 @@ tr{transition:background .15s}
 .trial-pill{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);border:1px solid rgba(124,92,252,0.3);background:rgba(124,92,252,0.08);border-radius:999px;padding:7px 14px;text-decoration:none;transition:.18s;}
 .trial-pill:hover{background:rgba(124,92,252,0.14);}
 .trial-pill .tp-cta{color:var(--violet-2);font-weight:700;}
-.content{padding:18px 32px 70px;max-width:1640px;margin:0 auto;width:100%;display:block;}
+.content{padding:22px 40px 80px;max-width:1800px;margin:0 auto;width:100%;display:block;}
 @media(max-width:860px){
   .hdr-row{padding:11px 16px;}
   .topnav{padding:0 12px 9px;}
@@ -883,8 +883,8 @@ function equitySVG(tr,acct){ const pts=[acct]; let c=acct; tr.forEach(t=>{c+=t.p
   if(pts.length<2||tr.length===0){ return `<div class="hint" style="padding:34px 0;text-align:center">Log trades to draw your equity curve.</div>`; }
   const min=Math.min(...pts),max=Math.max(...pts),range=(max-min)||1,W=500,H=150;
   const path=pts.map((p,i)=>`${i?'L':'M'}${(i/(pts.length-1)*W).toFixed(1)},${(H-(p-min)/range*H).toFixed(1)}`).join(' ');
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="150" preserveAspectRatio="none"><defs><linearGradient id="ef" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(124,92,252,.35)"/><stop offset="100%" stop-color="rgba(124,92,252,0)"/></linearGradient><linearGradient id="el" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#7C5CFC"/><stop offset="100%" stop-color="#E15CC6"/></linearGradient></defs><path d="${path} L${W},${H} L0,${H} Z" fill="url(#ef)"/><path class="eqline" d="${path}" fill="none" stroke="url(#el)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
-function ring(pct){ const r=42,c=2*Math.PI*r,off=c-(pct/100)*c; return `<div class="ring-wrap"><svg width="150" height="150" viewBox="0 0 100 100"><circle cx="50" cy="50" r="${r}" fill="none" stroke="var(--track)" stroke-width="10"/><circle class="ring-fg" cx="50" cy="50" r="${r}" fill="none" stroke="url(#rg)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 50 50)"/><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7C5CFC"/><stop offset="100%" stop-color="#E15CC6"/></linearGradient></defs></svg><div class="ring-num"><div><div class="n">${pct}</div><div class="o">OF 100</div></div></div></div>`; }
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="240" preserveAspectRatio="none"><defs><linearGradient id="ef" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(124,92,252,.35)"/><stop offset="100%" stop-color="rgba(124,92,252,0)"/></linearGradient><linearGradient id="el" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#7C5CFC"/><stop offset="100%" stop-color="#E15CC6"/></linearGradient></defs><path d="${path} L${W},${H} L0,${H} Z" fill="url(#ef)"/><path class="eqline" d="${path}" fill="none" stroke="url(#el)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
+function ring(pct){ const r=42,c=2*Math.PI*r,off=c-(pct/100)*c; return `<div class="ring-wrap"><svg width="176" height="176" viewBox="0 0 100 100"><circle cx="50" cy="50" r="${r}" fill="none" stroke="var(--track)" stroke-width="10"/><circle class="ring-fg" cx="50" cy="50" r="${r}" fill="none" stroke="url(#rg)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 50 50)"/><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7C5CFC"/><stop offset="100%" stop-color="#E15CC6"/></linearGradient></defs></svg><div class="ring-num"><div><div class="n">${pct}</div><div class="o">OF 100</div></div></div></div>`; }
 function meter(label,cur,tgt,cls){ const p=tgt?Math.max(0,Math.min(100,cur/tgt*100)):0; return `<div class="meter"><div class="mrow"><span>${label}</span><b>${money0(cur)}</b></div><div class="mtrack"><div class="mfill ${cls}" style="width:${p}%"></div></div></div>`; }
 function insights(s){ const out=[]; if(!s.tr.length){out.push('Log your first trade and EDGE will start surfacing patterns here.');}
   else{ if(s.dis>=90)out.push(`Discipline at ${s.dis}/100 — exactly the consistency backers want to see.`); else if(s.broken>0)out.push(`You broke your rules on ${s.broken} trade${s.broken>1?'s':''}. Those are the leaks to close first.`);
