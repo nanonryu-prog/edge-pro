@@ -4,7 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237C5CFC'/%3E%3Cpath d='M7 21l6-6 4 4 8-8' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
-<title>Log in · Edge Pro</title>
+<title>Log in · EDGE Pro</title>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta name="description" content="Log in to Edge Pro — your trading journal, analytics and backtesting cockpit." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -394,6 +396,8 @@
      ============================================================ */
   const USERS_KEY = 'edgepro_users';
   const SESSION_KEY = 'edgepro_session';
+  const CFG = window.EDGE_CONFIG || {};
+  const SB = (CFG.supabase && CFG.supabase.url && CFG.supabase.anonKey && window.supabase) ? window.supabase.createClient(CFG.supabase.url, CFG.supabase.anonKey) : null;
   const getUsers = () => { try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; } catch { return {}; } };
   const saveUsers = u => localStorage.setItem(USERS_KEY, JSON.stringify(u));
   async function hash(pw) {
@@ -417,6 +421,29 @@
     const name = (document.getElementById('name').value || '').trim();
     if (!email || !pw) { showMsg('Enter your email and password.', false); return; }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showMsg('That email address looks off.', false); return; }
+
+    if (SB) {
+      try {
+        if (mode === 'signup') {
+          const { data, error } = await SB.auth.signUp({ email, password: pw, options: { data: { name: name || email.split('@')[0] } } });
+          if (error) { showMsg(error.message, false); return; }
+          localStorage.setItem(SESSION_KEY, JSON.stringify({ email, name: name || email.split('@')[0] }));
+          localStorage.setItem('edgepro_onboard', email);
+          if (!data.session) { showMsg('Check your email to confirm your account, then log in.', true); return; }
+          showMsg('Account created! Setting up your journal…', true);
+          setTimeout(() => location.href = 'app.html', 700);
+        } else {
+          const { data, error } = await SB.auth.signInWithPassword({ email, password: pw });
+          if (error) { showMsg(error.message, false); return; }
+          const nm = (data.user && data.user.user_metadata && data.user.user_metadata.name) || email.split('@')[0];
+          localStorage.setItem(SESSION_KEY, JSON.stringify({ email, name: nm }));
+          showMsg('Welcome back! Opening your journal…', true);
+          setTimeout(() => location.href = 'app.html', 600);
+        }
+      } catch (err) { showMsg('Sign-in failed — check your connection.', false); }
+      return;
+    }
+
     const users = getUsers();
 
     if (mode === 'signup') {
@@ -437,11 +464,13 @@
     }
   });
 
-  document.querySelectorAll('.social-btn').forEach(b => b.addEventListener('click', () => {
-    showMsg(`${b.dataset.provider} sign-in needs an OAuth backend — use email to try it now.`, false);
+  document.querySelectorAll('.social-btn').forEach(b => b.addEventListener('click', async () => {
+    if (SB) { const { error } = await SB.auth.signInWithOAuth({ provider: b.dataset.provider.toLowerCase(), options: { redirectTo: location.origin + '/app.html' } }); if (error) showMsg(error.message, false); return; }
+    showMsg(`${b.dataset.provider} sign-in needs Supabase configured — use email to try it now.`, false);
   }));
-  document.getElementById('forgotLink').addEventListener('click', (e) => {
+  document.getElementById('forgotLink').addEventListener('click', async (e) => {
     e.preventDefault();
+    if (SB) { const em = document.getElementById('loginEmail').value.trim().toLowerCase(); if (!em) { showMsg('Enter your email first.', false); return; } const { error } = await SB.auth.resetPasswordForEmail(em, { redirectTo: location.origin + '/login.html' }); showMsg(error ? error.message : 'Password reset email sent — check your inbox.', !error); return; }
     showMsg('Local accounts have no email reset — sign up again or clear site data.', false);
   });
 

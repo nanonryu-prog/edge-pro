@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237C5CFC'/%3E%3Cpath d='M7 21l6-6 4 4 8-8' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
 <title>EDGE Pro — Journal</title>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -310,7 +312,7 @@ tr{transition:background .15s}
 /* ============ in-browser backend (localStorage). Swap for real API/Supabase later. ============ */
 const Store={
   session(){ try{return JSON.parse(localStorage.getItem('edgepro_session'));}catch{return null;} },
-  logout(){ localStorage.removeItem('edgepro_session'); location.href='login.html'; },
+  logout(){ try{ if(window.SB) window.SB.auth.signOut(); }catch(e){} localStorage.removeItem('edgepro_session'); location.href='login.html'; },
   k(b){ const s=this.session(); return `edgepro_${b}_${s?s.email:'anon'}`; },
   get(b,d){ try{return JSON.parse(localStorage.getItem(this.k(b)))??d;}catch{return d;} },
   set(b,v){ try{ localStorage.setItem(this.k(b),JSON.stringify(v)); return true; }catch(e){ toast('Storage full — export & reset, or use fewer screenshots','bad'); return false; } },
@@ -323,6 +325,7 @@ const Store={
   settings(){ return this.get('settings',{account:10000,name:(this.session()||{}).name||'Trader'}); }, saveSettings(s){ this.set('settings',s); },
   profile(){ return this.get('profile',{xp:0}); }, saveProfile(p){ this.set('profile',p); },
 };
+const _CFG=window.EDGE_CONFIG||{}; window.SB=(_CFG.supabase&&_CFG.supabase.url&&_CFG.supabase.anonKey&&window.supabase)?window.supabase.createClient(_CFG.supabase.url,_CFG.supabase.anonKey):null;
 const session=Store.session(); if(!session) location.href='login.html';
 const $=(s,r=document)=>r.querySelector(s);
 const money=n=>(n<0?'-':'+')+'$'+Math.abs(Math.round(n)).toLocaleString();
