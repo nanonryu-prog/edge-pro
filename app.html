@@ -270,6 +270,10 @@ tr{transition:background .15s}
 .eradar circle,.eradar text,.eradar g{animation:radarFade .5s ease both;animation-delay:.35s}
 @keyframes radarPop{from{opacity:0;transform:scale(.35)}to{opacity:1;transform:scale(1)}}
 @keyframes radarFade{from{opacity:0}to{opacity:1}}
+.emo-list{display:flex;flex-direction:column;gap:15px;margin-bottom:18px}
+.emo-row{display:flex;align-items:center;gap:13px}
+.emo-ic{flex:0 0 auto;width:36px;height:36px;border-radius:11px;border:1px solid;display:grid;place-items:center}
+.emo-body{flex:1;min-width:0}
 .cd-head{display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-top:16px}
 .cdbar{display:flex;height:9px;border-radius:20px;overflow:hidden;margin-top:8px}
 .cdbar>div{height:100%;transition:width .8s cubic-bezier(.2,.7,.3,1)}
@@ -864,34 +868,16 @@ function emotionRadar(s){
   const tr=s.tr; const cnt={Calm:0,Confident:0,Focused:0,Fear:0,FOMO:0,Greed:0,Revenge:0}; let tagged=0;
   tr.forEach(t=>{ if(t.emotion&&cnt.hasOwnProperty(t.emotion)){cnt[t.emotion]++;tagged++;} });
   const axes=[{k:'Calm',t:'g'},{k:'Confident',t:'g'},{k:'Focused',t:'g'},{k:'Discipline',t:'g'},{k:'Greed',t:'b'},{k:'FOMO',t:'b'},{k:'Fear',t:'b'},{k:'Revenge',t:'b'}];
-  const raw=a=> a.k==='Discipline' ? (tr.length? s.dis/100 : 0) : (tagged? cnt[a.k]/tagged : 0);
-  const C=180,R=112,IR=143; let poly='',dots='';
-  const nodes=axes.map((a,i)=>{ const ang=(-90+i*45)*Math.PI/180; const vv=Math.max(0.05,raw(a));
-    const x=C+Math.cos(ang)*R*vv, y=C+Math.sin(ang)*R*vv; poly+=x.toFixed(1)+','+y.toFixed(1)+' ';
-    dots+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="2.6" fill="#fff"/>';
-    const ix=C+Math.cos(ang)*IR, iy=C+Math.sin(ang)*IR;
-    const pct = a.k==='Discipline' ? (tr.length? s.dis+'%':'—') : (tagged? Math.round(cnt[a.k]/tagged*100)+'%':'0%');
-    return {k:a.k,t:a.t,ix,iy,pct,above:(iy<C-8)}; });
-  const rings=[0.25,0.5,0.75,1].map(f=>{ let p=''; axes.forEach((a,i)=>{const ang=(-90+i*45)*Math.PI/180; p+=(i?'L':'M')+(C+Math.cos(ang)*R*f).toFixed(1)+' '+(C+Math.sin(ang)*R*f).toFixed(1)+' ';}); return '<path d="'+p+'Z" fill="none" stroke="var(--track)" stroke-width="1"/>'; }).join('');
-  const spokes=axes.map((a,i)=>{const ang=(-90+i*45)*Math.PI/180; return '<line x1="'+C+'" y1="'+C+'" x2="'+(C+Math.cos(ang)*R).toFixed(1)+'" y2="'+(C+Math.sin(ang)*R).toFixed(1)+'" stroke="var(--track)" stroke-width="1"/>';}).join('');
-  const nodeSvg=nodes.map(n=>{ const col=n.t==='g'?'var(--win)':'var(--loss)'; const bg=n.t==='g'?'rgba(36,209,155,.13)':'rgba(245,71,107,.13)';
-    const ly=n.above? n.iy-25 : n.iy+31; const py=n.above? n.iy-13 : n.iy+43;
-    return '<g transform="translate('+n.ix.toFixed(1)+','+n.iy.toFixed(1)+')"><circle r="15" fill="'+bg+'" stroke="'+col+'" stroke-width="1.2"/><g transform="translate(-8,-8)" color="'+col+'" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">'+emoIcon(n.k)+'</g></g>'
-      +'<text x="'+n.ix.toFixed(1)+'" y="'+ly+'" text-anchor="middle" fill="var(--text)" font-size="11.5" font-weight="600">'+n.k+'</text>'
-      +'<text x="'+n.ix.toFixed(1)+'" y="'+py+'" text-anchor="middle" fill="'+col+'" font-size="11" font-weight="700">'+n.pct+'</text>'; }).join('');
+  const val=a=> a.k==='Discipline' ? (tr.length? s.dis : 0) : (tagged? Math.round(cnt[a.k]/tagged*100) : 0);
+  const rows=axes.map(a=>({k:a.k,t:a.t,v:val(a)})).sort((x,y)=>y.v-x.v);
+  const rowHtml=rows.map(r=>{ const col=r.t==='g'?'var(--win)':'var(--loss)'; const bg=r.t==='g'?'rgba(36,209,155,.13)':'rgba(245,71,107,.13)';
+    return '<div class="emo-row"><span class="emo-ic" style="color:'+col+';background:'+bg+';border-color:'+col+'"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">'+emoIcon(r.k)+'</svg></span>'
+      +'<div class="emo-body"><div class="pbar-top" style="margin-bottom:6px"><span>'+r.k+'</span><b>'+r.v+'%</b></div><div class="pbar-tr"><div class="pbar-fl" style="width:'+Math.max(1.5,r.v)+'%;background:linear-gradient(90deg,'+col+',var(--violet-2))"></div></div></div></div>'; }).join('');
   const gc=cnt.Calm+cnt.Confident+cnt.Focused, bc=cnt.Fear+cnt.FOMO+cnt.Greed+cnt.Revenge, tot=gc+bc;
   const cons=tot?Math.round(gc/tot*100):(tr.length?60:0), destr=100-cons;
-  const signal=axes.reduce((a,x)=>a+raw(x),0);
-  let guide=''; axes.forEach((a,i)=>{const ang=(-90+i*45)*Math.PI/180; guide+=(C+Math.cos(ang)*R*0.5).toFixed(1)+','+(C+Math.sin(ang)*R*0.5).toFixed(1)+' ';});
-  const polyEl = signal>0.02
-    ? '<polygon points="'+poly.trim()+'" fill="url(#eg)" stroke="var(--violet-2)" stroke-width="2"/>'+dots
-    : '<polygon points="'+guide.trim()+'" fill="rgba(124,92,252,.05)" stroke="var(--violet-2)" stroke-width="1.4" stroke-dasharray="4 5" opacity=".5"/>';
-  const svg='<svg class="eradar" viewBox="0 0 360 380" fill="none">'
-    +'<defs><radialGradient id="eg" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="rgba(124,92,252,.55)"/><stop offset="100%" stop-color="rgba(225,92,198,.22)"/></radialGradient></defs>'
-    +rings+spokes+polyEl+nodeSvg+'</svg>';
-  const hint = tagged? '' : '<div class="hint" style="text-align:center;margin-top:2px">Tag emotions when you log trades to build your map.</div>';
-  return '<div class="card"><div class="row-sb"><div class="card-title">Head Space</div><span class="chip">'+(tagged||0)+' tagged</span></div><div class="card-sub">The shape of your mind across every trade</div>'
-    +svg+hint
+  const hint = tagged? '' : '<div class="hint" style="margin-top:-4px;margin-bottom:16px">Tag emotions when you log trades — your mix builds here.</div>';
+  return '<div class="card"><div class="row-sb"><div class="card-title">Head Space</div><span class="chip">'+(tagged||0)+' tagged</span></div><div class="card-sub" style="margin-bottom:18px">The mix of emotions behind your trades</div>'
+    +hint+'<div class="emo-list">'+rowHtml+'</div>'
     +'<div class="cd-head"><span style="color:var(--win)">Composed '+cons+'%</span><span style="color:var(--loss)">'+destr+'% Reactive</span></div>'
     +'<div class="cdbar"><div style="width:'+cons+'%;background:var(--win)"></div><div style="width:'+destr+'%;background:var(--loss)"></div></div></div>';
 }
