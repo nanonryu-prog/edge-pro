@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237C5CFC'/%3E%3Cpath d='M7 21l6-6 4 4 8-8' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
 <title>EDGE Pro — Journal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -250,6 +251,7 @@ tr{transition:background .15s}
 .shotzone{display:block;border:1.5px dashed var(--border-2);border-radius:12px;padding:18px;text-align:center;cursor:pointer;color:var(--muted);font-size:13px;transition:.2s}
 .shotzone:hover{border-color:var(--violet);background:rgba(124,92,252,.05)}
 .tbl tbody tr{cursor:pointer}
+:focus-visible{outline:2px solid var(--violet-2);outline-offset:2px;border-radius:6px}
 </style>
 <script>(function(){var p=localStorage.getItem("edgepro_theme")||"auto";var t=p;if(p==="auto"){var h=new Date().getHours();t=(h>=7&&h<19)?"light":"dark";}document.documentElement.setAttribute("data-theme",t);})();</script>
 </head>
@@ -278,10 +280,10 @@ tr{transition:background .15s}
       </div>
       <div class="top-right">
         <span class="sess-pill">Session in <b id="sessCount">–</b></span>
-        <button class="icon-btn" id="themeBtn" title="Theme" onclick="cycleTheme()"></button>
+        <button class="icon-btn" id="themeBtn" title="Theme" aria-label="Toggle light or dark theme" onclick="cycleTheme()"></button>
         <button class="btn btn-primary btn-sm" onclick="openLog()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Log trade</button>
         <div class="avatar-wrap">
-          <span class="avatar" id="avatar" title="Account" onclick="toggleMenu()">N</span>
+          <span class="avatar" id="avatar" title="Account" role="button" tabindex="0" aria-label="Account menu" onclick="toggleMenu()">N</span>
           <div class="menu" id="userMenu">
             <div class="menu-head"><div class="mn" id="mName">–</div><div class="me" id="mEmail">–</div></div>
             <button class="menu-item" onclick="go('settings');toggleMenu(false)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L14.5 2h-4l-.3 2.6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4L4 11a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.6h4l.3-2.6a7 7 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6a7 7 0 0 0 .1-1Z"/></svg>Settings</button>
@@ -311,7 +313,7 @@ const Store={
   logout(){ localStorage.removeItem('edgepro_session'); location.href='login.html'; },
   k(b){ const s=this.session(); return `edgepro_${b}_${s?s.email:'anon'}`; },
   get(b,d){ try{return JSON.parse(localStorage.getItem(this.k(b)))??d;}catch{return d;} },
-  set(b,v){ localStorage.setItem(this.k(b),JSON.stringify(v)); },
+  set(b,v){ try{ localStorage.setItem(this.k(b),JSON.stringify(v)); return true; }catch(e){ toast('Storage full — export & reset, or use fewer screenshots','bad'); return false; } },
   trades(){ return this.get('trades',[]); }, saveTrades(t){ this.set('trades',t); },
   playbooks(){ let p=this.get('playbooks',null); if(!p){ p=[{name:'A+ Setup',rules:['Setup matches my playbook','Stop loss set before entry','Risk ≤ 1% of account','Not revenge trading','Within my session hours']}]; this.set('playbooks',p);} return p; },
   savePlaybooks(p){ this.set('playbooks',p); },
@@ -420,7 +422,7 @@ VIEWS.dash=function(){
 };
 VIEWS.trades=function(){
   const tr=Store.trades().slice().reverse();
-  $('#view').innerHTML=`<div class="card">${tr.length?`<div class="row-sb" style="margin-bottom:12px"><div class="card-title">${tr.length} trades</div><button class="btn btn-primary btn-sm" onclick="openLog()">+ Log trade</button></div>${tradeTable(tr,true)}`:emptyInner('No trades yet','Log your first trade to build your track record.','openLog()','Log a trade')}</div>`;
+  $('#view').innerHTML=`<div class="card">${tr.length?`<div class="row-sb" style="margin-bottom:12px"><div class="card-title">${tr.length} trades</div><div style="display:flex;gap:8px"><label class="btn btn-ghost btn-sm" style="cursor:pointer">Import CSV<input type="file" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)"></label><button class="btn btn-primary btn-sm" onclick="openLog()">+ Log trade</button></div></div>${tradeTable(tr,true)}`:emptyInner('No trades yet','Log your first trade to build your track record.','openLog()','Log a trade')}</div>`;
 };
 VIEWS.playbooks=function(){
   const pb=Store.playbooks(); const rules=pb.reduce((a,p)=>a+p.rules.length,0);
@@ -677,6 +679,7 @@ VIEWS.settings=function(){
         <div class="fgrp"><label class="flbl">Default risk / trade (%)</label><input class="finp" type="number" step="0.1" id="st-risk" value="${st.risk||1}"></div>
         <div class="fgrp"><label class="flbl">Target R:R</label><input class="finp" type="number" step="0.1" id="st-rr" value="${st.rrTarget||2}"></div>
         <div class="fgrp"><label class="flbl">Commission / trade ($)</label><input class="finp" type="number" step="0.01" id="st-comm" value="${st.commission||0}"></div>
+        <div class="fgrp"><label class="flbl">Session start (HH:MM)</label><input class="finp" type="time" id="st-session" value="${st.sessionStart||'09:30'}"></div>
       </div>
     </div>
     <div class="card set-section"><h3>Notifications</h3>
@@ -686,16 +689,16 @@ VIEWS.settings=function(){
     </div>
     <button class="btn btn-primary" onclick="saveSettings()">Save settings</button>
     <div class="card set-section" style="margin-top:16px"><h3>Your data</h3><div class="card-sub" style="margin-bottom:12px">Your journal lives in this browser. Back it up or move it anytime.</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="exportData()">Export data (JSON)</button><label class="btn btn-ghost btn-sm" style="cursor:pointer">Import data<input type="file" accept="application/json" style="display:none" onchange="importData(this)"></label><button class="btn btn-ghost btn-sm" onclick="if(confirm('Reset all trades and data?')){wipe()}">Reset data</button></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="exportData()">Export data (JSON)</button><label class="btn btn-ghost btn-sm" style="cursor:pointer">Import JSON<input type="file" accept="application/json" style="display:none" onchange="importData(this)"></label><label class="btn btn-ghost btn-sm" style="cursor:pointer">Import CSV<input type="file" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)"></label><button class="btn btn-ghost btn-sm" onclick="sampleCSV()">Sample CSV</button><button class="btn btn-ghost btn-sm" onclick="if(confirm('Reset all trades and data?')){wipe()}">Reset data</button></div>
     </div>
     <div class="card set-section" style="border-color:rgba(245,71,107,0.3)"><h3 style="color:var(--loss)">Danger zone</h3><p class="hint" style="margin:6px 0 12px">Signed in as ${session.email}.</p><button class="btn btn-danger btn-sm" onclick="deleteAccount()">Delete my account</button></div>
   </div>`;
 };
 
 /* ---- Log trade modal ---- */
-function openLog(){
+function openLog(editId){ window._editId=editId||null;
   const rules=(Store.playbooks()[0]||{rules:[]}).rules;
-  $('#logModalInner').innerHTML=`<div class="row-sb"><div class="card-title">Log a trade</div><button class="modal-x" onclick="closeLog()">✕</button></div>
+  $('#logModalInner').innerHTML=`<div class="row-sb"><div class="card-title">${editId?'Edit trade':'Log a trade'}</div><button class="modal-x" onclick="closeLog()">✕</button></div>
     <div style="margin-top:16px"><div class="flbl" style="margin-bottom:8px">Pre-trade checklist <span id="mlProg" class="hint">0 / ${rules.length}</span></div>
     <div id="mcl">${rules.map((r,i)=>`<div class="rule" data-i="${i}"><span class="box"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></span><span style="font-size:13px">${r}</span></div>`).join('')||'<div class="hint">No rules — add them in Playbooks.</div>'}</div></div>
     <form id="mForm" style="margin-top:8px"><div class="form-grid">
@@ -714,12 +717,16 @@ function openLog(){
       <div class="fgrp full"><label class="flbl">Screenshot (optional)</label><label class="shotzone" id="shotZone"><input type="file" accept="image/*" style="display:none" onchange="loadShot(this)">📷 Attach chart screenshot</label></div>
       <div class="fgrp full"><label class="flbl">Notes</label><textarea class="finp" id="m-notes" placeholder="What was the setup?"></textarea></div>
     </div>
-    <div style="display:flex;gap:12px;margin-top:16px"><button type="submit" class="btn btn-primary">Save trade (+10 XP)</button><button type="button" class="btn btn-ghost" onclick="closeLog()">Cancel</button></div></form>`;
+    <div style="display:flex;gap:12px;margin-top:16px"><button type="submit" class="btn btn-primary">${editId?'Save changes':'Save trade (+10 XP)'}</button><button type="button" class="btn btn-ghost" onclick="closeLog()">Cancel</button></div></form>`;
   window._pendingShot=null;
   $('#logModal').classList.add('show');
   $('#m-date').value=new Date().toISOString().slice(0,10);
   document.querySelectorAll('#mcl .rule').forEach(r=>r.onclick=()=>{ r.classList.toggle('on'); $('#mlProg').textContent=`${document.querySelectorAll('#mcl .rule.on').length} / ${rules.length}`; });
   $('#mForm').onsubmit=saveTradeModal;
+  if(editId){ const t=Store.trades().find(x=>x.id===editId); if(t){ const S=(id,v)=>{const el=$('#'+id); if(el&&v!=null&&v!=='')el.value=v;};
+    S('m-date',t.date);S('m-sym',t.symbol);S('m-side',t.side);S('m-entry',t.entry);S('m-exit',t.exit);S('m-size',t.size);S('m-stop',t.stop);S('m-target',t.target);S('m-emotion',t.emotion);S('m-pnl',t.pnl);S('m-rr',t.rr);S('m-tilt',t.tilt);S('m-notes',t.notes);
+    const kids=document.querySelectorAll('#mcl .rule'); for(let i=0;i<(t.rulesFollowed||0)&&i<kids.length;i++)kids[i].classList.add('on'); if($('#mlProg'))$('#mlProg').textContent=(t.rulesFollowed||0)+' / '+rules.length;
+    if(t.shot){ window._pendingShot=t.shot; const z=$('#shotZone'); if(z)z.innerHTML='<img src="'+t.shot+'" style="max-width:100%;border-radius:8px;max-height:180px">'; } } }
 }
 function closeLog(){ $('#logModal').classList.remove('show'); }
 function mCalc(){ const e=+$('#m-entry').value,x=+$('#m-exit').value,sz=+$('#m-size').value,side=$('#m-side').value,st=+$('#m-stop').value,tg=+$('#m-target').value;
@@ -731,6 +738,7 @@ function saveTradeModal(ev){ ev.preventDefault(); const _b=achCount();
     entry:+$('#m-entry').value||null,exit:+$('#m-exit').value||null,size:+$('#m-size').value||null,stop:+$('#m-stop').value||null,target:+$('#m-target').value||null,
     pnl:parseFloat($('#m-pnl').value)||0,rr:$('#m-rr').value?+$('#m-rr').value:null,emotion:$('#m-emotion').value,tilt:+$('#m-tilt').value||null,
     rulesFollowed:followed,rulesTotal:rules.length,notes:$('#m-notes').value.trim(),shot:window._pendingShot||null};
+  if(window._editId){ const arr=Store.trades(); const i=arr.findIndex(x=>x.id===window._editId); t.id=window._editId; if(i>=0)arr[i]=t; Store.saveTrades(arr); window._editId=null; closeLog(); toast('Trade updated','good'); go(current); return; }
   const a=Store.trades(); a.push(t); Store.saveTrades(a); addXP(10+(followed===rules.length&&rules.length?5:0));
   closeLog(); toast('Trade logged','good'); go(current==='trades'?'trades':'dash'); celebrateNewAch(_b);
 }
@@ -756,6 +764,7 @@ function saveSettings(){ const st=Store.settings();
   st.style=$('#st-style').value; st.timezone=$('#st-tz').value; st.currency=$('#st-cur').value;
   st.risk=+$('#st-risk').value||1; st.rrTarget=+$('#st-rr').value||2; st.commission=+$('#st-comm').value||0;
   st.notif={session:$('#nt-session').classList.contains('on'),journal:$('#nt-journal').classList.contains('on'),goals:$('#nt-goals').classList.contains('on')};
+  if($('#st-session'))st.sessionStart=$('#st-session').value;
   Store.saveSettings(st);
   $('#avatar').textContent=(st.name||'T')[0].toUpperCase(); $('#mName').textContent=st.name||'Trader';
   toast('Settings saved','good'); }
@@ -786,7 +795,7 @@ function runningDD(tr,acct){ let peak=acct,c=acct,dd=[]; tr.forEach(t=>{c+=t.pnl
 function discStreak(){ const tr=Store.trades(); let s=0; for(let i=tr.length-1;i>=0;i--){ if(tr[i].rulesTotal>0&&tr[i].rulesFollowed===tr[i].rulesTotal)s++; else break; } return s; }
 
 /* ---- session countdown ---- */
-function tickSession(){ const now=new Date(); const t=new Date(now); t.setHours(20,30,0,0); if(t<now)t.setDate(t.getDate()+1); let s=Math.floor((t-now)/1000); const h=Math.floor(s/3600),mn=Math.floor(s%3600/60),sc=s%60; $('#sessCount').textContent=`${h}h ${mn}m ${sc}s`; }
+function tickSession(){ const st=Store.settings(); const p=(st.sessionStart||'09:30').split(':'); const hh=(+p[0]||9),mm=(+p[1]||0); const now=new Date(); const t=new Date(now); t.setHours(hh,mm,0,0); if(t<=now)t.setDate(t.getDate()+1); let s=Math.floor((t-now)/1000); const h=Math.floor(s/3600),mn=Math.floor(s%3600/60),sc=s%60; const el=$('#sessCount'); if(el)el.textContent=`${h}h ${mn}m ${sc}s`; }
 
 /* ---- onboarding (first run after signup) ---- */
 function openOnboarding(){
@@ -836,16 +845,17 @@ function achList(){ const s=stats(); const streak=discStreak(); const weeks=(Sto
  {i:'📝',n:'Weekly Reviewer',cur:weeks,goal:1},{i:'✨',n:'Clean Week',cur:(s.tr.length>=5&&s.broken===0)?1:0,goal:1}]; }
 function achCount(){ return achList().filter(a=>a.cur>=a.goal).length; }
 function celebrateNewAch(before){ const now=achList().filter(a=>a.cur>=a.goal); if(now.length>before){ confetti(); const last=now[now.length-1]; toast('🏆 Achievement unlocked: '+last.n,'good'); } }
-function loadShot(input){ const f=input.files[0]; if(!f)return; const img=new Image(); img.onload=()=>{ const cv=document.createElement('canvas'); const sc=Math.min(1,900/img.width); cv.width=img.width*sc; cv.height=img.height*sc; cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height); window._pendingShot=cv.toDataURL('image/jpeg',0.7); const z=document.getElementById('shotZone'); if(z)z.innerHTML='<img src="'+window._pendingShot+'" style="max-width:100%;border-radius:8px;max-height:180px">'; }; img.src=URL.createObjectURL(f); }
+function loadShot(input){ const f=input.files[0]; if(!f)return; const img=new Image(); img.onload=()=>{ const cv=document.createElement('canvas'); const sc=Math.min(1,720/img.width); cv.width=img.width*sc; cv.height=img.height*sc; cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height); window._pendingShot=cv.toDataURL('image/jpeg',0.6); const z=document.getElementById('shotZone'); if(z)z.innerHTML='<img src="'+window._pendingShot+'" style="max-width:100%;border-radius:8px;max-height:180px">'; }; img.src=URL.createObjectURL(f); }
 function openTradeDetail(id){ const t=Store.trades().find(x=>x.id===id); if(!t)return;
   document.getElementById('detailInner').innerHTML=`<div class="row-sb"><div class="card-title">${t.symbol} · <span class="tag ${t.side}">${t.side}</span></div><button class="modal-x" onclick="closeDetail()">✕</button></div>
     <div class="grid kpis" style="margin-top:16px">${kpi('P&L',money(t.pnl),t.pnl>=0?'win':'loss',fmtDate(t.date))}${kpi('R:R',t.rr?t.rr.toFixed(2):'—','','planned')}${kpi('Rules',t.rulesTotal?t.rulesFollowed+'/'+t.rulesTotal:'—',t.rulesTotal&&t.rulesFollowed===t.rulesTotal?'win':'','followed')}${kpi('Emotion',t.emotion||'—','','tilt '+(t.tilt||'—'))}</div>
     ${(t.entry||t.exit)?`<div class="card" style="background:var(--card);margin-top:14px"><div class="row-sb"><span class="hint">Entry → Exit</span><b class="mono">${t.entry??'—'} → ${t.exit??'—'}</b></div>${(t.stop||t.target)?`<div class="row-sb" style="margin-top:8px"><span class="hint">Stop / Target</span><b class="mono">${t.stop??'—'} / ${t.target??'—'}</b></div>`:''}</div>`:''}
     ${t.notes?`<div class="card" style="background:var(--card);margin-top:14px"><div class="flbl">Notes</div><p style="margin-top:6px;color:var(--muted);line-height:1.55">${t.notes}</p></div>`:''}
     ${t.shot?`<img src="${t.shot}" style="width:100%;border-radius:12px;margin-top:14px">`:''}
-    <div style="display:flex;gap:12px;margin-top:18px"><button class="btn btn-danger" onclick="delTrade(${t.id});closeDetail()">Delete trade</button><button class="btn btn-ghost" onclick="closeDetail()">Close</button></div>`;
+    <div style="display:flex;gap:12px;margin-top:18px"><button class="btn btn-primary" onclick="editTrade(${t.id})">Edit</button><button class="btn btn-danger" onclick="delTrade(${t.id});closeDetail()">Delete</button><button class="btn btn-ghost" onclick="closeDetail()">Close</button></div>`;
   document.getElementById('detailModal').classList.add('show'); }
 function closeDetail(){ document.getElementById('detailModal').classList.remove('show'); }
+function editTrade(id){ closeDetail(); openLog(id); }
 
 /* ---- theme ---- */
 const SUN='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
@@ -866,6 +876,19 @@ document.addEventListener('click',e=>{ if(!e.target.closest('.avatar-wrap')) tog
 const DATA_KEYS=['trades','playbooks','journal','goals','eval','profile','weeks','settings'];
 function exportData(){ const out={}; DATA_KEYS.forEach(b=>out[b]=Store.get(b,null)); const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='edgepro-'+session.email+'.json'; a.click(); toast('Data exported','good'); }
 function importData(input){ const f=input.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(r.result); DATA_KEYS.forEach(b=>{ if(d[b]!=null) Store.set(b,d[b]); }); toast('Data imported','good'); renderXP(); go('dash'); }catch{ toast('Invalid file'); } }; r.readAsText(f); }
+function parseCSV(text){ const rows=[]; text.split(/\r?\n/).forEach(line=>{ if(!line.trim())return; const cells=[]; let cur='',q=false; for(let i=0;i<line.length;i++){ const c=line[i]; if(c==='"'){ if(q&&line[i+1]==='"'){cur+='"';i++;} else q=!q; } else if(c===','&&!q){ cells.push(cur);cur=''; } else cur+=c; } cells.push(cur); rows.push(cells); }); return rows; }
+function importCSV(input){ const f=input.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{ try{
+  const rows=parseCSV(r.result); if(rows.length<2){toast('Empty CSV');return;}
+  const head=rows[0].map(h=>h.trim().toLowerCase()); const find=(...ns)=>{ for(const n of ns){ const i=head.indexOf(n); if(i>=0)return i; } return -1; };
+  const iDate=find('date','time','opened','open date'),iSym=find('symbol','pair','ticker','instrument'),iSide=find('side','direction','type','action'),iEntry=find('entry','entry price','open','open price'),iExit=find('exit','exit price','close','close price'),iSize=find('size','qty','quantity','volume','lots','units'),iPnl=find('pnl','p&l','profit','net','net p&l','realized'),iRR=find('rr','r:r','r'),iNotes=find('notes','comment','comments');
+  const num=v=>{ const x=parseFloat((v||'').replace(/[$,]/g,'')); return isNaN(x)?null:x; };
+  const arr=Store.trades(); let n=0;
+  rows.slice(1).forEach(c=>{ if(!c.join('').trim())return; const sv=(c[iSide]||'').toLowerCase(); const side=(sv.includes('short')||sv.includes('sell')||sv==='s')?'short':'long';
+    const entry=num(c[iEntry]),exit=num(c[iExit]),size=num(c[iSize]); let pnl=num(c[iPnl]); if(pnl==null&&entry!=null&&exit!=null&&size!=null)pnl=(exit-entry)*size*(side==='long'?1:-1);
+    arr.push({id:Date.now()+Math.random(),date:(c[iDate]||new Date().toISOString().slice(0,10)).trim().slice(0,10),symbol:(c[iSym]||'—').toUpperCase().trim(),side,entry,exit,size,stop:null,target:null,pnl:pnl||0,rr:num(c[iRR]),emotion:'',tilt:null,rulesFollowed:0,rulesTotal:0,notes:(c[iNotes]||'').trim(),shot:null}); n++; });
+  Store.saveTrades(arr); toast('Imported '+n+' trades','good'); go('dash');
+  }catch(e){ toast('Could not parse that CSV'); } }; r.readAsText(f); }
+function sampleCSV(){ const csv='date,symbol,side,entry,exit,size,pnl,rr,notes\n2026-07-01,EURUSD,long,1.0850,1.0910,10000,60,2,Clean breakout\n2026-07-02,US100,short,18500,18560,2,-120,1.5,Fought the trend'; const b=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='edgepro-sample.csv'; a.click(); }
 function deleteAccount(){ if(!confirm('Permanently delete your account and all data on this device?'))return; try{ const u=JSON.parse(localStorage.getItem('edgepro_users')||'{}'); delete u[session.email]; localStorage.setItem('edgepro_users',JSON.stringify(u)); }catch{} DATA_KEYS.forEach(b=>localStorage.removeItem(Store.k(b))); Store.logout(); }
 
 /* ---- init ---- */
