@@ -147,3 +147,17 @@ sidebar shows "Pro plan — active" instead of the trial/upgrade button.
 | Supabase **anon public** key | ✅ yes (it's meant for the client) |
 | Stripe **secret** key (`sk_...`) | ❌ never |
 | Supabase **service_role** key | ❌ never |
+
+---
+
+## Vercel notes (you're on Vercel)
+
+- The webhook for Vercel is **`api/stripe-webhook.js`** → its URL is
+  `https://YOUR-DOMAIN/api/stripe-webhook`. (The `netlify/` copy is unused on Vercel.)
+- Set the 4 env vars from part 5 in **Vercel → Project → Settings → Environment
+  Variables**, then **redeploy** so they take effect.
+- Root **`package.json`** holds the function's deps (`stripe`, `@supabase/supabase-js`);
+  Vercel installs them automatically.
+- In **Supabase → Authentication → URL Configuration**, set **Site URL** and add a
+  **Redirect URL** for your real domain (e.g. `https://yourdomain.com` and
+  `https://yourdomain.com/app.html`) so confirmation / reset / Google links work.

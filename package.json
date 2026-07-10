@@ -1,0 +1,10 @@
+{
+  "name": "edge-pro",
+  "private": true,
+  "version": "1.0.0",
+  "description": "EDGE Pro — trading journal (static site + Vercel serverless webhook)",
+  "dependencies": {
+    "stripe": "^16.0.0",
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}
