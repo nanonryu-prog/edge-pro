@@ -398,6 +398,7 @@
   const SESSION_KEY = 'edgepro_session';
   const CFG = window.EDGE_CONFIG || {};
   const SB = (CFG.supabase && CFG.supabase.url && CFG.supabase.anonKey && window.supabase) ? window.supabase.createClient(CFG.supabase.url, CFG.supabase.anonKey) : null;
+  if (SB) { SB.auth.getSession().then(({ data }) => { if (data && data.session && data.session.user) { const u = data.session.user; const nm = (u.user_metadata && (u.user_metadata.name || u.user_metadata.full_name)) || u.email.split('@')[0]; localStorage.setItem(SESSION_KEY, JSON.stringify({ email: u.email, name: nm })); location.href = 'app.html'; } }).catch(function(){}); }
   const getUsers = () => { try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; } catch { return {}; } };
   const saveUsers = u => localStorage.setItem(USERS_KEY, JSON.stringify(u));
   async function hash(pw) {
@@ -465,7 +466,7 @@
   });
 
   document.querySelectorAll('.social-btn').forEach(b => b.addEventListener('click', async () => {
-    if (SB) { const { error } = await SB.auth.signInWithOAuth({ provider: b.dataset.provider.toLowerCase(), options: { redirectTo: location.origin + '/app.html' } }); if (error) showMsg(error.message, false); return; }
+    if (SB) { const { error } = await SB.auth.signInWithOAuth({ provider: b.dataset.provider.toLowerCase(), options: { redirectTo: location.origin + '/login.html' } }); if (error) showMsg(error.message, false); return; }
     showMsg(`${b.dataset.provider} sign-in needs Supabase configured — use email to try it now.`, false);
   }));
   document.getElementById('forgotLink').addEventListener('click', async (e) => {
