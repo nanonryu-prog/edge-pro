@@ -254,6 +254,34 @@ tr{transition:background .15s}
 .shotzone:hover{border-color:var(--violet);background:rgba(124,92,252,.05)}
 .tbl tbody tr{cursor:pointer}
 :focus-visible{outline:2px solid var(--violet-2);outline-offset:2px;border-radius:6px}
+/* framer-motion-style staggered view entrance (native, spring easing) */
+#view>*{animation:viewUp .55s cubic-bezier(.22,.9,.28,1) both}
+#view>*:nth-child(1){animation-delay:.02s}#view>*:nth-child(2){animation-delay:.09s}
+#view>*:nth-child(3){animation-delay:.16s}#view>*:nth-child(4){animation-delay:.23s}
+#view>*:nth-child(5){animation-delay:.30s}#view>*:nth-child(6){animation-delay:.37s}
+#view>*:nth-child(n+7){animation-delay:.44s}
+@keyframes viewUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.kcard,.card{transition:transform .35s cubic-bezier(.22,.9,.28,1),box-shadow .35s ease,border-color .35s ease}
+.kcard:hover{transform:translateY(-4px)}
+@media (prefers-reduced-motion:reduce){#view>*{animation:none}.kcard:hover{transform:none}}
+/* emotional analysis + psych metrics */
+.eradar{display:block;width:100%;max-width:400px;margin:6px auto 0}
+.eradar polygon{transform-origin:center;transform-box:fill-box;animation:radarPop .7s cubic-bezier(.2,.7,.3,1) both}
+.eradar circle,.eradar text,.eradar g{animation:radarFade .5s ease both;animation-delay:.35s}
+@keyframes radarPop{from{opacity:0;transform:scale(.35)}to{opacity:1;transform:scale(1)}}
+@keyframes radarFade{from{opacity:0}to{opacity:1}}
+.cd-head{display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-top:16px}
+.cdbar{display:flex;height:9px;border-radius:20px;overflow:hidden;margin-top:8px}
+.cdbar>div{height:100%;transition:width .8s cubic-bezier(.2,.7,.3,1)}
+.pbar{margin-bottom:17px}
+.pbar-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
+.pbar-top b{color:var(--text);font-size:14px}
+.pdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;vertical-align:middle}
+.pbar-tr{height:9px;border-radius:20px;background:var(--track);overflow:hidden;margin-top:8px}
+.pbar-fl{height:100%;border-radius:20px;transform-origin:left;animation:barGrow 1s cubic-bezier(.2,.7,.3,1) both}
+@keyframes barGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.psi-box{border:1px solid var(--track);border-radius:14px;padding:14px 16px;margin-top:8px;background:rgba(124,92,252,.06)}
+@media (prefers-reduced-motion:reduce){.eradar polygon,.eradar circle,.eradar text,.eradar g,.pbar-fl{animation:none}}
 </style>
 <script>(function(){var p=localStorage.getItem("edgepro_theme")||"dark";var t=p;if(p==="auto"){var h=new Date().getHours();t=(h>=7&&h<19)?"light":"dark";}document.documentElement.setAttribute("data-theme",t);})();</script>
 </head>
@@ -419,6 +447,11 @@ VIEWS.dash=function(){
       <div class="card-sub" style="margin-bottom:14px">Auto-generated from your trades</div>
       ${insights(s)}
     </div>
+    <div class="two-col section-gap">
+      ${emotionRadar(s)}
+      ${psychMetrics(s)}
+    </div>
+    <div class="grid kpis section-gap">${fillStats(s)}</div>
     <div class="card section-gap">
       <div class="row-sb"><div class="card-title">Recent trades</div>${s.tr.length?'<button class="btn btn-ghost btn-sm" onclick="go(\'trades\')">View all</button>':''}</div>
       <div style="margin-top:12px">${s.tr.length?tradeTable(s.tr.slice().reverse().slice(0,5),false):'<div class="hint" style="padding:8px 2px">No trades yet — hit “Log trade” to start.</div>'}</div>
@@ -797,6 +830,73 @@ function reportTable(title,rows){ return `<div class="card-title">${title}</div>
 function dayNets(tr){ const m={}; tr.forEach(t=>{const d=t.date;m[d]=(m[d]||0)+t.pnl;}); return Object.values(m); }
 function runningDD(tr,acct){ let peak=acct,c=acct,dd=[]; tr.forEach(t=>{c+=t.pnl; peak=Math.max(peak,c); dd.push(c-peak);}); return dd.length?dd:[0]; }
 function discStreak(){ const tr=Store.trades(); let s=0; for(let i=tr.length-1;i>=0;i--){ if(tr[i].rulesTotal>0&&tr[i].rulesFollowed===tr[i].rulesTotal)s++; else break; } return s; }
+/* ---- Emotional analysis (SVG icons, no emoji) ---- */
+function emoIcon(n){ const p={
+  Calm:'<circle cx="8" cy="8" r="6.5"/><path d="M5.4 9.6h5.2"/><circle cx="6" cy="6.3" r=".7" fill="currentColor" stroke="none"/><circle cx="10" cy="6.3" r=".7" fill="currentColor" stroke="none"/>',
+  Confident:'<path d="M8 1.6l5.4 2v4.1c0 3.5-2.5 6.1-5.4 6.9-2.9-.8-5.4-3.4-5.4-6.9V3.6z"/><path d="M5.7 8l1.7 1.7L11 5.9"/>',
+  Focused:'<circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="3"/><circle cx="8" cy="8" r=".8" fill="currentColor" stroke="none"/>',
+  Discipline:'<path d="M8 1.4l1.8 1.3 2.1-.2.6 2.1 1.8 1.1-.9 2 .9 2-1.8 1.1-.6 2.1-2.1-.2L8 14.6l-1.8-1.3-2.1.2-.6-2.1-1.8-1.1.9-2-.9-2 1.8-1.1.6-2.1 2.1.2z"/><path d="M6 8l1.5 1.5L10.4 6"/>',
+  Greed:'<path d="M8 1.6v12.8"/><path d="M11 4.3c-.8-.9-2-1.3-3.1-1.3-1.6 0-3 .8-3 2.2 0 3.1 6.2 1.6 6.2 4.7 0 1.5-1.5 2.4-3.1 2.4-1.2 0-2.5-.5-3.3-1.5"/>',
+  FOMO:'<path d="M9.1 1.5L3.4 9.1H7l-1 5.4 6.6-7.6H9z"/>',
+  Fear:'<path d="M8 2.1l6 10.8H2z"/><path d="M8 6.4v3.2"/><circle cx="8" cy="11.3" r=".8" fill="currentColor" stroke="none"/>',
+  Revenge:'<path d="M8 1.5c2.2 2.8 3.9 4 3.9 7A3.9 3.9 0 018 12a3.6 3.6 0 01-2.5-6.2C5.9 7.6 8 7.3 8 5.4c0-1.3-.4-2.5 0-3.9z"/>'
+}; return '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">'+(p[n]||'')+'</svg>'; }
+function emotionRadar(s){
+  const tr=s.tr; const cnt={Calm:0,Confident:0,Focused:0,Fear:0,FOMO:0,Greed:0,Revenge:0}; let tagged=0;
+  tr.forEach(t=>{ if(t.emotion&&cnt.hasOwnProperty(t.emotion)){cnt[t.emotion]++;tagged++;} });
+  const axes=[{k:'Calm',t:'g'},{k:'Confident',t:'g'},{k:'Focused',t:'g'},{k:'Discipline',t:'g'},{k:'Greed',t:'b'},{k:'FOMO',t:'b'},{k:'Fear',t:'b'},{k:'Revenge',t:'b'}];
+  const raw=a=> a.k==='Discipline' ? (tr.length? s.dis/100 : 0) : (tagged? cnt[a.k]/tagged : 0);
+  const C=180,R=112,IR=143; let poly='',dots='';
+  const nodes=axes.map((a,i)=>{ const ang=(-90+i*45)*Math.PI/180; const vv=Math.max(0.05,raw(a));
+    const x=C+Math.cos(ang)*R*vv, y=C+Math.sin(ang)*R*vv; poly+=x.toFixed(1)+','+y.toFixed(1)+' ';
+    dots+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="2.6" fill="#fff"/>';
+    const ix=C+Math.cos(ang)*IR, iy=C+Math.sin(ang)*IR;
+    const pct = a.k==='Discipline' ? (tr.length? s.dis+'%':'—') : (tagged? Math.round(cnt[a.k]/tagged*100)+'%':'0%');
+    return {k:a.k,t:a.t,ix,iy,pct,above:(iy<C-8)}; });
+  const rings=[0.25,0.5,0.75,1].map(f=>{ let p=''; axes.forEach((a,i)=>{const ang=(-90+i*45)*Math.PI/180; p+=(i?'L':'M')+(C+Math.cos(ang)*R*f).toFixed(1)+' '+(C+Math.sin(ang)*R*f).toFixed(1)+' ';}); return '<path d="'+p+'Z" fill="none" stroke="var(--track)" stroke-width="1"/>'; }).join('');
+  const spokes=axes.map((a,i)=>{const ang=(-90+i*45)*Math.PI/180; return '<line x1="'+C+'" y1="'+C+'" x2="'+(C+Math.cos(ang)*R).toFixed(1)+'" y2="'+(C+Math.sin(ang)*R).toFixed(1)+'" stroke="var(--track)" stroke-width="1"/>';}).join('');
+  const nodeSvg=nodes.map(n=>{ const col=n.t==='g'?'var(--win)':'var(--loss)'; const bg=n.t==='g'?'rgba(36,209,155,.13)':'rgba(245,71,107,.13)';
+    const ly=n.above? n.iy-25 : n.iy+31; const py=n.above? n.iy-13 : n.iy+43;
+    return '<g transform="translate('+n.ix.toFixed(1)+','+n.iy.toFixed(1)+')"><circle r="15" fill="'+bg+'" stroke="'+col+'" stroke-width="1.2"/><g transform="translate(-8,-8)" color="'+col+'">'+emoIcon(n.k)+'</g></g>'
+      +'<text x="'+n.ix.toFixed(1)+'" y="'+ly+'" text-anchor="middle" fill="var(--text)" font-size="11.5" font-weight="600">'+n.k+'</text>'
+      +'<text x="'+n.ix.toFixed(1)+'" y="'+py+'" text-anchor="middle" fill="'+col+'" font-size="11" font-weight="700">'+n.pct+'</text>'; }).join('');
+  const gc=cnt.Calm+cnt.Confident+cnt.Focused, bc=cnt.Fear+cnt.FOMO+cnt.Greed+cnt.Revenge, tot=gc+bc;
+  const cons=tot?Math.round(gc/tot*100):(tr.length?60:0), destr=100-cons;
+  const svg='<svg class="eradar" viewBox="0 0 360 380" fill="none">'
+    +'<defs><radialGradient id="eg" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="rgba(124,92,252,.55)"/><stop offset="100%" stop-color="rgba(225,92,198,.22)"/></radialGradient></defs>'
+    +rings+spokes+'<polygon points="'+poly.trim()+'" fill="url(#eg)" stroke="var(--violet-2)" stroke-width="2"/>'+dots+nodeSvg+'</svg>';
+  const hint = tagged? '' : '<div class="hint" style="text-align:center;margin-top:2px">Tag emotions when you log trades to build your map.</div>';
+  return '<div class="card"><div class="row-sb"><div class="card-title">Emotional Analysis</div><span class="chip">'+(tagged||0)+' tagged</span></div><div class="card-sub">Where your head is when you trade</div>'
+    +svg+hint
+    +'<div class="cd-head"><span style="color:var(--win)">Constructive '+cons+'%</span><span style="color:var(--loss)">'+destr+'% Destructive</span></div>'
+    +'<div class="cdbar"><div style="width:'+cons+'%;background:var(--win)"></div><div style="width:'+destr+'%;background:var(--loss)"></div></div></div>';
+}
+function psychBar(label,val,c1,c2){ return '<div class="pbar"><div class="pbar-top"><span><span class="pdot" style="background:'+c1+'"></span>'+label+'</span><b>'+val+'%</b></div><div class="pbar-tr"><div class="pbar-fl" style="width:'+val+'%;background:linear-gradient(90deg,'+c1+','+c2+')"></div></div></div>'; }
+function psychMetrics(s){
+  const disc=s.tr.length?s.dis:0;
+  const tiltCtrl=s.tilt!=null?Math.max(0,Math.round((5-s.tilt)/4*100)):(s.tr.length?100:0);
+  let gc=0,bc=0; s.tr.forEach(t=>{ if(['Calm','Confident','Focused'].includes(t.emotion))gc++; else if(['Fear','FOMO','Greed','Revenge'].includes(t.emotion))bc++; });
+  const cons=(gc+bc)?Math.round(gc/(gc+bc)*100):(s.tr.length?60:0);
+  const psi=Math.round((disc+tiltCtrl+cons)/3);
+  const psiLbl=psi>=85?'Rock solid':psi>=70?'Composed':psi>=50?'Steady':'Rebuilding';
+  return '<div class="card"><div class="row-sb"><div class="card-title">Psychological Metrics</div><span class="chip">EDGE mind</span></div><div class="card-sub">Your mental game, measured</div>'
+    +'<div style="margin-top:16px">'
+    +psychBar('Discipline level',disc,'#24D19B','#7C5CFC')
+    +psychBar('Tilt control',tiltCtrl,'#9D7BFF','#E15CC6')
+    +psychBar('Constructive mindset',cons,'#FFC43D','#24D19B')
+    +'</div>'
+    +'<div class="psi-box"><div class="pbar-top"><span style="letter-spacing:.08em;font-size:11px;text-transform:uppercase">Psychological stability index</span><b style="font-size:18px">'+psi+'%</b></div>'
+    +'<div class="pbar-tr" style="height:11px"><div class="pbar-fl" style="width:'+psi+'%;background:linear-gradient(90deg,#F5476B,#FFC43D 50%,#24D19B)"></div></div>'
+    +'<div class="hint" style="margin-top:8px">'+psiLbl+' — blends discipline, tilt control &amp; mindset.</div></div></div>';
+}
+function fillStats(s){
+  const tr=s.tr; const best=tr.length?Math.max.apply(null,tr.map(t=>t.pnl)):0; const worst=tr.length?Math.min.apply(null,tr.map(t=>t.pnl)):0;
+  const days=new Set(tr.map(t=>t.date)).size; const strk=discStreak();
+  return kpi('Best trade',money(best),'win','Your biggest single winner')
+    +kpi('Worst trade',money(worst),'loss','Keep this shrinking')
+    +kpi('Active days',days,'','Days you showed up')
+    +kpi('Discipline streak',strk,'violet',strk?'In-a-row rule-perfect trades':'Start a clean streak');
+}
 
 /* ---- session countdown ---- */
 function tickSession(){ const st=Store.settings(); const p=(st.sessionStart||'09:30').split(':'); const hh=(+p[0]||9),mm=(+p[1]||0); const now=new Date(); const t=new Date(now); t.setHours(hh,mm,0,0); if(t<=now)t.setDate(t.getDate()+1); let s=Math.floor((t-now)/1000); const h=Math.floor(s/3600),mn=Math.floor(s%3600/60),sc=s%60; const el=$('#sessCount'); if(el)el.textContent=`${h}h ${mn}m ${sc}s`; }
