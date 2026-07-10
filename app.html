@@ -311,8 +311,8 @@ tr{transition:background .15s}
 <script>
 /* ============ in-browser backend (localStorage). Swap for real API/Supabase later. ============ */
 const Store={
-  session(){ try{return JSON.parse(localStorage.getItem('edgepro_session'));}catch{return null;} },
-  logout(){ try{ if(window.SB) window.SB.auth.signOut(); }catch(e){} localStorage.removeItem('edgepro_session'); location.href='login.html'; },
+  session(){ if(window.__DEMO) return {email:'demo-sample',name:'Demo Trader',demo:true}; try{return JSON.parse(localStorage.getItem('edgepro_session'));}catch{return null;} },
+  logout(){ if(window.__DEMO){ location.href='login.html'; return; } try{ if(window.SB) window.SB.auth.signOut(); }catch(e){} localStorage.removeItem('edgepro_session'); location.href='login.html'; },
   k(b){ const s=this.session(); return `edgepro_${b}_${s?s.email:'anon'}`; },
   get(b,d){ try{return JSON.parse(localStorage.getItem(this.k(b)))??d;}catch{return d;} },
   set(b,v){ try{ localStorage.setItem(this.k(b),JSON.stringify(v)); if(typeof cloudPush==='function')cloudPush(); return true; }catch(e){ toast('Storage full — export & reset, or use fewer screenshots','bad'); return false; } },
@@ -326,6 +326,7 @@ const Store={
   profile(){ return this.get('profile',{xp:0}); }, saveProfile(p){ this.set('profile',p); },
 };
 const _CFG=window.EDGE_CONFIG||{}; window.SB=(_CFG.supabase&&_CFG.supabase.url&&_CFG.supabase.anonKey&&window.supabase)?window.supabase.createClient(_CFG.supabase.url,_CFG.supabase.anonKey):null;
+window.__DEMO=(new URLSearchParams(location.search).get('demo')==='1');
 const session=Store.session(); if(!session) location.href='login.html';
 const $=(s,r=document)=>r.querySelector(s);
 const money=n=>(n<0?'-':'+')+'$'+Math.abs(Math.round(n)).toLocaleString();
@@ -897,7 +898,7 @@ function deleteAccount(){ if(!confirm('Permanently delete your account and all d
 /* ---- cloud sync (Supabase, background; falls back to local) ---- */
 let _syncTimer=null;
 async function cloudPull(){
-  if(!window.SB) return;
+  if(window.__DEMO||!window.SB) return;
   try{
     const { data:{ user } } = await window.SB.auth.getUser();
     if(!user) return; window._uid=user.id;
@@ -921,7 +922,24 @@ function applyPlan(){
 $('#avatar').textContent=(session.name||session.email||'T').trim()[0].toUpperCase();
 $('#mName').textContent=session.name||'Trader'; $('#mEmail').textContent=session.email;
 applyTheme(); setInterval(applyTheme,60000);
+function seedDemo(){
+  if(Store.trades().length) return;
+  const now=Date.now(); const R=()=>Math.ceil(Math.random()*3);
+  const mk=(d,sym,side,pnl,rf,e,rr)=>({id:now+Math.random(),date:new Date(now-d*864e5).toISOString().slice(0,10),symbol:sym,side,entry:null,exit:null,size:null,stop:null,target:null,pnl,rr,emotion:e,tilt:R(),rulesFollowed:rf,rulesTotal:5,notes:''});
+  Store.saveTrades([mk(1,'EURUSD','long',180,5,'Calm',2.1),mk(2,'US100','short',-90,3,'FOMO',1.4),mk(3,'BTCUSD','long',320,5,'Confident',3.0),mk(4,'EURUSD','long',-60,4,'Anxious',1.8),mk(5,'GBPUSD','short',140,5,'Focused',2.2),mk(6,'US30','long',260,5,'Calm',2.6),mk(8,'SOLUSD','long',95,4,'Greed',1.6),mk(9,'US100','long',410,5,'Confident',3.4),mk(10,'EURUSD','short',-120,2,'Revenge',1.2),mk(11,'BTCUSD','long',230,5,'Calm',2.4),mk(12,'GBPUSD','long',70,5,'Focused',1.9),mk(15,'US30','short',-80,3,'Fear',1.5),mk(16,'US100','long',300,5,'Confident',2.8),mk(17,'SOLUSD','short',150,5,'Calm',2.0),mk(18,'EURUSD','long',-45,4,'Anxious',1.7),mk(19,'BTCUSD','long',520,5,'Confident',4.0),mk(22,'GBPUSD','long',110,5,'Focused',2.1),mk(23,'US100','short',-70,3,'FOMO',1.3),mk(24,'US30','long',280,5,'Calm',2.5),mk(25,'SOLUSD','long',190,5,'Confident',2.3)]);
+  Store.savePlaybooks([{name:'A+ Breakout',rules:['Setup matches my playbook','Stop loss set before entry','Risk under 1% of account','Not revenge trading','Within my session hours']}]);
+  Store.saveProfile({xp:260});
+  const st=Store.settings(); st.name='Demo Trader'; st.account=10000; Store.saveSettings(st);
+}
+function injectDemoBanner(){
+  if(document.getElementById('demoBanner')) return;
+  const d=document.createElement('div'); d.id='demoBanner';
+  d.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:90;display:flex;align-items:center;gap:14px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:999px;padding:8px 8px 8px 18px;box-shadow:0 16px 40px rgba(0,0,0,.5);font-size:13.5px;max-width:calc(100vw - 24px)';
+  d.innerHTML='<span>\ud83d\udc40 <b>Live demo</b> \u2014 exploring with sample data</span><a href="login.html" class="btn btn-primary btn-sm" style="white-space:nowrap">Create free account \u2192</a>';
+  document.body.appendChild(d);
+}
 (async function boot(){
+  if(window.__DEMO){ seedDemo(); injectDemoBanner(); }
   await cloudPull();
   buildNav(); renderXP(); go('dash'); tickSession(); setInterval(tickSession,1000); applyPlan();
   if(localStorage.getItem('edgepro_onboard')===session.email){ localStorage.removeItem('edgepro_onboard'); openOnboarding(); }
