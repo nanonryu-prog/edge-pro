@@ -1242,9 +1242,9 @@
     if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     gsap.registerPlugin(ScrollTrigger);
     // gradient cards flip up, tied to scroll
-    gsap.utils.toArray('.gcard').forEach(c=>{
-      gsap.fromTo(c,{opacity:0,y:64,rotateX:22,transformPerspective:1200,transformOrigin:'center bottom'},
-        {opacity:1,y:0,rotateX:0,ease:'none',scrollTrigger:{trigger:c,start:'top 92%',end:'top 52%',scrub:1}});
+    gsap.utils.toArray('.gcard').forEach((c,i)=>{
+      gsap.fromTo(c,{opacity:0,y:80,rotateY:i===0?-26:(i===2?26:0),rotateX:20,scale:.86,transformPerspective:1000,transformOrigin:'center'},
+        {opacity:1,y:0,rotateY:0,rotateX:0,scale:1,ease:'none',scrollTrigger:{trigger:c,start:'top 96%',end:'top 46%',scrub:1.1}});
     });
     // white mockups float inside cards for depth
     gsap.utils.toArray('.gcard .mock').forEach(m=>{

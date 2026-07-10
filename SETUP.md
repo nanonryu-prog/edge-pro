@@ -161,3 +161,29 @@ sidebar shows "Pro plan — active" instead of the trial/upgrade button.
 - In **Supabase → Authentication → URL Configuration**, set **Site URL** and add a
   **Redirect URL** for your real domain (e.g. `https://yourdomain.com` and
   `https://yourdomain.com/app.html`) so confirmation / reset / Google links work.
+
+---
+
+## 6. Creator / affiliate program (10% recurring)
+
+The site already has a **Creators page** (`affiliates.html`, linked in the footer),
+referral tracking, and promo-code pass-through to Stripe. To turn on real
+commission tracking + payouts, use **Tolt** (recommended, made for Stripe SaaS):
+
+1. Create an account at **tolt.io** → connect your Stripe account.
+2. Set the commission to **10% recurring** and (optionally) create promo codes
+   for your creators.
+3. Copy your Tolt **public key** and paste it into `config.js`:
+   ```js
+   affiliate: { toltKey: "your_tolt_public_key" }
+   ```
+4. Point the "Become a creator" button at your Tolt signup portal by adding
+   `joinUrl` to the same block:
+   ```js
+   affiliate: { toltKey: "…", joinUrl: "https://youracct.tolt.io" }
+   ```
+5. Re-deploy. Tolt now tracks referral links + promo codes through Stripe and
+   pays your creators 10% recurring automatically. (Rewardful works the same way
+   if you prefer it — ask me and I'll swap the snippet.)
+
+Create the **creators@edgeprojournal.com** email so applications reach you.

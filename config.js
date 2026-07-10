@@ -18,6 +18,14 @@ window.EDGE_CONFIG = {
   supabase: {
     url:     "https://tcttcjxsbmbknqrqhhek.supabase.co",
     anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdHRjanhzYm1ia25xcnFoaGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwNjU0NDMsImV4cCI6MjA5ODY0MTQ0M30.KYLeWNZ5CPKLPKEPue0Rv-xK3hVgnFOWKT9W78HgeRI"
+  },
+
+  // ---- Affiliate / creator program (optional) ----
+  // Recommended engine: Tolt (tolt.io) — connects to your Stripe, gives creators
+  // promo codes + referral links, auto-tracks 10% recurring commissions, handles
+  // payouts. Create a Tolt account, connect Stripe, paste your public key here.
+  affiliate: {
+    toltKey: ""   // your Tolt public key (data-tolt) — leave blank to disable
   }
 
 };
