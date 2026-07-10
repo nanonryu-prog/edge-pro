@@ -269,8 +269,8 @@ tr{transition:background .15s}
       <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
     </div>
     <div class="trial">
-      <p>On <b>Pro trial</b> — 7 days left.</p>
-      <a href="index.html#pricing" class="btn btn-primary btn-sm btn-full">Upgrade plan</a>
+      <p id="planLine">On <b>Pro trial</b> — 7 days left.</p>
+      <a id="upgradeBtn" href="index.html#pricing" class="btn btn-primary btn-sm btn-full">Upgrade plan</a>
     </div>
   </aside>
 
@@ -315,7 +315,7 @@ const Store={
   logout(){ try{ if(window.SB) window.SB.auth.signOut(); }catch(e){} localStorage.removeItem('edgepro_session'); location.href='login.html'; },
   k(b){ const s=this.session(); return `edgepro_${b}_${s?s.email:'anon'}`; },
   get(b,d){ try{return JSON.parse(localStorage.getItem(this.k(b)))??d;}catch{return d;} },
-  set(b,v){ try{ localStorage.setItem(this.k(b),JSON.stringify(v)); return true; }catch(e){ toast('Storage full — export & reset, or use fewer screenshots','bad'); return false; } },
+  set(b,v){ try{ localStorage.setItem(this.k(b),JSON.stringify(v)); if(typeof cloudPush==='function')cloudPush(); return true; }catch(e){ toast('Storage full — export & reset, or use fewer screenshots','bad'); return false; } },
   trades(){ return this.get('trades',[]); }, saveTrades(t){ this.set('trades',t); },
   playbooks(){ let p=this.get('playbooks',null); if(!p){ p=[{name:'A+ Setup',rules:['Setup matches my playbook','Stop loss set before entry','Risk ≤ 1% of account','Not revenge trading','Within my session hours']}]; this.set('playbooks',p);} return p; },
   savePlaybooks(p){ this.set('playbooks',p); },
@@ -894,11 +894,38 @@ function importCSV(input){ const f=input.files[0]; if(!f)return; const r=new Fil
 function sampleCSV(){ const csv='date,symbol,side,entry,exit,size,pnl,rr,notes\n2026-07-01,EURUSD,long,1.0850,1.0910,10000,60,2,Clean breakout\n2026-07-02,US100,short,18500,18560,2,-120,1.5,Fought the trend'; const b=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='edgepro-sample.csv'; a.click(); }
 function deleteAccount(){ if(!confirm('Permanently delete your account and all data on this device?'))return; try{ const u=JSON.parse(localStorage.getItem('edgepro_users')||'{}'); delete u[session.email]; localStorage.setItem('edgepro_users',JSON.stringify(u)); }catch{} DATA_KEYS.forEach(b=>localStorage.removeItem(Store.k(b))); Store.logout(); }
 
+/* ---- cloud sync (Supabase, background; falls back to local) ---- */
+let _syncTimer=null;
+async function cloudPull(){
+  if(!window.SB) return;
+  try{
+    const { data:{ user } } = await window.SB.auth.getUser();
+    if(!user) return; window._uid=user.id;
+    const { data } = await window.SB.from('journals').select('data,plan').eq('user_id',user.id).maybeSingle();
+    if(data){ if(data.data){ DATA_KEYS.forEach(k=>{ if(data.data[k]!==undefined) localStorage.setItem(Store.k(k),JSON.stringify(data.data[k])); }); } window._plan=data.plan||null; }
+  }catch(e){}
+}
+function cloudPush(){
+  if(!window.SB || !window._uid) return;
+  clearTimeout(_syncTimer);
+  _syncTimer=setTimeout(async ()=>{ try{ const d={}; DATA_KEYS.forEach(k=>{ d[k]=Store.get(k,null); }); await window.SB.from('journals').upsert({ user_id:window._uid, data:d, updated_at:new Date().toISOString() }); }catch(e){} },800);
+}
+function applyPlan(){
+  const links=(window.EDGE_CONFIG||{}).stripeLinks||{}; const up=document.getElementById('upgradeBtn'); const line=document.getElementById('planLine');
+  const paid=window._plan && window._plan!=='trial' && window._plan!=='free';
+  if(paid){ if(line)line.innerHTML='✓ <b style="color:var(--win)">'+window._plan.charAt(0).toUpperCase()+window._plan.slice(1)+' plan</b> — active.'; if(up){ up.textContent='Manage plan'; up.href='https://billing.stripe.com/p/login'; up.target='_blank'; } return; }
+  if(up && links.pro){ up.href=links.pro+(links.pro.includes('?')?'&':'?')+'prefilled_email='+encodeURIComponent(session.email)+'&client_reference_id='+encodeURIComponent(session.email); up.target='_blank'; up.rel='noopener'; }
+}
+
 /* ---- init ---- */
 $('#avatar').textContent=(session.name||session.email||'T').trim()[0].toUpperCase();
 $('#mName').textContent=session.name||'Trader'; $('#mEmail').textContent=session.email;
-buildNav(); renderXP(); applyTheme(); go('dash'); tickSession(); setInterval(tickSession,1000); setInterval(applyTheme,60000);
-if(localStorage.getItem('edgepro_onboard')===session.email){ localStorage.removeItem('edgepro_onboard'); openOnboarding(); }
+applyTheme(); setInterval(applyTheme,60000);
+(async function boot(){
+  await cloudPull();
+  buildNav(); renderXP(); go('dash'); tickSession(); setInterval(tickSession,1000); applyPlan();
+  if(localStorage.getItem('edgepro_onboard')===session.email){ localStorage.removeItem('edgepro_onboard'); openOnboarding(); }
+})();
 </script>
 </body>
 </html>

@@ -92,15 +92,50 @@ trial matches the site copy.
 
 ---
 
-## What still lives only in the browser
+## 4. Cloud data sync (trades follow the user across devices)
 
-With Supabase Auth enabled, **login is real and cross-device**, but a user's **trades,
-playbooks, and journal are still stored locally** in that browser (via `localStorage`),
-and trade **screenshots** likewise.
+The app already syncs each user's data to Supabase in the background — you just need
+to create the table.
 
-To sync all of that to the cloud (so a user sees their data on any device), the next
-step is moving the app's `Store` to Supabase database tables + Supabase Storage for
-images. That's a focused follow-up — tell me when you want it and I'll wire it.
+1. Supabase → **SQL Editor** → open the file **`supabase.sql`** from this repo, paste
+   it, and click **Run**. (Creates the `journals` table + a `set_plan_by_email`
+   function, with row-level security so users only see their own data.)
+2. That's it. Once `config.js` has your Supabase keys (part 3) and a user logs in,
+   their trades/playbooks/journal/goals load on any device and save automatically.
+
+> Screenshots are stored inside each user's row (small, downscaled JPEGs). If your
+> users attach a lot of them, ask me to move images to Supabase Storage — the hook is
+> already in place.
+
+---
+
+## 5. Auto-unlock paid plans after payment (Stripe webhook)
+
+This flips a user to "paid" automatically when they subscribe. It needs one small
+serverless function (included at **`netlify/functions/stripe-webhook.js`**).
+
+1. Deploy on **Netlify** (it auto-detects the `netlify/functions` folder).
+2. Netlify → **Site settings → Environment variables**, add:
+   - `STRIPE_SECRET_KEY` — Stripe → Developers → API keys (`sk_live_...`)
+   - `STRIPE_WEBHOOK_SECRET` — from the webhook you create in step 4 (`whsec_...`)
+   - `SUPABASE_URL` — your project URL
+   - `SUPABASE_SERVICE_ROLE_KEY` — Supabase → Settings → API → **service_role** key
+     (server-only — never put this in `config.js`)
+3. Run `supabase.sql` first (part 4) if you haven't — it creates `set_plan_by_email`.
+4. Stripe → **Developers → Webhooks → Add endpoint**:
+   - URL: `https://YOUR-SITE.netlify.app/.netlify/functions/stripe-webhook`
+   - Events: `checkout.session.completed`, `customer.subscription.updated`,
+     `customer.subscription.deleted`
+   - Copy the endpoint's **Signing secret** into `STRIPE_WEBHOOK_SECRET`.
+5. (Optional) Name each Stripe price's **nickname** `starter` / `pro` / `funded` — the
+   webhook uses it as the plan name; otherwise it defaults to `pro`.
+
+Now: user pays → Stripe → webhook → Supabase `journals.plan` updates → the app's
+sidebar shows "Pro plan — active" instead of the trial/upgrade button.
+
+> Using Vercel instead of Netlify? Move the file to `api/stripe-webhook.js`, change
+> `exports.handler` to `export default function handler(req, res)`, and set the same
+> env vars in Vercel. Ask me and I'll convert it for you.
 
 ---
 
