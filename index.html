@@ -1256,6 +1256,13 @@
     gsap.utils.toArray('.feature').forEach((f,i)=>{
       gsap.fromTo(f,{y:30,opacity:.001},{y:0,opacity:1,duration:.6,ease:'power2.out',scrollTrigger:{trigger:f,start:'top 90%'}});
     });
+    // Spring 3D mouse-tilt on the hero mockup (native port of the 21st "VectorTiltScene", no React/framer-motion)
+    const _ds=document.querySelector('.dash-shell');
+    if(_ds){
+      _ds.style.willChange='transform';
+      _ds.addEventListener('mousemove',e=>{ const b=_ds.getBoundingClientRect(); const px=(e.clientX-b.left)/b.width-0.5, py=(e.clientY-b.top)/b.height-0.5; _ds.style.transition='transform .12s ease-out'; _ds.style.transform='perspective(1100px) rotateX('+(-py*7).toFixed(2)+'deg) rotateY('+(px*9).toFixed(2)+'deg)'; });
+      _ds.addEventListener('mouseleave',()=>{ _ds.style.transition='transform .6s cubic-bezier(.2,.9,.2,1)'; _ds.style.transform='perspective(1100px) rotateX(0deg) rotateY(0deg)'; });
+    }
     window.addEventListener('load',()=>ScrollTrigger.refresh());
   })();
 
