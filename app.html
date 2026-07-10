@@ -270,11 +270,21 @@ tr{transition:background .15s}
 .eradar circle,.eradar text,.eradar g{animation:radarFade .5s ease both;animation-delay:.35s}
 @keyframes radarPop{from{opacity:0;transform:scale(.35)}to{opacity:1;transform:scale(1)}}
 @keyframes radarFade{from{opacity:0}to{opacity:1}}
-.emo-list{display:flex;flex-direction:column;gap:15px;margin-bottom:18px}
-.emo-row{display:flex;align-items:center;gap:13px}
-.emo-ic{flex:0 0 auto;width:36px;height:36px;border-radius:11px;border:1px solid;display:grid;place-items:center}
-.emo-body{flex:1;min-width:0}
+.wheel-wrap{position:relative;display:flex;justify-content:center;align-items:center;height:210px;margin:4px 0 20px}
+.wheel{width:196px;height:196px;border-radius:50%;-webkit-mask:radial-gradient(circle,transparent 63px,#000 64px);mask:radial-gradient(circle,transparent 63px,#000 64px);animation:wheelIn 1s cubic-bezier(.2,.8,.25,1) both;filter:drop-shadow(0 0 26px rgba(124,92,252,.35))}
+.wheel.empty{filter:none}
+.wheel-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+.wheel-num{font-size:44px;font-weight:800;color:var(--text);line-height:1;letter-spacing:-.02em}
+.wheel-pct{font-size:20px;font-weight:700;color:var(--muted);margin-left:1px}
+.wheel-lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--violet-2);margin-top:7px;font-weight:700}
+@keyframes wheelIn{from{opacity:0;transform:rotate(-140deg) scale(.65)}to{opacity:1;transform:rotate(0) scale(1)}}
+.emo-legend{display:grid;grid-template-columns:1fr 1fr;gap:11px 20px}
+.emo-leg{display:flex;align-items:center;gap:9px;font-size:12.5px}
+.emo-leg-k{flex:1;color:var(--muted)}
+.emo-leg b{color:var(--text);font-size:12.5px}
+.emo-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 8px currentColor}
 .cd-head{display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-top:16px}
+@media (prefers-reduced-motion:reduce){.wheel{animation:none}}
 .cdbar{display:flex;height:9px;border-radius:20px;overflow:hidden;margin-top:8px}
 .cdbar>div{height:100%;transition:width .8s cubic-bezier(.2,.7,.3,1)}
 .pbar{margin-bottom:17px}
@@ -460,6 +470,7 @@ VIEWS.dash=function(){
       <div class="row-sb"><div class="card-title">Recent trades</div>${s.tr.length?'<button class="btn btn-ghost btn-sm" onclick="go(\'trades\')">View all</button>':''}</div>
       <div style="margin-top:12px">${s.tr.length?tradeTable(s.tr.slice().reverse().slice(0,5),false):'<div class="hint" style="padding:8px 2px">No trades yet — hit “Log trade” to start.</div>'}</div>
     </div>`;
+  requestAnimationFrame(animateCounts);
 };
 VIEWS.trades=function(){
   const tr=Store.trades().slice().reverse();
@@ -867,20 +878,21 @@ function svgi(n,size,color){ size=size||24; color=color||'var(--violet-2)'; cons
 function emotionRadar(s){
   const tr=s.tr; const cnt={Calm:0,Confident:0,Focused:0,Fear:0,FOMO:0,Greed:0,Revenge:0}; let tagged=0;
   tr.forEach(t=>{ if(t.emotion&&cnt.hasOwnProperty(t.emotion)){cnt[t.emotion]++;tagged++;} });
-  const axes=[{k:'Calm',t:'g'},{k:'Confident',t:'g'},{k:'Focused',t:'g'},{k:'Discipline',t:'g'},{k:'Greed',t:'b'},{k:'FOMO',t:'b'},{k:'Fear',t:'b'},{k:'Revenge',t:'b'}];
-  const val=a=> a.k==='Discipline' ? (tr.length? s.dis : 0) : (tagged? Math.round(cnt[a.k]/tagged*100) : 0);
-  const rows=axes.map(a=>({k:a.k,t:a.t,v:val(a)})).sort((x,y)=>y.v-x.v);
-  const rowHtml=rows.map(r=>{ const col=r.t==='g'?'var(--win)':'var(--loss)'; const bg=r.t==='g'?'rgba(36,209,155,.13)':'rgba(245,71,107,.13)';
-    return '<div class="emo-row"><span class="emo-ic" style="color:'+col+';background:'+bg+';border-color:'+col+'"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">'+emoIcon(r.k)+'</svg></span>'
-      +'<div class="emo-body"><div class="pbar-top" style="margin-bottom:6px"><span>'+r.k+'</span><b>'+r.v+'%</b></div><div class="pbar-tr"><div class="pbar-fl" style="width:'+Math.max(1.5,r.v)+'%;background:linear-gradient(90deg,'+col+',var(--violet-2))"></div></div></div></div>'; }).join('');
+  const defs=[['Calm','#24D19B'],['Confident','#3BE0A8'],['Focused','#7DE8C6'],['Greed','#FFC43D'],['FOMO','#FF9A52'],['Fear','#F5476B'],['Revenge','#E15CC6']];
+  const items=defs.map(([k,c])=>({k,c,n:cnt[k],pct:tagged?Math.round(cnt[k]/tagged*100):0}));
+  let acc=0; const stops=[]; const present=items.filter(x=>x.n>0);
+  (present.length?present:items).forEach(x=>{ const share=tagged? x.n/tagged*100 : 100/items.length; stops.push(x.c+' '+acc.toFixed(2)+'% '+(acc+share).toFixed(2)+'%'); acc+=share; });
+  const grad = tagged? 'conic-gradient(from -90deg,'+stops.join(',')+')' : 'conic-gradient(from -90deg,var(--track) 0% 100%)';
   const gc=cnt.Calm+cnt.Confident+cnt.Focused, bc=cnt.Fear+cnt.FOMO+cnt.Greed+cnt.Revenge, tot=gc+bc;
-  const cons=tot?Math.round(gc/tot*100):(tr.length?60:0), destr=100-cons;
-  const hint = tagged? '' : '<div class="hint" style="margin-top:-4px;margin-bottom:16px">Tag emotions when you log trades — your mix builds here.</div>';
-  return '<div class="card"><div class="row-sb"><div class="card-title">Head Space</div><span class="chip">'+(tagged||0)+' tagged</span></div><div class="card-sub" style="margin-bottom:18px">The mix of emotions behind your trades</div>'
-    +hint+'<div class="emo-list">'+rowHtml+'</div>'
-    +'<div class="cd-head"><span style="color:var(--win)">Composed '+cons+'%</span><span style="color:var(--loss)">'+destr+'% Reactive</span></div>'
-    +'<div class="cdbar"><div style="width:'+cons+'%;background:var(--win)"></div><div style="width:'+destr+'%;background:var(--loss)"></div></div></div>';
+  const cons=tot?Math.round(gc/tot*100):(tr.length?60:0);
+  const mood = cons>=75?'Composed':cons>=55?'Steady':cons>=40?'Mixed':'Reactive';
+  const legend=items.map(x=>'<div class="emo-leg"><span class="emo-dot" style="background:'+x.c+'"></span><span class="emo-leg-k">'+x.k+'</span><b class="mono">'+x.pct+'%</b></div>').join('');
+  return '<div class="card"><div class="row-sb"><div class="card-title">Head Space</div><span class="chip">'+(tagged||0)+' tagged</span></div><div class="card-sub" style="margin-bottom:6px">Your emotional mix, at a glance</div>'
+    +'<div class="wheel-wrap"><div class="wheel'+(tagged?'':' empty')+'" style="background:'+grad+'"></div><div class="wheel-center"><div class="wheel-num mono" data-cv>'+cons+'<span class="wheel-pct">%</span></div><div class="wheel-lbl">'+mood+'</div></div></div>'
+    +(tagged?'':'<div class="hint" style="text-align:center;margin:0 0 14px">Tag emotions when you log trades — your wheel fills in.</div>')
+    +'<div class="emo-legend">'+legend+'</div></div>';
 }
+function animateCounts(root){ if(matchMedia('(prefers-reduced-motion:reduce)').matches)return; (root||document).querySelectorAll('#view .kval,#view .wheel-num,#view .ring-num .n').forEach(el=>{ if(el.dataset.cd)return; const txt=el.textContent; const m=txt.match(/-?\d[\d,]*(?:\.\d+)?/); if(!m)return; const numStr=m[0], idx=m.index; const pre=txt.slice(0,idx), sufNode=el.querySelector('.wheel-pct'); const suf=sufNode?'':txt.slice(idx+numStr.length); const target=parseFloat(numStr.replace(/,/g,'')); if(isNaN(target))return; const dec=(numStr.split('.')[1]||'').length, comma=numStr.indexOf(',')>=0; el.dataset.cd=1; const t0=performance.now(), dur=850; const fmt=v=>{ let n=dec?v.toFixed(dec):Math.round(v)+''; if(comma)n=Number(n).toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}); return n; }; const suffixHtml=sufNode?'<span class="wheel-pct">%</span>':suf; function step(t){ const p=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-p,3); el.innerHTML=pre+fmt(target*e)+suffixHtml; if(p<1)requestAnimationFrame(step); } requestAnimationFrame(step); }); }
 function psychBar(label,val,c1,c2){ return '<div class="pbar"><div class="pbar-top"><span><span class="pdot" style="background:'+c1+'"></span>'+label+'</span><b>'+val+'%</b></div><div class="pbar-tr"><div class="pbar-fl" style="width:'+val+'%;background:linear-gradient(90deg,'+c1+','+c2+')"></div></div></div>'; }
 function psychMetrics(s){
   const disc=s.tr.length?s.dis:0;
