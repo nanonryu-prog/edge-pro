@@ -296,13 +296,43 @@ tr{transition:background .15s}
 .emo-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 8px currentColor}
 .cd-head{display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-top:16px}
 @media (prefers-reduced-motion:reduce){.wheel{animation:none}}
-/* definitive mobile shell (later source wins cascade) */
-@media(max-width:900px){
-  .shell{grid-template-columns:1fr;padding:0;gap:0;}
-  .sidebar{position:fixed;left:-280px;top:0;bottom:0;height:100dvh;width:250px;border-radius:0 22px 22px 0;z-index:60;transition:left .28s cubic-bezier(.2,.8,.25,1);}
-  .sidebar.open{left:0;}
-  .content{padding:20px 16px 60px;}
-  .topbar{padding-left:16px;padding-right:16px;}
+/* ===== top-nav full-width layout ===== */
+.app{min-height:100dvh;}
+.hdr{position:sticky;top:0;z-index:30;background:rgba(10,10,22,0.8);-webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3);border-bottom:1px solid var(--border);}
+[data-theme="light"] .hdr{background:rgba(244,245,251,0.82);}
+.hdr-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 30px;max-width:1720px;margin:0 auto;}
+.hdr .brand{display:flex;align-items:center;font-family:'Space Grotesk';font-weight:700;font-size:20px;flex:0 0 auto;text-decoration:none;color:var(--text);}
+.hdr .brand .p{color:var(--violet-2);margin-left:5px;}
+.topnav{display:flex;gap:3px;overflow-x:auto;scrollbar-width:none;padding:0 24px 10px;max-width:1720px;margin:0 auto;}
+.topnav::-webkit-scrollbar{display:none;}
+.tab{flex:1 1 0;min-width:96px;display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 10px;border-radius:11px;border:none;background:transparent;color:var(--muted);font-weight:500;font-size:13px;cursor:pointer;white-space:nowrap;position:relative;transition:background .16s var(--ease),color .16s var(--ease),transform .16s var(--ease);}
+.tab svg{width:16px;height:16px;flex:none;opacity:.85;}
+.tab:hover{background:rgba(255,255,255,0.05);color:var(--text);}
+[data-theme="light"] .tab:hover{background:rgba(18,20,45,0.05);}
+.tab.active{background:rgba(124,92,252,0.15);color:var(--violet-2);font-weight:600;}
+.tab.active::after{content:"";position:absolute;left:22%;right:22%;bottom:-2px;height:2.5px;border-radius:3px;background:var(--grad);animation:popIn .3s var(--ease);}
+.pagehead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:24px 32px 2px;max-width:1640px;margin:0 auto;width:100%;}
+.pagehead h1{font-size:27px;}
+.pagehead .sub{font-size:13px;color:var(--faint);margin-top:4px;}
+.ph-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.xp-mini{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:6px 13px;}
+.xp-mini b{color:var(--violet-2);}
+.xp-mini-track{width:70px;height:6px;border-radius:5px;background:rgba(255,255,255,0.09);overflow:hidden;}
+[data-theme="light"] .xp-mini-track{background:rgba(18,20,45,0.09);}
+.xp-mini .xp-fill{display:block;height:100%;background:var(--grad);border-radius:5px;transition:width .7s var(--ease);}
+.xp-mini-txt{font-size:11px;color:var(--faint);}
+.trial-pill{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);border:1px solid rgba(124,92,252,0.3);background:rgba(124,92,252,0.08);border-radius:999px;padding:7px 14px;text-decoration:none;transition:.18s;}
+.trial-pill:hover{background:rgba(124,92,252,0.14);}
+.trial-pill .tp-cta{color:var(--violet-2);font-weight:700;}
+.content{padding:18px 32px 70px;max-width:1640px;margin:0 auto;width:100%;display:block;}
+@media(max-width:860px){
+  .hdr-row{padding:11px 16px;}
+  .topnav{padding:0 12px 9px;}
+  .tab{flex:0 0 auto;min-width:auto;padding:9px 13px;}
+  .pagehead{padding:16px 16px 2px;}
+  .content{padding:14px 16px 64px;}
+  .sess-pill{display:none!important;}
+  .log-btn span,.log-btn{font-size:13px;}
 }
 .cdbar{display:flex;height:9px;border-radius:20px;overflow:hidden;margin-top:8px}
 .cdbar>div{height:100%;transition:width .8s cubic-bezier(.2,.7,.3,1)}
@@ -320,39 +350,14 @@ tr{transition:background .15s}
 </head>
 <body>
 <div class="aurora" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
-<div class="scrim" id="scrim" onclick="toggleNav(false)"></div>
-<div class="shell">
-  <aside class="sidebar" id="sidebar">
-    <a href="index.html" class="brand" title="Back to site">EDGE&nbsp;<span class="p">Pro</span></a>
-    <nav id="sideNav" style="display:flex;flex-direction:column;gap:2px;"></nav>
-    <div class="side-xp">
-      <div class="row"><span>Level <span id="xpLvl">1</span></span><span id="xpTxt" class="mono">0/100 XP</span></div>
-      <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
-    </div>
-    <div class="trial">
-      <p id="planLine">On <b>Pro trial</b> — 7 days left.</p>
-      <a id="upgradeBtn" href="index.html#pricing" class="btn btn-primary btn-sm btn-full">Upgrade plan</a>
-    </div>
-  </aside>
-
-  <main>
-    <div class="topbar">
-      <div style="display:flex;align-items:center;gap:12px;min-width:0;">
-        <button class="icon-btn hamb" onclick="toggleNav(true)" aria-label="Menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-        <div style="min-width:0"><h1 id="pageTitle">Dashboard</h1><div class="sub" id="pageSub">Your trading at a glance</div></div>
-      </div>
-      <div class="cmdbar" role="toolbar" aria-label="Quick actions">
-        <button class="cmd-btn primary" title="Log trade" aria-label="Log trade" onclick="openLog()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
-        <span class="cmd-div"></span>
-        <button class="cmd-btn" title="Dashboard" aria-label="Dashboard" onclick="go('dash')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></button>
-        <button class="cmd-btn" title="Calendar" aria-label="Calendar" onclick="go('calendar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/></svg></button>
-        <button class="cmd-btn" title="Pre-trade checklist" aria-label="Checklist" onclick="go('checklist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>
-        <button class="cmd-btn" title="Reports" aria-label="Reports" onclick="go('reports')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4M4 20h16"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/></svg></button>
-      </div>
+<div class="app">
+  <header class="hdr" id="hdr">
+    <div class="hdr-row">
+      <a href="index.html" class="brand" title="Back to site">EDGE&nbsp;<span class="p">Pro</span></a>
       <div class="top-right">
-        <span class="sess-pill">Session in <b id="sessCount">–</b></span>
+        <span class="sess-pill">Session <b id="sessCount">–</b></span>
         <button class="icon-btn" id="themeBtn" title="Theme" aria-label="Toggle light or dark theme" onclick="cycleTheme()"></button>
-        <button class="btn btn-primary btn-sm" onclick="openLog()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Log trade</button>
+        <button class="btn btn-primary btn-sm log-btn" onclick="openLog()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Log trade</button>
         <div class="avatar-wrap">
           <span class="avatar" id="avatar" title="Account" role="button" tabindex="0" aria-label="Account menu" onclick="toggleMenu()">N</span>
           <div class="menu" id="userMenu">
@@ -369,8 +374,16 @@ tr{transition:background .15s}
         </div>
       </div>
     </div>
-    <div class="content" id="view"></div>
-  </main>
+    <nav id="topNav" class="topnav" aria-label="Sections"></nav>
+  </header>
+  <div class="pagehead">
+    <div style="min-width:0"><h1 id="pageTitle">Dashboard</h1><div class="sub" id="pageSub">Your trading at a glance</div></div>
+    <div class="ph-right">
+      <div class="xp-mini" title="Your level &amp; XP"><span class="xp-mini-lvl">Lv&nbsp;<b id="xpLvl">1</b></span><span class="xp-mini-track"><span class="xp-fill" id="xpFill"></span></span><span id="xpTxt" class="mono xp-mini-txt">0/100</span></div>
+      <a id="upgradeBtn" href="index.html#pricing" class="trial-pill"><span id="planLine">Pro trial — 7 days left</span><span class="tp-cta">Upgrade →</span></a>
+    </div>
+  </div>
+  <main class="content" id="view"></main>
 </div>
 
 <div class="modal-bg" id="logModal"><div class="modal" id="logModalInner"></div></div>
@@ -402,7 +415,7 @@ const money=n=>(n<0?'-':'+')+'$'+Math.abs(Math.round(n)).toLocaleString();
 const money0=n=>'$'+Math.round(n).toLocaleString();
 const fmtDate=d=>new Date(d).toLocaleDateString(undefined,{month:'short',day:'numeric'});
 function toast(m,k=''){ const t=$('#toast'); t.textContent=m; t.className='show '+k; setTimeout(()=>t.className='',2600); }
-function toggleNav(o){ $('#sidebar').classList.toggle('open',o); $('#scrim').classList.toggle('on',o); }
+function toggleNav(o){ const s=$('#sidebar'); if(s)s.classList.toggle('open',o); const sc=$('#scrim'); if(sc)sc.classList.toggle('on',o); }
 
 function stats(){
   const tr=Store.trades(); const acct=Store.settings().account||10000;
@@ -441,9 +454,11 @@ const NAV=[
 ];
 const SUB={dash:'Your trading at a glance',trades:'Every trade you have logged',playbooks:'The strategies & rules that power your grading',reports:'Breakdowns across every angle',journal:'Log how you traded, and how you felt',checklist:'Confirm every rule before you trade',goals:'Personal targets, separate from your evaluation',calc:'Position size & risk : reward',eval:'Track your prop-firm challenge live',calendar:'Your month, coloured by discipline',achievements:'Level up your discipline',weekly:'Reflect and reset each week',settings:'Account & preferences'};
 let current='dash';
+const SHORT={dash:'Dashboard',trades:'Trades',playbooks:'Playbooks',reports:'Reports',journal:'Journal',checklist:'Checklist',goals:'Goals',calc:'Calculators',eval:'Evaluation',calendar:'Calendar',achievements:'Awards',weekly:'Weekly',settings:'Settings'};
 function buildNav(){
-  $('#sideNav').innerHTML=NAV.map(([id,l,ic])=>`<button class="nav-item${id===current?' active':''}" data-go="${id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ic}</svg>${l}</button>`).join('');
-  document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+  $('#topNav').innerHTML=NAV.map(([id,l,ic])=>`<button class="tab${id===current?' active':''}" data-go="${id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ic}</svg><span>${SHORT[id]||l}</span></button>`).join('');
+  document.querySelectorAll('#topNav [data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+  const act=document.querySelector('#topNav .tab.active'); if(act)act.scrollIntoView({inline:'center',block:'nearest'});
 }
 function go(id){ current=id; buildNav(); $('#pageTitle').textContent=NAV.find(n=>n[0]===id)[1]; $('#pageSub').textContent=SUB[id]; VIEWS[id](); const _v=$('#view'); _v.classList.remove('anim'); void _v.offsetWidth; _v.classList.add('anim'); window.scrollTo(0,0); toggleNav(false); document.querySelectorAll('.cmd-btn[data-nav]').forEach(b=>b.classList.toggle('on',b.dataset.nav===id)); requestAnimationFrame(animateCounts); }
 
@@ -619,6 +634,15 @@ VIEWS.calc=function(){
     <div style="display:flex;flex-direction:column;gap:16px">
       <div class="card"><div class="card-title" style="font-size:15px">R:R cheat sheet</div><div class="hint" style="line-height:2.1;margin-top:8px">1 : 1 → need <b style="color:var(--text)">50%</b> win rate to break even<br>1 : 2 → need <b style="color:var(--text)">34%</b><br>1 : 3 → need <b style="color:var(--text)">25%</b><br>1 : 5 → need <b style="color:var(--text)">17%</b></div></div>
       <div class="card" style="background:radial-gradient(120% 100% at 100% 0,rgba(124,92,252,0.14),transparent 60%)"><div class="card-title" style="font-size:15px">Pro tip</div><p class="hint" style="margin-top:8px;color:var(--muted);line-height:1.6">Great traders lose more often than they win. A high R:R means even a 40% win rate prints — protect the downside first.</p></div>
+      <div class="card"><div class="card-title" style="font-size:15px">Risk of ruin</div><div class="card-sub">Chance of blowing up over 100 trades</div>
+        <div style="margin-top:12px">${[['1% risk · 50% win','Very low','var(--win)',12],['2% risk · 50% win','Moderate','var(--gold)',40],['5% risk · 45% win','High','var(--loss)',85],['10% risk · 45% win','Near-certain','var(--loss)',98]].map(([lbl,tag,c,w])=>`<div class="pbar"><div class="pbar-top"><span>${lbl}</span><b style="color:${c}">${tag}</b></div><div class="pbar-tr"><div class="pbar-fl" style="width:${w}%;background:linear-gradient(90deg,${c},var(--violet-2))"></div></div></div>`).join('')}</div>
+        <div class="hint" style="margin-top:4px">Smaller, consistent risk is what keeps you in the game long enough for your edge to pay.</div>
+      </div>
+      <div class="card"><div class="card-title" style="font-size:15px">The 3 rules that matter</div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">
+          ${[['target','Risk a fixed % every trade','No “this one’s a sure thing” sizing.'],['flame','Cut losers at your stop','The stop is the plan — honour it.'],['trophy','Let winners run to target','Cutting winners early kills your R:R.']].map(([ic,h,d])=>`<div style="display:flex;gap:11px;align-items:flex-start">${svgi(ic,20,'var(--violet-2)')}<div><b style="font-size:13.5px">${h}</b><div class="hint" style="margin-top:2px">${d}</div></div></div>`).join('')}
+        </div>
+      </div>
     </div>
   </div>`;
 };
