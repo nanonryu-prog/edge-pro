@@ -289,6 +289,12 @@ tr{transition:background .15s}
 .wheel-pct{font-size:20px;font-weight:700;color:var(--muted);margin-left:1px}
 .wheel-lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--violet-2);margin-top:7px;font-weight:700}
 @keyframes wheelIn{from{opacity:0;transform:rotate(-140deg) scale(.65)}to{opacity:1;transform:rotate(0) scale(1)}}
+.step-n{flex:0 0 auto;width:26px;height:26px;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;background:var(--grad);box-shadow:0 4px 12px -4px rgba(124,92,252,.6)}
+.ladder{display:flex;flex-direction:column;gap:20px;margin-top:18px}
+.lad-row{display:flex;gap:15px;align-items:flex-start}
+.lad-node{flex:0 0 auto;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;color:var(--muted);background:var(--track);border:1px solid var(--border)}
+.lad-node.done{background:var(--grad);color:#fff;border:none;box-shadow:0 6px 16px -6px rgba(124,92,252,.7)}
+.lad-body{flex:1;min-width:0}
 .emo-legend{display:grid;grid-template-columns:1fr 1fr;gap:11px 20px}
 .emo-leg{display:flex;align-items:center;gap:9px;font-size:12.5px}
 .emo-leg-k{flex:1;color:var(--muted)}
@@ -516,7 +522,34 @@ VIEWS.dash=function(){
 };
 VIEWS.trades=function(){
   const tr=Store.trades().slice().reverse();
-  $('#view').innerHTML=`<div class="card">${tr.length?`<div class="row-sb" style="margin-bottom:12px"><div class="card-title">${tr.length} trades</div><div style="display:flex;gap:8px"><label class="btn btn-ghost btn-sm" style="cursor:pointer">Import CSV<input type="file" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)"></label><button class="btn btn-primary btn-sm" onclick="openLog()">+ Log trade</button></div></div>${tradeTable(tr,true)}`:emptyInner('No trades yet','Log your first trade to build your track record.','openLog()','Log a trade')}</div>`;
+  if(!tr.length){ $('#view').innerHTML=`<div class="card">${emptyInner('No trades yet','Log your first trade to build your track record.','openLog()','Log a trade')}</div>`; return; }
+  const s=stats();
+  const longs=s.tr.filter(t=>t.side==='long'), shorts=s.tr.filter(t=>t.side==='short');
+  const lNet=longs.reduce((a,t)=>a+t.pnl,0), sNet=shorts.reduce((a,t)=>a+t.pnl,0);
+  const best=Math.max.apply(null,s.tr.map(t=>t.pnl)), worst=Math.min.apply(null,s.tr.map(t=>t.pnl));
+  const pctL=Math.round(longs.length/tr.length*100), pctS=100-pctL;
+  $('#view').innerHTML=`
+    <div class="grid kpis">
+      ${kpi('Total trades',tr.length+'','','all time')}
+      ${kpi('Net P&L',money(s.net),s.net>=0?'win':'loss','across all trades')}
+      ${kpi('Win rate',s.wr+'%',s.wr>=50?'win':'loss',s.wins+'W · '+s.losses+'L')}
+      ${kpi('Avg R:R',s.avgRR?s.avgRR.toFixed(2):'—','','planned')}
+    </div>
+    <div class="two-col section-gap">
+      <div class="card"><div class="card-title">Long vs Short</div><div class="card-sub">Which direction actually pays</div>
+        <div style="margin-top:18px">
+          <div class="pbar"><div class="pbar-top"><span><span class="pdot" style="background:var(--win)"></span>Long · ${longs.length} trades</span><b class="mono ${lNet>=0?'pos':'neg'}">${money(lNet)}</b></div><div class="pbar-tr"><div class="pbar-fl" style="width:${Math.max(2,pctL)}%;background:linear-gradient(90deg,var(--win),var(--violet-2))"></div></div></div>
+          <div class="pbar"><div class="pbar-top"><span><span class="pdot" style="background:var(--loss)"></span>Short · ${shorts.length} trades</span><b class="mono ${sNet>=0?'pos':'neg'}">${money(sNet)}</b></div><div class="pbar-tr"><div class="pbar-fl" style="width:${Math.max(2,pctS)}%;background:linear-gradient(90deg,var(--loss),var(--violet-2))"></div></div></div>
+        </div>
+      </div>
+      <div class="card"><div class="card-title">Your extremes</div><div class="card-sub">The biggest swings on record</div>
+        <div class="grid kpis" style="grid-template-columns:1fr 1fr;margin-top:16px">
+          ${kpi('Best trade',money(best),'win','single winner')}
+          ${kpi('Worst trade',money(worst),'loss','single loser')}
+        </div>
+      </div>
+    </div>
+    <div class="card section-gap"><div class="row-sb" style="margin-bottom:12px"><div class="card-title">${tr.length} trades</div><div style="display:flex;gap:8px"><label class="btn btn-ghost btn-sm" style="cursor:pointer">Import CSV<input type="file" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)"></label><button class="btn btn-primary btn-sm" onclick="openLog()">+ Log trade</button></div></div>${tradeTable(tr,true)}</div>`;
 };
 VIEWS.playbooks=function(){
   const pb=Store.playbooks(); const rules=pb.reduce((a,p)=>a+p.rules.length,0);
@@ -533,6 +566,16 @@ VIEWS.playbooks=function(){
       <div class="chip-list" style="margin-top:12px">${p.rules.map((r,ri)=>`<span class="rule-chip">${r}<button onclick="delRule(${pi},${ri})">×</button></span>`).join('')||'<span class="hint">No rules yet — add your first below.</span>'}</div>
       <div style="display:flex;gap:8px;margin-top:12px"><input class="finp" id="nr${pi}" placeholder="Add a rule…" style="flex:1" onkeydown="if(event.key==='Enter'){addRule(${pi})}"><button class="btn btn-ghost btn-sm" onclick="addRule(${pi})">Add</button></div></div>`).join('')}
     <div style="display:flex;gap:8px;margin-top:8px"><input class="finp" id="newPb" placeholder="New playbook name (e.g. London breakout)…" style="flex:1"><button class="btn btn-primary btn-sm" onclick="addPlaybook()">+ New playbook</button></div>
+  </div>
+  <div class="two-col section-gap">
+    <div class="card"><div class="card-title">Steal these rules</div><div class="card-sub">Proven guardrails — tap to add to your first playbook</div>
+      <div class="chip-list" style="margin-top:16px">${['Setup matches my A+ criteria','Risk 1% or less of account','Stop-loss set before entry','No trades in the first 5 minutes','Not revenge trading','Within my session hours','R:R at least 1:2','Checked news for the pair'].map(r=>`<button class="rule-chip" style="cursor:pointer" onclick="stealRule(this.dataset.r)" data-r="${r}">＋ ${r}</button>`).join('')}</div>
+    </div>
+    <div class="card"><div class="card-title">How grading works</div><div class="card-sub">Turn discipline into a number</div>
+      <div style="display:flex;flex-direction:column;gap:14px;margin-top:16px">
+        ${[['checklist','Before each trade, tick the rules you actually followed'],['target','Your Discipline Score = % of rules honoured across trades'],['trophy','A clean, rule-followed record is what funds you']].map(([ic,d],i)=>`<div style="display:flex;gap:12px;align-items:flex-start"><span class="step-n">${i+1}</span><div class="hint" style="color:var(--text);font-size:13.5px;line-height:1.45">${d}</div></div>`).join('')}
+      </div>
+    </div>
   </div>`;
 };
 VIEWS.reports=function(){
@@ -609,7 +652,10 @@ VIEWS.goals=function(){
       <button class="btn btn-primary btn-sm section-gap" onclick="addGoal()">Add goal</button>
     </div>
   </div>
-  <div class="section-gap grid" style="grid-template-columns:1fr;gap:12px">${g.map((goal,i)=>{const p=prog(goal),d=p>=100;return `<div class="card"><div class="row-sb"><div style="display:flex;align-items:center;gap:10px">${svgi(d?'trophy':'target',20,d?'var(--gold)':'var(--violet-2)')}<b>${goal.type}</b>${d?'<span class="chip" style="color:var(--win);border-color:rgba(36,209,155,.4)">Reached</span>':''}</div><button class="del-x" onclick="delGoal(${i})">✕</button></div><div class="meter" style="margin-bottom:0"><div class="mrow"><span class="hint">${Math.round(cur(goal))} / ${goal.target}${goal.deadline?' · by '+fmtDate(goal.deadline):''}</span><b>${Math.round(p)}%</b></div><div class="mtrack"><div class="mfill ${d?'win':''}" style="width:${p}%"></div></div></div></div>`;}).join('')||'<div class="card"><div class="empty" style="padding:30px"><div class="hint">No goals yet — add one above to start your climb.</div></div></div>'}</div>`;
+  <div class="section-gap grid" style="grid-template-columns:1fr;gap:12px">${g.map((goal,i)=>{const p=prog(goal),d=p>=100;return `<div class="card"><div class="row-sb"><div style="display:flex;align-items:center;gap:10px">${svgi(d?'trophy':'target',20,d?'var(--gold)':'var(--violet-2)')}<b>${goal.type}</b>${d?'<span class="chip" style="color:var(--win);border-color:rgba(36,209,155,.4)">Reached</span>':''}</div><button class="del-x" onclick="delGoal(${i})">✕</button></div><div class="meter" style="margin-bottom:0"><div class="mrow"><span class="hint">${Math.round(cur(goal))} / ${goal.target}${goal.deadline?' · by '+fmtDate(goal.deadline):''}</span><b>${Math.round(p)}%</b></div><div class="mtrack"><div class="mfill ${d?'win':''}" style="width:${p}%"></div></div></div></div>`;}).join('')||'<div class="card"><div class="empty" style="padding:30px"><div class="hint">No goals yet — add one above to start your climb.</div></div></div>'}</div>
+  <div class="card section-gap"><div class="card-title">Your journey</div><div class="card-sub">Milestones on the road to funded</div>
+    <div class="ladder">${[['First steps','Log 10 trades',s.tr.length,10],['Building the habit','Log 50 trades',s.tr.length,50],['Consistent','Hold a 50%+ win rate',s.wr,50],['Disciplined','Reach a 90+ discipline score',s.tr.length?s.dis:0,90],['Profitable','Reach +$1,000 net P&L',Math.max(0,s.net),1000]].map(([n,d,c,goal],i)=>{const p=Math.min(100,Math.round(c/goal*100));const done=p>=100;return `<div class="lad-row"><span class="lad-node ${done?'done':''}">${done?svgi('trophy',15,'#fff'):(i+1)}</span><div class="lad-body"><div class="pbar-top"><span style="color:var(--text);font-weight:600">${n}</span><b class="mono">${p}%</b></div><div class="hint" style="margin:2px 0 7px">${d}</div><div class="pbar-tr"><div class="pbar-fl" style="width:${Math.max(2,p)}%;background:var(--grad)"></div></div></div></div>`;}).join('')}</div>
+  </div>`;
 };
 VIEWS.calc=function(){
   $('#view').innerHTML=`<div class="two-col">
@@ -747,6 +793,19 @@ VIEWS.weekly=function(){
     </div>
     <div style="display:flex;flex-direction:column;gap:16px">
       <div class="card" style="text-align:center"><div style="display:flex;justify-content:center">${svgi('calendar',40,'var(--violet-2)')}</div><div class="kval violet" style="font-size:40px;margin-top:6px">${weeks.length}</div><div class="hint">weekly reviews done</div></div>
+      <div class="card"><div class="card-title" style="font-size:15px">At a glance</div>
+        <div style="margin-top:12px">
+          <div class="dbrk"><span>Net P&amp;L</span><b class="mono ${s.net>=0?'pos':'neg'}">${money(s.net)}</b></div>
+          <div class="dbrk"><span>Best day</span><b class="mono pos">${money(Math.max.apply(null,dayNets(s.tr).concat(0)))}</b></div>
+          <div class="dbrk"><span>Rules broken</span><b class="mono ${s.broken?'neg':''}">${s.broken}</b></div>
+          <div class="dbrk"><span>Clean trades</span><b class="mono pos">${s.rulesFollowed}</b></div>
+        </div>
+      </div>
+      <div class="card"><div class="card-title" style="font-size:15px">Prompts to reflect on</div>
+        <div style="display:flex;flex-direction:column;gap:11px;margin-top:12px">
+          ${['Did I follow my playbook every time?','Which setup made the most money?','What emotion cost me the most?','What one habit will I change?'].map(p=>`<div style="display:flex;gap:9px;align-items:flex-start">${svgi('sparkle',15,'var(--violet-2)')}<span class="hint" style="color:var(--text);line-height:1.4">${p}</span></div>`).join('')}
+        </div>
+      </div>
       <div class="card"><div class="card-title" style="font-size:15px">Why weekly?</div><p class="hint" style="margin-top:8px;color:var(--muted);line-height:1.6">Pros review religiously. Ten minutes a week to close one leak compounds into a completely different account by year-end.</p></div>
     </div>
   </div>
@@ -855,6 +914,7 @@ function addPlaybook(){ const v=$('#newPb').value.trim(); if(!v)return; const p=
 function delPlaybook(i){ const p=Store.playbooks(); p.splice(i,1); Store.savePlaybooks(p); VIEWS.playbooks(); }
 function addRule(pi){ const el=$('#nr'+pi); const v=el.value.trim(); if(!v)return; const p=Store.playbooks(); p[pi].rules.push(v); Store.savePlaybooks(p); VIEWS.playbooks(); }
 function delRule(pi,ri){ const p=Store.playbooks(); p[pi].rules.splice(ri,1); Store.savePlaybooks(p); VIEWS.playbooks(); }
+function stealRule(txt){ const p=Store.playbooks(); if(!p.length)p.push({name:'My Playbook',rules:[]}); if(p[0].rules.includes(txt)){ toast('Already in your playbook'); return; } p[0].rules.push(txt); Store.savePlaybooks(p); VIEWS.playbooks(); toast('Rule added to '+p[0].name,'good'); }
 function saveJournal(){ const j=Store.journal(); const today=new Date().toISOString().slice(0,10); const i=j.findIndex(e=>e.date===today); const entry={date:today,mood:(document.querySelector('#jMoods .rule-chip.sel')||{dataset:{}}).dataset.m||'Calm',plan:$('#j-plan').value.trim()}; if(i>=0)j[i]=entry;else j.push(entry); Store.saveJournal(j); addXP(10); toast('Entry saved · +10 XP','good'); VIEWS.journal(); }
 function addGoal(){ const target=+$('#g-target').value; if(!target){toast('Enter a target');return;} const g=Store.goals(); g.push({type:$('#g-type').value,target,deadline:$('#g-deadline').value}); Store.saveGoals(g); VIEWS.goals(); toast('Goal added','good'); }
 function quickGoal(t,v){ const g=Store.goals(); g.push({type:t,target:v,deadline:''}); Store.saveGoals(g); VIEWS.goals(); toast('Goal added','good'); }
