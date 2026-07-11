@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0A0A16"/>
+      <stop offset="1" stop-color="#141033"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="78%" cy="22%" r="55%">
+      <stop offset="0" stop-color="#7C5CFC" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#7C5CFC" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="grad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7C5CFC"/>
+      <stop offset="0.5" stop-color="#A45CFC"/>
+      <stop offset="1" stop-color="#E15CC6"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7C5CFC"/>
+      <stop offset="1" stop-color="#E15CC6"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <g transform="translate(90,96)">
+    <rect x="0" y="0" width="52" height="52" rx="14" fill="url(#grad)"/>
+    <path d="M13 37l11-11 7 7 14-14" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="72" y="38" font-family="'Space Grotesk',Arial,sans-serif" font-size="34" font-weight="700" fill="#F4F4FB">EDGE <tspan fill="#9D7BFF">Pro</tspan></text>
+  </g>
+  <text x="90" y="300" font-family="'Space Grotesk',Arial,sans-serif" font-size="70" font-weight="700" fill="#F4F4FB" letter-spacing="-1">Discipline is the edge</text>
+  <text x="90" y="382" font-family="'Space Grotesk',Arial,sans-serif" font-size="70" font-weight="700" letter-spacing="-1" fill="url(#grad)">most traders never track.</text>
+  <text x="90" y="452" font-family="Arial,sans-serif" font-size="28" fill="#A9A9C4">The trading journal that grades every trade against your own rules —</text>
+  <text x="90" y="490" font-family="Arial,sans-serif" font-size="28" fill="#A9A9C4">and tracks your prop-firm evaluation live.</text>
+  <g transform="translate(90,540)">
+    <rect x="0" y="0" width="196" height="52" rx="26" fill="url(#grad)"/>
+    <text x="98" y="34" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" font-weight="700" fill="#fff">Start free trial</text>
+    <text x="230" y="34" font-family="Arial,sans-serif" font-size="22" fill="#6E6E8A">edgeprojournal.com</text>
+  </g>
+  <path d="M760 470 L820 430 L860 452 L910 388 L960 410 L1010 340 L1060 366 L1110 300" fill="none" stroke="url(#line)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+  <circle cx="1110" cy="300" r="9" fill="#E15CC6"/>
+</svg>

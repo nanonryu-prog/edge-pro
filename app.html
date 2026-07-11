@@ -549,7 +549,20 @@ VIEWS.trades=function(){
         </div>
       </div>
     </div>
-    <div class="card section-gap"><div class="row-sb" style="margin-bottom:12px"><div class="card-title">${tr.length} trades</div><div style="display:flex;gap:8px"><label class="btn btn-ghost btn-sm" style="cursor:pointer">Import CSV<input type="file" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)"></label><button class="btn btn-primary btn-sm" onclick="openLog()">+ Log trade</button></div></div>${tradeTable(tr,true)}</div>`;
+    <div class="card section-gap">
+      <div class="row-sb" style="margin-bottom:14px;gap:10px;flex-wrap:wrap">
+        <div class="card-title">${tr.length} trades</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input class="finp" id="tf-q" placeholder="Search symbol…" style="width:150px;height:38px" oninput="filterTrades()">
+          <select class="finp" id="tf-side" style="width:auto;height:38px" onchange="filterTrades()"><option value="">All sides</option><option value="long">Long</option><option value="short">Short</option></select>
+          <select class="finp" id="tf-out" style="width:auto;height:38px" onchange="filterTrades()"><option value="">Win &amp; loss</option><option value="win">Wins only</option><option value="loss">Losses only</option></select>
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV()">Export CSV</button>
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer">Import CSV<input type="file" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)"></label>
+          <button class="btn btn-primary btn-sm" onclick="openLog()">+ Log trade</button>
+        </div>
+      </div>
+      <div id="tradeTableWrap">${tradeTable(tr,true)}</div>
+    </div>`;
 };
 VIEWS.playbooks=function(){
   const pb=Store.playbooks(); const rules=pb.reduce((a,p)=>a+p.rules.length,0);
@@ -1125,6 +1138,8 @@ function importCSV(input){ const f=input.files[0]; if(!f)return; const r=new Fil
     arr.push({id:Date.now()+Math.random(),date:(c[iDate]||new Date().toISOString().slice(0,10)).trim().slice(0,10),symbol:(c[iSym]||'—').toUpperCase().trim(),side,entry,exit,size,stop:null,target:null,pnl:pnl||0,rr:num(c[iRR]),emotion:'',tilt:null,rulesFollowed:0,rulesTotal:0,notes:(c[iNotes]||'').trim(),shot:null}); n++; });
   Store.saveTrades(arr); toast('Imported '+n+' trades','good'); go('dash');
   }catch(e){ toast('Could not parse that CSV'); } }; r.readAsText(f); }
+function filterTrades(){ const q=($('#tf-q').value||'').toLowerCase().trim(); const side=$('#tf-side').value; const out=$('#tf-out').value; let tr=Store.trades().slice().reverse(); if(q)tr=tr.filter(t=>(t.symbol||'').toLowerCase().includes(q)); if(side)tr=tr.filter(t=>t.side===side); if(out==='win')tr=tr.filter(t=>t.pnl>0); else if(out==='loss')tr=tr.filter(t=>t.pnl<0); $('#tradeTableWrap').innerHTML=tradeTable(tr,true)+(tr.length?'':'<div class="hint" style="padding:14px 2px">No trades match those filters.</div>'); }
+function exportCSV(){ const tr=Store.trades(); if(!tr.length){ toast('No trades to export'); return; } const cols=['date','symbol','side','entry','exit','size','stop','target','pnl','rr','emotion','tilt','rulesFollowed','rulesTotal','notes']; const esc=v=>{ v=v==null?'':String(v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }; const csv=[cols.join(',')].concat(tr.map(t=>cols.map(c=>esc(t[c])).join(','))).join('\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='edge-pro-trades.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); toast('Exported '+tr.length+' trades','good'); }
 function sampleCSV(){ const csv='date,symbol,side,entry,exit,size,pnl,rr,notes\n2026-07-01,EURUSD,long,1.0850,1.0910,10000,60,2,Clean breakout\n2026-07-02,US100,short,18500,18560,2,-120,1.5,Fought the trend'; const b=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='edgepro-sample.csv'; a.click(); }
 function deleteAccount(){ if(!confirm('Permanently delete your account and all data on this device?'))return; try{ const u=JSON.parse(localStorage.getItem('edgepro_users')||'{}'); delete u[session.email]; localStorage.setItem('edgepro_users',JSON.stringify(u)); }catch{} DATA_KEYS.forEach(b=>localStorage.removeItem(Store.k(b))); Store.logout(); }
 
