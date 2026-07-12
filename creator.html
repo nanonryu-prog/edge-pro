@@ -42,6 +42,7 @@
   .step{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:20px;} [data-theme="light"] .step{background:rgba(18,20,45,.02);}
   .step .n{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;font-family:'Space Grotesk';font-weight:700;margin-bottom:12px;}
   .step b{font-size:15px;} .step p{color:var(--muted);font-size:13.5px;line-height:1.55;margin:6px 0 0;}
+  .step.done{border-color:rgba(36,209,155,.4);background:rgba(36,209,155,.06);} .step.done .n{background:var(--win,#24D19B);}
   .share-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
   .icon-btn{width:42px;height:42px;border-radius:11px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--muted);display:grid;place-items:center;cursor:pointer;} [data-theme="light"] .icon-btn{background:rgba(18,20,45,.04);}
   .note{font-size:12.5px;color:var(--faint);margin-top:12px;line-height:1.6;}
@@ -78,9 +79,18 @@
   <div id="dash" class="hidden">
     <header style="margin:18px 0 24px">
       <span class="eyebrow">Creator dashboard</span>
-      <h1 class="title">Welcome, <span id="uName">trader</span> 👋</h1>
-      <p class="sub">Share your code and link everywhere you post. Every trader who subscribes with it earns you <b>10% recurring</b>.</p>
+      <h1 class="title">Welcome, <span id="uName">trader</span></h1>
+      <p class="sub">Share your code and link everywhere you post. Every trader who subscribes with it earns you <b>10% recurring</b> — every month they stay.</p>
     </header>
+
+    <div class="card">
+      <div class="lbl" style="margin-bottom:14px">Get earning in 3 steps</div>
+      <div class="steps">
+        <div class="step done"><div class="n">1</div><b>Your code is ready</b><p>We generated your unique promo code below — it never changes.</p></div>
+        <div class="step"><div class="n">2</div><b>Post &amp; share it</b><p>Use the ready-made content below. Drop your link in bios, descriptions &amp; your community.</p></div>
+        <div class="step"><div class="n">3</div><b>Earn every month</b><p>Get 10% of every subscription made with your code — recurring, paid monthly.</p></div>
+      </div>
+    </div>
 
     <div class="card">
       <div class="lbl">Your promo code</div>
@@ -98,6 +108,23 @@
         <a class="btn btn-ghost btn-sm" id="shareTG" target="_blank" rel="noopener">Share on Telegram</a>
       </div>
       <p class="note">Tip: put your link in your YouTube description, TikTok/IG bio, and pin it in your Discord. Your code is what ties every sale back to you.</p>
+    </div>
+
+    <div class="card">
+      <div class="lbl">What you could earn</div>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:12px">
+        <div><div id="calcOut" style="font-family:'Space Grotesk',sans-serif;font-size:44px;font-weight:700;color:var(--win,#24D19B);line-height:1">$30</div><div class="note" style="margin-top:2px">per month, recurring</div></div>
+        <div class="note" style="text-align:right">≈ <b id="calcYear" style="color:var(--text)">$360</b> / year</div>
+      </div>
+      <input type="range" id="calcSubs" min="0" max="200" value="20" oninput="calcEarn()" style="width:100%;margin-top:16px;accent-color:#7C5CFC">
+      <div class="note" style="display:flex;justify-content:space-between;margin-top:6px"><span><b id="calcN" style="color:var(--text)">20</b> paying subscribers</span><span>10% of ~$15/mo each</span></div>
+      <p class="note">Recurring means it compounds — every subscriber you refer keeps paying you monthly while they stay.</p>
+    </div>
+
+    <div class="card">
+      <div class="lbl">Ready-to-post content</div>
+      <p class="note" style="margin-top:4px">Tap copy — your link is already filled in. Make it yours, then post.</p>
+      <div id="tmplList" style="display:flex;flex-direction:column;gap:12px;margin-top:14px"></div>
     </div>
 
     <div class="card">
@@ -136,6 +163,8 @@
   applyTheme();
   function toast(m){const t=document.getElementById('toast');t.textContent=m;t.className='show';setTimeout(()=>t.className='',2200);}
   function copyText(t,msg){navigator.clipboard.writeText(t).then(()=>toast(msg||'Copied')).catch(()=>toast('Copy failed — select & copy'));}
+  function copyTmpl(i){ copyText((window.__tmpl[i]||{}).b||'','Copied — go post it!'); }
+  function calcEarn(){ const n=+document.getElementById('calcSubs').value; const m=Math.round(n*15*0.10); document.getElementById('calcN').textContent=n; document.getElementById('calcOut').textContent='$'+m.toLocaleString(); document.getElementById('calcYear').textContent='$'+(m*12).toLocaleString(); }
 
   // auth: use our app session
   function session(){ try{return JSON.parse(localStorage.getItem('edgepro_session'));}catch{return null;} }
@@ -157,6 +186,15 @@
     document.getElementById('shareX').href='https://twitter.com/intent/tweet?text='+msg+'&url='+encodeURIComponent(link);
     document.getElementById('shareWA').href='https://wa.me/?text='+msg+encodeURIComponent(link);
     document.getElementById('shareTG').href='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+msg;
+    // ready-to-post content (link pre-filled)
+    window.__tmpl=[
+      {h:'Video hook (first 3 seconds)', b:'"I kept failing funded challenges — until I started tracking THIS instead of my P&L." (then show your EDGE Pro discipline score)'},
+      {h:'Caption / video description', b:'Most traders don’t have a strategy problem — they have a discipline problem they never measure. I journal every trade with EDGE Pro: it grades my rules, tracks my prop-firm eval live, and shows which emotions cost me money. Free demo, no signup: '+link},
+      {h:'Discord / community pin', b:'If you trade a funded account, check out EDGE Pro — grades your discipline, tracks your eval, pre-trade checklist. Free demo (no signup): '+link+' — use my code '+code+' at checkout to support the channel.'},
+      {h:'Bio / link-in-bio line', b:'I journal every trade with EDGE Pro → '+link}
+    ];
+    document.getElementById('tmplList').innerHTML=window.__tmpl.map((t,i)=>'<div style="border:1px solid var(--border,rgba(255,255,255,.09));border-radius:12px;padding:14px 15px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px"><b style="font-size:13px">'+t.h+'</b><button class="btn btn-ghost btn-sm" onclick="copyTmpl('+i+')">Copy</button></div><p class="note" style="margin:0;line-height:1.5">'+t.b+'</p></div>').join('');
+    calcEarn();
     // best-effort: register the code in Supabase (if configured + authenticated)
     (async function(){ try{ const c=(window.EDGE_CONFIG||{}).supabase||{}; if(c.url&&c.anonKey&&window.supabase){ const sb=window.supabase.createClient(c.url,c.anonKey); const { data:{ user } } = await sb.auth.getUser(); if(user){ await sb.from('creators').upsert({ email:s.email, code }, { onConflict:'email' }); } } }catch(e){} })();
   }
