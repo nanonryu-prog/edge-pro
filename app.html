@@ -290,6 +290,8 @@ tr{transition:background .15s}
 .wheel-lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--violet-2);margin-top:7px;font-weight:700}
 @keyframes wheelIn{from{opacity:0;transform:rotate(-140deg) scale(.65)}to{opacity:1;transform:rotate(0) scale(1)}}
 .step-n{flex:0 0 auto;width:26px;height:26px;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;background:var(--grad);box-shadow:0 4px 12px -4px rgba(124,92,252,.6)}
+.set-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px;align-items:start;max-width:1200px;}
+.set-grid .set-section{margin-bottom:0!important;}
 .ladder{display:flex;flex-direction:column;gap:20px;margin-top:18px}
 .lad-row{display:flex;gap:15px;align-items:flex-start}
 .lad-node{flex:0 0 auto;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;color:var(--muted);background:var(--track);border:1px solid var(--border)}
@@ -616,6 +618,8 @@ VIEWS.journal=function(){
   let streak=0; { let d=new Date(); for(;;){ const ds=d.toISOString().slice(0,10); if(j.find(e=>e.date===ds)){streak++; d.setDate(d.getDate()-1);} else break; } }
   const moods=[['Calm','Calm'],['Confident','Confident'],['Focused','Focused'],['Fear','Anxious'],['FOMO','FOMO'],['moon','Tired'],['Greed','Greedy']];
   const micon=k=> k==='moon'? svgi('moon',15,'currentColor') : '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px">'+emoIcon(k)+'</svg>';
+  const mc={}; j.forEach(e=>{ if(e.mood)mc[e.mood]=(mc[e.mood]||0)+1; }); const mtot=j.length;
+  const moodRows=Object.entries(mc).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([m,n])=>`<div class="pbar"><div class="pbar-top"><span>${m}</span><b class="mono">${Math.round(n/mtot*100)}%</b></div><div class="pbar-tr"><div class="pbar-fl" style="width:${Math.max(3,Math.round(n/mtot*100))}%;background:var(--grad)"></div></div></div>`).join('')||'<div class="hint" style="margin-top:8px">Log entries to see your mood mix here.</div>';
   $('#view').innerHTML=`
   <div class="two-col">
     <div class="card"><div class="card-title">Today’s entry</div>
@@ -624,7 +628,15 @@ VIEWS.journal=function(){
       <div class="fgrp full" style="margin-top:14px"><label class="flbl">Pre-market plan</label><textarea class="finp" id="j-plan" placeholder="What are you watching for today? What will you NOT do?">${ex?ex.plan||'':''}</textarea></div>
       <button class="btn btn-primary section-gap" onclick="saveJournal()">Save today’s entry (+10 XP)</button>
     </div>
-    <div class="card" style="display:flex;flex-direction:column;justify-content:center;text-align:center"><div style="display:flex;justify-content:center">${svgi('flame',42,'var(--violet-2)')}</div><div class="kval violet" style="font-size:42px;margin-top:4px">${streak}</div><div class="hint">day journaling streak</div><div class="hint" style="margin-top:10px">${streak===0?'Write today’s entry to start a streak.':streak<3?'Keep it going — consistency compounds.':'You’re building a real habit.'}</div></div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card" style="text-align:center"><div style="display:flex;justify-content:center">${svgi('flame',42,'var(--violet-2)')}</div><div class="kval violet" style="font-size:42px;margin-top:4px">${streak}</div><div class="hint">day journaling streak</div><div class="hint" style="margin-top:8px">${streak===0?'Write today’s entry to start a streak.':streak<3?'Keep it going — consistency compounds.':'You’re building a real habit.'}</div></div>
+      <div class="card"><div class="card-title" style="font-size:15px">Your moods lately</div><div class="card-sub">How you show up before the session</div><div style="margin-top:14px">${moodRows}</div></div>
+      <div class="card"><div class="card-title" style="font-size:15px">Journaling tips</div>
+        <div style="display:flex;flex-direction:column;gap:11px;margin-top:12px">
+          ${['Write it BEFORE you trade — not after.','Name the setups you will and won’t take.','Note your emotional state honestly.','Re-read last week before the open.'].map(t=>`<div style="display:flex;gap:9px;align-items:flex-start">${svgi('pencil',15,'var(--violet-2)')}<span class="hint" style="color:var(--text);line-height:1.4">${t}</span></div>`).join('')}
+        </div>
+      </div>
+    </div>
   </div>
   <div class="card section-gap"><div class="card-title">Past entries</div><div style="margin-top:12px">${j.slice().reverse().map(e=>`<div class="card" style="background:var(--card);margin-bottom:8px"><div class="row-sb"><b>${fmtDate(e.date)}</b><span class="tag long">${e.mood}</span></div>${e.plan?`<p class="hint" style="margin:8px 0 0;color:var(--muted);line-height:1.5">${e.plan}</p>`:''}</div>`).join('')||'<div class="empty" style="padding:30px"><div class="hint">No entries yet — your journal timeline grows here.</div></div>'}</div></div>`;
 };
@@ -827,8 +839,8 @@ VIEWS.weekly=function(){
 VIEWS.settings=function(){
   const st=Store.settings(); const n=st.notif||{session:true,journal:true,goals:false}; const pref=getThemePref(); const s=stats(); const li=levelInfo();
   const opt=(v,cur,list)=>list.map(o=>`<option ${o===cur?'selected':''}>${o}</option>`).join('');
-  $('#view').innerHTML=`<div style="max-width:680px">
-    <div class="card set-section" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+  $('#view').innerHTML=`<div class="set-grid">
+    <div class="card set-section" style="grid-column:1/-1;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
       <span class="avatar" style="width:56px;height:56px;font-size:22px">${(st.name||'T')[0].toUpperCase()}</span>
       <div style="flex:1;min-width:160px"><div style="font-size:19px;font-weight:700">${st.name||'Trader'}</div><div class="hint">${session.email}</div></div>
       <div style="display:flex;gap:20px;text-align:center">
