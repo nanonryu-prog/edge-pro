@@ -184,7 +184,10 @@
   /* ---------- Hero ---------- */
   .hero { padding: 150px 0 70px; text-align: center; position: relative; }
   .hero h1 { font-size: clamp(40px, 6.6vw, 84px); line-height: 1.02; font-weight: 700; letter-spacing: -.025em; margin: 22px auto 0; max-width: 15ch; }
-  .grad-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .grad-text { background: linear-gradient(110deg,#7C5CFC,#A45CFC 30%,#E15CC6 55%,#A45CFC 80%,#7C5CFC); background-size:220% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 5s linear infinite; }
+  @keyframes shimmer { to { background-position: 220% center; } }
+  .feature, .fact, .price-card { transform-style: preserve-3d; will-change: transform; }
+  @media (prefers-reduced-motion: reduce){ .grad-text{ animation:none; } }
   .hero p.sub { margin: 24px auto 0; max-width: 60ch; font-size: clamp(16px, 2.2vw, 20px); color: var(--muted); line-height: 1.6; }
   .hero-actions { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
   .hero-note { margin-top: 18px; font-size: 12.5px; color: var(--faint); }
@@ -1349,6 +1352,20 @@
     let x=innerWidth*0.5,y=innerHeight*0.35,cx=x,cy=y;
     addEventListener('pointermove',e=>{ x=e.clientX; y=e.clientY; },{passive:true});
     (function loop(){ cx+=(x-cx)*0.12; cy+=(y-cy)*0.12; g.style.transform='translate('+cx.toFixed(1)+'px,'+cy.toFixed(1)+'px) translate(-50%,-50%)'; requestAnimationFrame(loop); })();
+  })();
+  // ---- 3D tilt toward cursor + magnetic buttons (alive on hover) ----
+  (function(){
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if(window.matchMedia('(hover: none)').matches) return;
+    document.querySelectorAll('.feature,.fact,.price-card').forEach(card=>{
+      card.style.transition='transform .18s var(--ease), box-shadow .25s var(--ease), border-color .25s var(--ease)';
+      card.addEventListener('mousemove',e=>{ const b=card.getBoundingClientRect(); const px=(e.clientX-b.left)/b.width-0.5, py=(e.clientY-b.top)/b.height-0.5; card.style.transform='perspective(900px) rotateX('+(-py*6).toFixed(2)+'deg) rotateY('+(px*8).toFixed(2)+'deg) translateY(-5px)'; card.style.boxShadow='0 24px 60px -22px rgba(124,92,252,.45)'; card.style.borderColor='rgba(124,92,252,.35)'; });
+      card.addEventListener('mouseleave',()=>{ card.style.transform=''; card.style.boxShadow=''; card.style.borderColor=''; });
+    });
+    document.querySelectorAll('.btn-primary,.btn-lg,.support-fab').forEach(btn=>{
+      btn.addEventListener('mousemove',e=>{ const b=btn.getBoundingClientRect(); const mx=e.clientX-b.left-b.width/2, my=e.clientY-b.top-b.height/2; btn.style.transform='translate('+(mx*0.2).toFixed(1)+'px,'+(my*0.32).toFixed(1)+'px)'; });
+      btn.addEventListener('mouseleave',()=>{ btn.style.transform=''; });
+    });
   })();
   // ---- cursor spotlight on cards (native port of 21st CursorSpotlight) ----
   (function(){
