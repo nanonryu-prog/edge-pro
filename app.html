@@ -967,7 +967,7 @@ function quickLog(){
 function qSel(g,btn){ btn.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); if(g==='side')window._qSide=btn.dataset.v; else window._qRules=btn.dataset.v; }
 function saveQuick(e){ e.preventDefault(); const _b=achCount(); const rt=(Store.playbooks()[0]||{rules:[]}).rules.length; const followed=window._qRules!=='no';
   const t={id:Date.now(),date:new Date().toISOString().slice(0,10),symbol:($('#q-sym').value||'—').toUpperCase().trim(),side:window._qSide||'long',entry:null,exit:null,size:null,stop:null,target:null,pnl:parseFloat($('#q-pnl').value)||0,rr:null,emotion:'',tilt:null,rulesFollowed:(rt?(followed?rt:0):0),rulesTotal:rt,notes:'',shot:null,account:'',tags:[]};
-  const a=Store.trades(); a.push(t); Store.saveTrades(a); const xp=10+(followed&&rt?5:0); addXP(xp); closeLog(); toast('Trade logged · +'+xp+' XP','good'); celebrateNewAch(_b); go(current); }
+  const a=Store.trades(); a.push(t); Store.saveTrades(a); const xp=10+(followed&&rt?5:0); addXP(xp); closeLog(); toast('Trade logged · +'+xp+' XP','good'); celebrateNewAch(_b); go(current); checkGoalRewards(); }
 function openLog(editId){ window._editId=editId||null;
   const rules=(Store.playbooks()[0]||{rules:[]}).rules;
   $('#logModalInner').innerHTML=`<div class="row-sb"><div class="card-title">${editId?'Edit trade':'Log a trade'}</div><button class="modal-x" onclick="closeLog()">✕</button></div>
@@ -1014,7 +1014,7 @@ function saveTradeModal(ev){ ev.preventDefault(); const _b=achCount();
     rulesFollowed:followed,rulesTotal:rules.length,notes:$('#m-notes').value.trim(),shot:window._pendingShot||null,account:($('#m-account')?$('#m-account').value:''),tags:($('#m-tags')?$('#m-tags').value.split(',').map(x=>x.trim()).filter(Boolean):[])};
   if(window._editId){ const arr=Store.trades(); const i=arr.findIndex(x=>x.id===window._editId); t.id=window._editId; if(i>=0)arr[i]=t; Store.saveTrades(arr); window._editId=null; closeLog(); toast('Trade updated','good'); go(current); return; }
   const a=Store.trades(); a.push(t); Store.saveTrades(a); addXP(10+(followed===rules.length&&rules.length?5:0));
-  closeLog(); toast('Trade logged','good'); go(current==='trades'?'trades':'dash'); celebrateNewAch(_b);
+  closeLog(); toast('Trade logged','good'); go(current==='trades'?'trades':'dash'); celebrateNewAch(_b); checkGoalRewards();
 }
 
 /* ---- actions ---- */
@@ -1203,6 +1203,9 @@ function achList(){ const s=stats(); const streak=discStreak(); const weeks=(Sto
  {i:'pencil',n:'Weekly Reviewer',cur:weeks,goal:1},{i:'sparkle',n:'Clean Week',cur:(s.tr.length>=5&&s.broken===0)?1:0,goal:1}]; }
 function achCount(){ return achList().filter(a=>a.cur>=a.goal).length; }
 function celebrateNewAch(before){ const now=achList().filter(a=>a.cur>=a.goal); if(now.length>before){ confetti(); const last=now[now.length-1]; toast('Achievement unlocked: '+last.n,'good'); } }
+function goalCur(goal,s){ if(goal.type==='Profit target ($)')return s.net; if(goal.type==='Win rate (%)')return s.wr; if(goal.type==='Trades logged')return s.tr.length; return s.dis; }
+function checkGoalRewards(){ const g=Store.goals(); const s=stats(); let hit=null,changed=false; g.forEach(goal=>{ const prog=goal.target?goalCur(goal,s)/goal.target*100:0; if(prog>=100 && !goal.rewarded){ goal.rewarded=true; changed=true; if(!hit)hit=goal; } }); if(changed){ Store.saveGoals(g); if(hit){ addXP(50); showReward('Goal reached!', hit.type+' — target smashed.', 50); } } }
+function showReward(title,sub,xp){ confetti(); const el=document.getElementById('detailInner'); if(!el)return; el.innerHTML='<div style="text-align:center;padding:22px 12px"><div style="display:flex;justify-content:center;margin-bottom:16px">'+svgi('trophy',56,'var(--gold)')+'</div><div class="card-title" style="font-size:26px">'+title+'</div><div class="hint" style="margin:10px 0 2px;font-size:15px">'+sub+'</div><div class="kval violet" style="font-size:42px;margin:14px 0 20px">+'+xp+' XP</div><button class="btn btn-primary" onclick="closeDetail()">Let’s keep going</button></div>'; document.getElementById('detailModal').classList.add('show'); }
 function loadShot(input){ const f=input.files[0]; if(!f)return; const img=new Image(); img.onload=()=>{ const cv=document.createElement('canvas'); const sc=Math.min(1,720/img.width); cv.width=img.width*sc; cv.height=img.height*sc; cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height); window._pendingShot=cv.toDataURL('image/jpeg',0.6); const z=document.getElementById('shotZone'); if(z)z.innerHTML='<img src="'+window._pendingShot+'" style="max-width:100%;border-radius:8px;max-height:180px">'; }; img.src=URL.createObjectURL(f); }
 function openTradeDetail(id){ const t=Store.trades().find(x=>x.id===id); if(!t)return;
   document.getElementById('detailInner').innerHTML=`<div class="row-sb"><div class="card-title">${t.symbol} · <span class="tag ${t.side}">${t.side}</span></div><button class="modal-x" onclick="closeDetail()">✕</button></div>
