@@ -434,7 +434,7 @@
   .mobile-menu a:hover { background: rgba(255,255,255,0.05); color: var(--text); }
 
   /* ---------- Scroll reveal ---------- */
-  [data-reveal] { opacity: 0; transform: translateY(22px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
+  [data-reveal] { opacity: 0; transform: translateY(42px) scale(.985); transition: opacity .75s var(--ease), transform .85s var(--ease); }
   [data-reveal].is-visible { opacity: 1; transform: none; }
   [data-stagger] > * { opacity: 0; transform: translateY(20px); transition: opacity .6s var(--ease), transform .6s var(--ease); }
   [data-stagger].is-visible > * { opacity: 1; transform: none; }
@@ -546,6 +546,9 @@
   .gm-t{font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.04em;margin-bottom:6px;}
 
   /* cursor spotlight (native port of 21st CursorSpotlight) */
+  .cursor-glow{position:fixed;top:0;left:0;width:620px;height:620px;border-radius:50%;pointer-events:none;z-index:0;background:radial-gradient(circle,rgba(124,92,252,.11),transparent 62%);will-change:transform;}
+  [data-theme="light"] .cursor-glow{background:radial-gradient(circle,rgba(124,92,252,.09),transparent 62%);}
+  @media (max-width:820px){ .cursor-glow{display:none;} }
   .cursor-spot{position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .25s var(--ease);background:radial-gradient(160px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.14),transparent 62%);z-index:1;}
   [data-theme="light"] .cursor-spot{background:radial-gradient(160px circle at var(--mx,50%) var(--my,50%),rgba(124,92,252,.12),transparent 62%);}
   .gcard .cursor-spot{background:radial-gradient(180px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.22),transparent 60%);}
@@ -1318,6 +1321,15 @@
     gsap.utils.toArray('.feature').forEach((f,i)=>{
       gsap.fromTo(f,{y:30,opacity:.001},{y:0,opacity:1,duration:.6,ease:'power2.out',scrollTrigger:{trigger:f,start:'top 90%'}});
     });
+    // background blobs drift as you scroll (parallax depth)
+    gsap.to('.blob.b1',{yPercent:26,ease:'none',scrollTrigger:{start:0,end:'max',scrub:1.2}});
+    gsap.to('.blob.b2',{yPercent:-30,ease:'none',scrollTrigger:{start:0,end:'max',scrub:1.2}});
+    gsap.to('.blob.b3',{yPercent:20,ease:'none',scrollTrigger:{start:0,end:'max',scrub:1.2}});
+    // section eyebrows/headings drift up gently on scroll
+    gsap.utils.toArray('.section-head').forEach(h=>{ gsap.fromTo(h,{y:34},{y:-18,ease:'none',scrollTrigger:{trigger:h,start:'top bottom',end:'bottom top',scrub:true}}); });
+    // hero dashboard mockup floats on scroll
+    const _hm=document.querySelector('.hero .dash-shell')||document.querySelector('.dash-shell');
+    if(_hm){ gsap.to(_hm,{y:-40,ease:'none',scrollTrigger:{trigger:_hm,start:'top 60%',end:'bottom top',scrub:true}}); }
     // Spring 3D mouse-tilt on the hero mockup (native port of the 21st "VectorTiltScene", no React/framer-motion)
     const _ds=document.querySelector('.dash-shell');
     if(_ds){
@@ -1329,6 +1341,15 @@
   })();
 
 
+  // ---- glow that follows the cursor across the whole page ----
+  (function(){
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if(window.matchMedia('(max-width:820px)').matches) return;
+    const g=document.createElement('div'); g.className='cursor-glow'; document.body.appendChild(g);
+    let x=innerWidth*0.5,y=innerHeight*0.35,cx=x,cy=y;
+    addEventListener('pointermove',e=>{ x=e.clientX; y=e.clientY; },{passive:true});
+    (function loop(){ cx+=(x-cx)*0.12; cy+=(y-cy)*0.12; g.style.transform='translate('+cx.toFixed(1)+'px,'+cy.toFixed(1)+'px) translate(-50%,-50%)'; requestAnimationFrame(loop); })();
+  })();
   // ---- cursor spotlight on cards (native port of 21st CursorSpotlight) ----
   (function(){
     if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
