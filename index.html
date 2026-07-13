@@ -63,8 +63,9 @@
     --ease:      cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
+  * { box-sizing: border-box; min-width: 0; }
+  html, body { margin: 0; padding: 0; max-width: 100%; overflow-x: hidden; }
+  body { overflow-wrap: break-word; }
   body {
     background: var(--bg);
     color: var(--text);
