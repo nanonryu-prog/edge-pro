@@ -291,6 +291,11 @@ tr{transition:background .15s}
 .wheel-pct{font-size:20px;font-weight:700;color:var(--muted);margin-left:1px}
 .wheel-lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--violet-2);margin-top:7px;font-weight:700}
 @keyframes wheelIn{from{opacity:0;transform:rotate(-140deg) scale(.65)}to{opacity:1;transform:rotate(0) scale(1)}}
+.seg{display:flex;gap:8px;margin-top:8px}
+.seg-btn{flex:1;padding:13px;border-radius:11px;border:1px solid var(--border);background:transparent;color:var(--muted);font-weight:600;font-size:15px;cursor:pointer;transition:.15s}
+.seg-btn:hover{color:var(--text);border-color:var(--border-2)}
+.seg-btn.on{background:var(--violet);color:#fff;border-color:transparent}
+.seg-btn.on.win{background:var(--win)} .seg-btn.on.loss{background:var(--loss)}
 .step-n{flex:0 0 auto;width:26px;height:26px;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;background:var(--grad);box-shadow:0 4px 12px -4px rgba(124,92,252,.6)}
 .set-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px;align-items:start;max-width:1200px;}
 .set-grid .set-section{margin-bottom:0!important;}
@@ -385,7 +390,7 @@ tr{transition:background .15s}
       <div class="top-right">
         <span class="sess-pill">Session <b id="sessCount">–</b></span>
         <button class="icon-btn" id="themeBtn" title="Theme" aria-label="Toggle light or dark theme" onclick="cycleTheme()"></button>
-        <button class="btn btn-primary btn-sm log-btn" onclick="openLog()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Log trade</button>
+        <button class="btn btn-primary btn-sm log-btn" onclick="quickLog()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Log trade</button>
         <div class="avatar-wrap">
           <span class="avatar" id="avatar" title="Account" role="button" tabindex="0" aria-label="Account menu" onclick="toggleMenu()">N</span>
           <div class="menu" id="userMenu">
@@ -598,7 +603,7 @@ VIEWS.trades=function(){
           <select class="finp" id="tf-out" style="width:auto;height:38px" onchange="filterTrades()"><option value="">Win &amp; loss</option><option value="win">Wins only</option><option value="loss">Losses only</option></select>
           <button class="btn btn-ghost btn-sm" onclick="exportCSV()">Export CSV</button>
           <label class="btn btn-ghost btn-sm" style="cursor:pointer">Import CSV<input type="file" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)"></label>
-          <button class="btn btn-primary btn-sm" onclick="openLog()">+ Log trade</button>
+          <button class="btn btn-primary btn-sm" onclick="quickLog()">+ Log trade</button>
         </div>
       </div>
       <div id="tradeTableWrap">${tradeTable(tr,true)}</div>
@@ -945,6 +950,24 @@ VIEWS.settings=function(){
 };
 
 /* ---- Log trade modal ---- */
+function quickLog(){
+  window._editId=null; window._qSide='long'; window._qRules='yes';
+  const rt=(Store.playbooks()[0]||{rules:[]}).rules.length;
+  $('#logModalInner').innerHTML=`<div class="row-sb"><div class="card-title">Quick log</div><button class="modal-x" onclick="closeLog()" aria-label="Close">✕</button></div>
+    <div class="card-sub" style="margin-bottom:18px">Log a trade in seconds. Add details later if you want.</div>
+    <form id="qForm" autocomplete="off">
+      <div class="fgrp"><label class="flbl">Symbol</label><input class="finp" id="q-sym" placeholder="EURUSD" required style="font-size:18px" autofocus></div>
+      <div class="fgrp" style="margin-top:14px"><label class="flbl">Profit / loss ($)</label><input class="finp mono" type="number" step="any" id="q-pnl" placeholder="250   or   -80" required style="font-size:24px;font-weight:700"></div>
+      <div class="fgrp" style="margin-top:16px"><label class="flbl">Side</label><div class="seg"><button type="button" class="seg-btn on" data-v="long" onclick="qSel('side',this)">Long</button><button type="button" class="seg-btn" data-v="short" onclick="qSel('side',this)">Short</button></div></div>
+      ${rt?`<div class="fgrp" style="margin-top:16px"><label class="flbl">Did you follow your rules?</label><div class="seg"><button type="button" class="seg-btn on win" data-v="yes" onclick="qSel('rules',this)">Yes</button><button type="button" class="seg-btn loss" data-v="no" onclick="qSel('rules',this)">No</button></div></div>`:''}
+      <div style="display:flex;gap:12px;margin-top:22px;flex-wrap:wrap"><button type="submit" class="btn btn-primary" style="flex:1;min-width:150px">Log it (+10 XP)</button><button type="button" class="btn btn-ghost btn-sm" onclick="openLog()">+ Full details</button></div>
+    </form>`;
+  $('#logModal').classList.add('show'); $('#qForm').onsubmit=saveQuick;
+}
+function qSel(g,btn){ btn.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); if(g==='side')window._qSide=btn.dataset.v; else window._qRules=btn.dataset.v; }
+function saveQuick(e){ e.preventDefault(); const _b=achCount(); const rt=(Store.playbooks()[0]||{rules:[]}).rules.length; const followed=window._qRules!=='no';
+  const t={id:Date.now(),date:new Date().toISOString().slice(0,10),symbol:($('#q-sym').value||'—').toUpperCase().trim(),side:window._qSide||'long',entry:null,exit:null,size:null,stop:null,target:null,pnl:parseFloat($('#q-pnl').value)||0,rr:null,emotion:'',tilt:null,rulesFollowed:(rt?(followed?rt:0):0),rulesTotal:rt,notes:'',shot:null,account:'',tags:[]};
+  const a=Store.trades(); a.push(t); Store.saveTrades(a); const xp=10+(followed&&rt?5:0); addXP(xp); closeLog(); toast('Trade logged · +'+xp+' XP','good'); celebrateNewAch(_b); go(current); }
 function openLog(editId){ window._editId=editId||null;
   const rules=(Store.playbooks()[0]||{rules:[]}).rules;
   $('#logModalInner').innerHTML=`<div class="row-sb"><div class="card-title">${editId?'Edit trade':'Log a trade'}</div><button class="modal-x" onclick="closeLog()">✕</button></div>
