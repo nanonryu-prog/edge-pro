@@ -423,7 +423,11 @@ const Store={
   savePlaybooks(p){ this.set('playbooks',p); },
   journal(){ return this.get('journal',[]); }, saveJournal(j){ this.set('journal',j); },
   goals(){ return this.get('goals',[]); }, saveGoals(g){ this.set('goals',g); },
-  evalCfg(){ return this.get('eval',{firm:'FTMO Challenge',size:10000,phase:'Phase 1',target:1000,dailyLoss:500,maxDD:1000}); }, saveEval(e){ this.set('eval',e); },
+  evals(){ let a=this.get('evals',null); if(!a||!a.length){ const o=this.get('eval',{firm:'FTMO Challenge',size:10000,phase:'Phase 1',target:1000,dailyLoss:500,maxDD:1000}); a=[Object.assign({id:'ch'+Math.random().toString(36).slice(2,8)},o)]; this.set('evals',a); } return a; },
+  saveEvals(a){ this.set('evals',a); },
+  activeEval(){ const a=this.evals(); return a.find(c=>c.id===this.get('evalActive',null))||a[0]; },
+  setActiveEval(id){ this.set('evalActive',id); },
+  evalCfg(){ return this.evals()[0]; }, saveEval(e){ const a=this.evals(); a[0]=Object.assign(a[0],e); this.set('evals',a); },
   settings(){ return this.get('settings',{account:10000,name:(this.session()||{}).name||'Trader'}); }, saveSettings(s){ this.set('settings',s); },
   profile(){ return this.get('profile',{xp:0}); }, saveProfile(p){ this.set('profile',p); },
 };
@@ -437,8 +441,8 @@ const fmtDate=d=>new Date(d).toLocaleDateString(undefined,{month:'short',day:'nu
 function toast(m,k=''){ const t=$('#toast'); t.textContent=m; t.className='show '+k; setTimeout(()=>t.className='',2600); }
 function toggleNav(o){ const s=$('#sidebar'); if(s)s.classList.toggle('open',o); const sc=$('#scrim'); if(sc)sc.classList.toggle('on',o); }
 
-function stats(){
-  const tr=Store.trades(); const acct=Store.settings().account||10000;
+function stats(trArg){
+  const tr=trArg||Store.trades(); const acct=Store.settings().account||10000;
   const wins=tr.filter(t=>t.pnl>0), losses=tr.filter(t=>t.pnl<0);
   const gw=wins.reduce((a,t)=>a+t.pnl,0), gl=Math.abs(losses.reduce((a,t)=>a+t.pnl,0));
   const net=tr.reduce((a,t)=>a+t.pnl,0);
@@ -744,12 +748,17 @@ VIEWS.calc=function(){
   </div>`;
 };
 VIEWS.eval=function(){
-  const e=Store.evalCfg(); const s=stats(); const tr=s.tr;
+  const evals=Store.evals(); const firstId=evals[0].id; const e=Store.activeEval(); const allTr=Store.trades();
+  const tr=allTr.filter(t=>(t.account||firstId)===e.id); const s=stats(tr);
   const profit=s.net; const worstDay=Math.min(0,...dayNets(tr)); const dd=Math.min(0,...runningDD(tr,e.size));
   const steps=['Challenge','Verification','Funded']; const active=/verif/i.test(e.phase)?1:/fund/i.test(e.phase)?2:0;
   const tgtP=Math.max(0,Math.min(100,Math.round(profit/e.target*100)));
   $('#view').innerHTML=`
-  <div class="card"><div class="card-title">Road to funded</div>
+  <div class="card"><div class="row-sb"><div class="card-title">Your challenges</div><button class="btn btn-primary btn-sm" onclick="addChallenge()">+ Add challenge</button></div>
+    <div class="card-sub">Track every funded account you're running — switch between them here</div>
+    <div class="chip-list" style="margin-top:14px">${evals.map(c=>{const ct=allTr.filter(t=>(t.account||firstId)===c.id); const cp=ct.reduce((a,t)=>a+t.pnl,0); const done=cp>=c.target; return `<button class="rule-chip${c.id===e.id?' sel':''}" style="cursor:pointer${c.id===e.id?';background:var(--violet);color:#fff':''}" onclick="selectChallenge('${c.id}')">${done?'✓ ':''}${c.firm} · ${money0(c.size)}</button>`;}).join('')}</div>
+  </div>
+  <div class="card section-gap"><div class="card-title">Road to funded — ${e.firm}</div>
     <div style="display:flex;align-items:center;margin-top:18px">${steps.map((st,i)=>`<div style="flex:0 0 auto;text-align:center;width:96px"><div style="width:36px;height:36px;border-radius:50%;margin:0 auto;display:grid;place-items:center;font-weight:700;${i<=active?'background:var(--grad);color:#fff':'background:var(--track);color:var(--faint)'}">${i<active?'✓':i+1}</div><div class="hint" style="margin-top:6px;${i===active?'color:var(--violet-2);font-weight:600':''}">${st}</div></div>${i<steps.length-1?`<div style="height:2px;flex:1;background:${i<active?'var(--violet)':'var(--track)'};margin-top:-18px"></div>`:''}`).join('')}</div>
   </div>
   <div class="two-col section-gap">
@@ -773,9 +782,13 @@ VIEWS.eval=function(){
       <div class="fgrp"><label class="flbl">Max DD ($)</label><input class="finp" type="number" id="e-dd" value="${e.maxDD}"></div>
       <div class="fgrp"><label class="flbl">Phase</label><select class="finp" id="e-phase"><option ${active===0?'selected':''}>Phase 1</option><option ${active===1?'selected':''}>Verification</option><option ${active===2?'selected':''}>Funded</option></select></div>
     </div>
-    <button class="btn btn-ghost btn-sm section-gap" onclick="saveEval()">Save evaluation settings</button>
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="saveEvalActive()">Save this challenge</button>${evals.length>1?`<button class="btn btn-ghost btn-sm" onclick="delChallenge('${e.id}')">Delete challenge</button>`:''}</div>
   </div>`;
 };
+function addChallenge(){ const a=Store.evals(); const id='ch'+Math.random().toString(36).slice(2,8); a.push({id,firm:'New Challenge',size:10000,phase:'Phase 1',target:1000,dailyLoss:500,maxDD:1000}); Store.saveEvals(a); Store.setActiveEval(id); toast('Challenge added','good'); VIEWS.eval(); }
+function selectChallenge(id){ Store.setActiveEval(id); VIEWS.eval(); }
+function delChallenge(id){ let a=Store.evals(); if(a.length<=1){ toast('Keep at least one challenge'); return; } a=a.filter(c=>c.id!==id); Store.saveEvals(a); Store.setActiveEval(a[0].id); toast('Challenge deleted'); VIEWS.eval(); }
+function saveEvalActive(){ const act=Store.activeEval(); const a=Store.evals(); const i=a.findIndex(c=>c.id===act.id); if(i<0)return; a[i]={id:act.id,firm:$('#e-firm').value||'Challenge',size:+$('#e-size').value||10000,phase:$('#e-phase').value,target:+$('#e-target').value||1000,dailyLoss:+$('#e-daily').value||500,maxDD:+$('#e-dd').value||1000}; Store.saveEvals(a); toast('Challenge saved','good'); VIEWS.eval(); }
 VIEWS.calendar=function(){
   const tr=Store.trades(); const now=new Date(),y=now.getFullYear(),m=now.getMonth(); const byDay={};
   tr.forEach(t=>{ const d=new Date(t.date); if(d.getFullYear()===y&&d.getMonth()===m){ const dd=d.getDate(); (byDay[dd]=byDay[dd]||{pl:0,slip:false}); byDay[dd].pl+=t.pnl; if(t.rulesTotal>0&&t.rulesFollowed<t.rulesTotal)byDay[dd].slip=true; } });
@@ -928,6 +941,7 @@ function openLog(editId){ window._editId=editId||null;
       <div class="fgrp"><label class="flbl">P&L ($)</label><input class="finp mono" type="number" step="any" id="m-pnl" placeholder="auto"></div>
       <div class="fgrp"><label class="flbl">R:R</label><input class="finp mono" id="m-rr" placeholder="auto" readonly></div>
       <div class="fgrp"><label class="flbl">Tilt (1–5)</label><input class="finp" type="number" min="1" max="5" id="m-tilt" placeholder="1"></div>
+      <div class="fgrp full"><label class="flbl">Account / challenge</label><select class="finp" id="m-account"><option value="">Personal / none</option>${Store.evals().map(c=>`<option value="${c.id}">${c.firm} · ${money0(c.size)}</option>`).join('')}</select></div>
       <div class="fgrp full"><label class="flbl">Screenshot (optional)</label><label class="shotzone" id="shotZone"><input type="file" accept="image/*" style="display:none" onchange="loadShot(this)"><span style="display:inline-flex;align-items:center;gap:7px">${svgi('image',16,'currentColor')} Attach chart screenshot</span></label></div>
       <div class="fgrp full"><label class="flbl">Notes</label><textarea class="finp" id="m-notes" placeholder="What was the setup?"></textarea></div>
     </div>
@@ -938,7 +952,7 @@ function openLog(editId){ window._editId=editId||null;
   document.querySelectorAll('#mcl .rule').forEach(r=>r.onclick=()=>{ r.classList.toggle('on'); $('#mlProg').textContent=`${document.querySelectorAll('#mcl .rule.on').length} / ${rules.length}`; });
   $('#mForm').onsubmit=saveTradeModal;
   if(editId){ const t=Store.trades().find(x=>x.id===editId); if(t){ const S=(id,v)=>{const el=$('#'+id); if(el&&v!=null&&v!=='')el.value=v;};
-    S('m-date',t.date);S('m-sym',t.symbol);S('m-side',t.side);S('m-entry',t.entry);S('m-exit',t.exit);S('m-size',t.size);S('m-stop',t.stop);S('m-target',t.target);S('m-emotion',t.emotion);S('m-pnl',t.pnl);S('m-rr',t.rr);S('m-tilt',t.tilt);S('m-notes',t.notes);
+    S('m-date',t.date);S('m-sym',t.symbol);S('m-side',t.side);S('m-entry',t.entry);S('m-exit',t.exit);S('m-size',t.size);S('m-stop',t.stop);S('m-target',t.target);S('m-emotion',t.emotion);S('m-pnl',t.pnl);S('m-rr',t.rr);S('m-tilt',t.tilt);S('m-notes',t.notes);S('m-account',t.account);
     const kids=document.querySelectorAll('#mcl .rule'); for(let i=0;i<(t.rulesFollowed||0)&&i<kids.length;i++)kids[i].classList.add('on'); if($('#mlProg'))$('#mlProg').textContent=(t.rulesFollowed||0)+' / '+rules.length;
     if(t.shot){ window._pendingShot=t.shot; const z=$('#shotZone'); if(z)z.innerHTML='<img src="'+t.shot+'" style="max-width:100%;border-radius:8px;max-height:180px">'; } } }
 }
@@ -951,7 +965,7 @@ function saveTradeModal(ev){ ev.preventDefault(); const _b=achCount();
   const t={id:Date.now(),date:$('#m-date').value||new Date().toISOString().slice(0,10),symbol:($('#m-sym').value||'—').toUpperCase(),side:$('#m-side').value,
     entry:+$('#m-entry').value||null,exit:+$('#m-exit').value||null,size:+$('#m-size').value||null,stop:+$('#m-stop').value||null,target:+$('#m-target').value||null,
     pnl:parseFloat($('#m-pnl').value)||0,rr:$('#m-rr').value?+$('#m-rr').value:null,emotion:$('#m-emotion').value,tilt:+$('#m-tilt').value||null,
-    rulesFollowed:followed,rulesTotal:rules.length,notes:$('#m-notes').value.trim(),shot:window._pendingShot||null};
+    rulesFollowed:followed,rulesTotal:rules.length,notes:$('#m-notes').value.trim(),shot:window._pendingShot||null,account:($('#m-account')?$('#m-account').value:'')};
   if(window._editId){ const arr=Store.trades(); const i=arr.findIndex(x=>x.id===window._editId); t.id=window._editId; if(i>=0)arr[i]=t; Store.saveTrades(arr); window._editId=null; closeLog(); toast('Trade updated','good'); go(current); return; }
   const a=Store.trades(); a.push(t); Store.saveTrades(a); addXP(10+(followed===rules.length&&rules.length?5:0));
   closeLog(); toast('Trade logged','good'); go(current==='trades'?'trades':'dash'); celebrateNewAch(_b);
