@@ -54,7 +54,8 @@
   .topbar h1{font-size:23px;}
   .topbar .sub{font-size:12.5px;color:var(--faint);margin-top:3px;}
   .top-right{display:flex;align-items:center;gap:12px;}
-  .sess-pill{display:none;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:8px 14px;}
+  .sess-pill{display:none;align-items:center;gap:8px;font-size:14px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:10px 18px;}
+  .sess-pill b{font-size:16px;}
   @media(min-width:680px){ .sess-pill{display:inline-flex;} }
   .sess-pill b{color:var(--violet-2);font-family:'JetBrains Mono';}
   .cmdbar{display:none;align-items:center;gap:3px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:999px;padding:5px;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 10px 30px -14px rgba(0,0,0,.6);}
@@ -109,7 +110,8 @@
   .dbrk{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px;}
   .dbrk:last-child{border-bottom:none;}
   .dbrk .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:9px;}
-  .ring-wrap{position:relative;width:150px;height:150px;}
+  .ring-wrap{position:relative;width:176px;height:176px;flex:0 0 auto;}
+  svg .eq-dot{opacity:0;} svg rect:hover + .eq-dot{opacity:1!important;}
   .ring-num{position:absolute;inset:0;display:grid;place-items:center;text-align:center;}
   .ring-num .n{font-family:'JetBrains Mono';font-weight:700;font-size:32px;color:var(--violet-2);}
   .ring-num .o{font-family:'JetBrains Mono';font-size:10px;color:var(--faint);letter-spacing:.1em;}
@@ -319,6 +321,12 @@ tr{transition:background .15s}
 [data-theme="light"] .tab:hover{background:rgba(18,20,45,0.05);}
 .tab.active{background:rgba(124,92,252,0.15);color:var(--violet-2);font-weight:600;}
 .tab.active::after{content:"";position:absolute;left:22%;right:22%;bottom:-2px;height:2.5px;border-radius:3px;background:var(--grad);animation:popIn .3s var(--ease);}
+.bar-tip{position:fixed;z-index:130;pointer-events:none;background:var(--surface-2,#161630);border:1px solid var(--border-2,rgba(255,255,255,.12));border-radius:11px;padding:9px 13px;box-shadow:0 14px 36px rgba(0,0,0,.55);display:none;min-width:130px;}
+.bar-tip b{font-size:12.5px;color:var(--text);}
+.bt-pnl{font-family:'JetBrains Mono';font-size:18px;font-weight:700;margin-top:3px;}
+.bt-pnl.pos{color:var(--win);} .bt-pnl.neg{color:var(--loss);}
+.bt-sub{color:var(--muted);font-size:11px;margin-top:3px;}
+.pnl-bar:hover .pnl-fill{filter:brightness(1.25);}
 .tier-badge{display:inline-flex;align-items:center;font-size:8.5px;font-weight:800;letter-spacing:.04em;padding:2px 5px;border-radius:5px;margin-left:5px;line-height:1;flex:0 0 auto;}
 .tier-badge.t2{color:var(--violet-2);background:rgba(124,92,252,.16);}
 .tier-badge.t3{color:var(--gold);background:rgba(255,196,61,.16);}
@@ -627,9 +635,9 @@ VIEWS.reports=function(){
   const tr=Store.trades(); const s=stats();
   if(!tr.length){ $('#view').innerHTML=`<div class="card">${emptyInner('No reports yet','Log a few trades and EDGE breaks down your edge by symbol, emotion and weekday — showing what actually makes you money.','openLog()','Log a trade')}</div>`; return; }
   const bySym=groupStat(tr,t=>t.symbol), byEmo=groupStat(tr,t=>t.emotion||'—'), byDay=groupStat(tr,t=>new Date(t.date).toLocaleDateString(undefined,{weekday:'short'}));
-  const dn=Object.entries((()=>{const m={};tr.forEach(t=>{const d=fmtDate(t.date);m[d]=(m[d]||0)+t.pnl;});return m;})());
+  const dn=Object.entries((()=>{const m={};tr.forEach(t=>{const d=fmtDate(t.date);(m[d]=m[d]||{pnl:0,n:0,w:0});m[d].pnl+=t.pnl;m[d].n++;if(t.pnl>0)m[d].w++;});return m;})());
   const bestSym=bySym[0], bestEmo=byEmo.slice().sort((a,b)=>b.net-a.net)[0], worstEmo=byEmo.slice().sort((a,b)=>a.net-b.net)[0];
-  const maxAbs=Math.max(1,...dn.map(([,v])=>Math.abs(v)));
+  const maxAbs=Math.max(1,...dn.map(([,v])=>Math.abs(v.pnl)));
   $('#view').innerHTML=`
     <div class="grid kpis">
       ${kpi('Best symbol',bestSym?bestSym.k:'—','win',bestSym?money(bestSym.net):'')}
@@ -638,7 +646,7 @@ VIEWS.reports=function(){
       ${kpi('Total trades',tr.length+'','','logged so far')}
     </div>
     <div class="card section-gap"><div class="card-title">Daily P&L</div>
-      <div style="display:flex;align-items:flex-end;gap:6px;height:120px;margin-top:16px">${dn.map(([d,v])=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end"><div title="${d}: ${money(v)}" style="width:100%;border-radius:5px 5px 0 0;height:${Math.max(4,Math.abs(v)/maxAbs*100)}%;background:${v>=0?'linear-gradient(0,rgba(36,209,155,.5),var(--win))':'linear-gradient(0,rgba(245,71,107,.5),var(--loss))'}"></div><div class="hint" style="font-size:9px">${(d.split(' ')[1]||d)}</div></div>`).join('')}</div>
+      <div style="display:flex;align-items:flex-end;gap:6px;height:150px;margin-top:16px">${dn.map(([d,v])=>`<div class="pnl-bar" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;cursor:pointer" onmousemove="barTip(event,'${d}',${v.pnl},${v.n},${v.w})" onmouseleave="hideTip()"><div style="width:100%;border-radius:5px 5px 0 0;height:${Math.max(4,Math.abs(v.pnl)/maxAbs*100)}%;background:${v.pnl>=0?'linear-gradient(0,rgba(36,209,155,.5),var(--win))':'linear-gradient(0,rgba(245,71,107,.5),var(--loss))'};transition:filter .15s" class="pnl-fill"></div><div class="hint" style="font-size:9px">${(d.split(' ')[1]||d)}</div></div>`).join('')}</div>
     </div>
     <div class="two-col section-gap"><div class="card">${reportTable('By symbol',bySym)}</div><div class="card">${reportTable('By emotion',byEmo)}</div></div>
     <div class="two-col section-gap"><div class="card">${reportTable('By weekday',byDay)}</div><div class="card">${rrDistribution(tr)}</div></div>
@@ -1023,7 +1031,9 @@ function equitySVG(tr,acct){ const pts=[acct]; let c=acct; tr.forEach(t=>{c+=t.p
   if(pts.length<2||tr.length===0){ return `<div class="hint" style="padding:34px 0;text-align:center">Log trades to draw your equity curve.</div>`; }
   const min=Math.min(...pts),max=Math.max(...pts),range=(max-min)||1,W=500,H=150;
   const path=pts.map((p,i)=>`${i?'L':'M'}${(i/(pts.length-1)*W).toFixed(1)},${(H-(p-min)/range*H).toFixed(1)}`).join(' ');
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="240" preserveAspectRatio="none"><defs><linearGradient id="ef" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(124,92,252,.35)"/><stop offset="100%" stop-color="rgba(124,92,252,0)"/></linearGradient><linearGradient id="el" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#7C5CFC"/><stop offset="100%" stop-color="#E15CC6"/></linearGradient></defs><path d="${path} L${W},${H} L0,${H} Z" fill="url(#ef)"/><path class="eqline" d="${path}" fill="none" stroke="url(#el)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
+  const start=pts[0]; const segW=W/pts.length;
+  const dots=pts.map((p,i)=>{ const x=(i/(pts.length-1)*W); const y=(H-(p-min)/range*H); const rx=Math.max(0,x-segW/2); return `<rect x="${rx.toFixed(1)}" y="0" width="${segW.toFixed(1)}" height="${H}" fill="transparent" style="cursor:crosshair" onmousemove="tipEquity(event,${p},${start},${i})" onmouseleave="hideTip()"/><circle class="eq-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="#fff" style="opacity:0;pointer-events:none"/>`; }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="240" preserveAspectRatio="none"><defs><linearGradient id="ef" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(124,92,252,.35)"/><stop offset="100%" stop-color="rgba(124,92,252,0)"/></linearGradient><linearGradient id="el" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#7C5CFC"/><stop offset="100%" stop-color="#E15CC6"/></linearGradient></defs><path d="${path} L${W},${H} L0,${H} Z" fill="url(#ef)"/><path class="eqline" d="${path}" fill="none" stroke="url(#el)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}</svg>`; }
 function ring(pct){ const r=42,c=2*Math.PI*r,off=c-(pct/100)*c; return `<div class="ring-wrap"><svg width="176" height="176" viewBox="0 0 100 100"><circle cx="50" cy="50" r="${r}" fill="none" stroke="var(--track)" stroke-width="10"/><circle class="ring-fg" cx="50" cy="50" r="${r}" fill="none" stroke="url(#rg)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 50 50)"/><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7C5CFC"/><stop offset="100%" stop-color="#E15CC6"/></linearGradient></defs></svg><div class="ring-num"><div><div class="n">${pct}</div><div class="o">OF 100</div></div></div></div>`; }
 function meter(label,cur,tgt,cls){ const p=tgt?Math.max(0,Math.min(100,cur/tgt*100)):0; return `<div class="meter"><div class="mrow"><span>${label}</span><b>${money0(cur)}</b></div><div class="mtrack"><div class="mfill ${cls}" style="width:${p}%"></div></div></div>`; }
 function insights(s){ const out=[]; if(!s.tr.length){out.push('Log your first trade and EDGE will start surfacing patterns here.');}
@@ -1034,6 +1044,10 @@ function insights(s){ const out=[]; if(!s.tr.length){out.push('Log your first tr
   return out.slice(0,3).map(t=>`<div class="insight"><span class="ci"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>${t}</span></div>`).join('<div style="height:8px"></div>'); }
 function groupStat(tr,keyFn){ const m={}; tr.forEach(t=>{const k=keyFn(t);(m[k]=m[k]||{n:0,net:0,w:0}); m[k].n++; m[k].net+=t.pnl; if(t.pnl>0)m[k].w++;}); return Object.entries(m).map(([k,v])=>({k,n:v.n,net:v.net,wr:Math.round(v.w/v.n*100)})).sort((a,b)=>b.net-a.net); }
 function reportTable(title,rows){ return `<div class="card-title">${title}</div><div style="overflow-x:auto;margin-top:12px"><table class="tbl"><thead><tr><th>${title.replace('By ','')}</th><th>Trades</th><th>Win %</th><th style="text-align:right">Net</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="font-weight:600">${r.k}</td><td class="mono">${r.n}</td><td class="mono">${r.wr}%</td><td style="text-align:right;font-weight:700" class="${r.net>=0?'pos':'neg'}">${money(r.net)}</td></tr>`).join('')}</tbody></table></div>`; }
+function showTip(ev,html){ let t=document.getElementById('barTip'); if(!t){ t=document.createElement('div'); t.id='barTip'; t.className='bar-tip'; document.body.appendChild(t); } t.innerHTML=html; t.style.display='block'; const w2=t.offsetWidth||140; t.style.left=Math.max(8,Math.min(window.innerWidth-w2-8,ev.clientX+14))+'px'; t.style.top=Math.max(8,ev.clientY-62)+'px'; }
+function barTip(ev,label,pnl,n,w){ showTip(ev,'<b>'+label+'</b><div class="bt-pnl '+(pnl>=0?'pos':'neg')+'">'+money(pnl)+'</div><div class="bt-sub">'+n+' trade'+(n!==1?'s':'')+' · '+w+'W · '+(n-w)+'L</div>'); }
+function tipEquity(ev,val,start,i){ const ch=val-start; showTip(ev,'<b>'+(i===0?'Start':'After trade '+i)+'</b><div class="bt-pnl '+(ch>=0?'pos':'neg')+'">'+money0(val)+'</div><div class="bt-sub">'+money(ch)+' from start</div>'); }
+function hideTip(){ const t=document.getElementById('barTip'); if(t)t.style.display='none'; }
 function tagStat(tr){ const m={}; tr.forEach(t=>{ (t.tags||[]).forEach(tag=>{ (m[tag]=m[tag]||{n:0,net:0,w:0}); m[tag].n++; m[tag].net+=t.pnl; if(t.pnl>0)m[tag].w++; }); }); return Object.entries(m).map(([k,v])=>({k,n:v.n,net:v.net,wr:Math.round(v.w/v.n*100)})).sort((a,b)=>b.net-a.net); }
 function rrDistribution(tr){ const b=[['< 1:1',t=>t.rr!=null&&t.rr<1],['1:1 – 2:1',t=>t.rr!=null&&t.rr>=1&&t.rr<2],['2:1 – 3:1',t=>t.rr!=null&&t.rr>=2&&t.rr<3],['3:1 +',t=>t.rr!=null&&t.rr>=3]];
   const rows=b.map(([label,f])=>{const set=tr.filter(f); const w=set.filter(t=>t.pnl>0).length; return {label,n:set.length,wr:set.length?Math.round(w/set.length*100):0,net:set.reduce((a,t)=>a+t.pnl,0)};}); const max=Math.max(1,...rows.map(r=>r.n));
