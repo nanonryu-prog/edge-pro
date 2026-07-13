@@ -313,12 +313,15 @@ tr{transition:background .15s}
 .hdr .brand .p{color:var(--violet-2);margin-left:5px;}
 .topnav{display:flex;gap:3px;overflow-x:auto;scrollbar-width:none;padding:0 24px 10px;max-width:1800px;margin:0 auto;}
 .topnav::-webkit-scrollbar{display:none;}
-.tab{flex:1 1 0;min-width:96px;display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 10px;border-radius:11px;border:none;background:transparent;color:var(--muted);font-weight:500;font-size:13px;cursor:pointer;white-space:nowrap;position:relative;transition:background .16s var(--ease),color .16s var(--ease),transform .16s var(--ease);}
+.tab{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 14px;border-radius:11px;border:none;background:transparent;color:var(--muted);font-weight:500;font-size:13px;cursor:pointer;white-space:nowrap;position:relative;transition:background .16s var(--ease),color .16s var(--ease),transform .16s var(--ease);}
 .tab svg{width:16px;height:16px;flex:none;opacity:.85;}
 .tab:hover{background:rgba(255,255,255,0.05);color:var(--text);}
 [data-theme="light"] .tab:hover{background:rgba(18,20,45,0.05);}
 .tab.active{background:rgba(124,92,252,0.15);color:var(--violet-2);font-weight:600;}
 .tab.active::after{content:"";position:absolute;left:22%;right:22%;bottom:-2px;height:2.5px;border-radius:3px;background:var(--grad);animation:popIn .3s var(--ease);}
+.tier-badge{display:inline-flex;align-items:center;font-size:8.5px;font-weight:800;letter-spacing:.04em;padding:2px 5px;border-radius:5px;margin-left:5px;line-height:1;flex:0 0 auto;}
+.tier-badge.t2{color:var(--violet-2);background:rgba(124,92,252,.16);}
+.tier-badge.t3{color:var(--gold);background:rgba(255,196,61,.16);}
 .pagehead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:26px 40px 2px;max-width:1800px;margin:0 auto;width:100%;}
 .pagehead h1{font-size:34px;letter-spacing:-.02em;}
 .pagehead .sub{font-size:13px;color:var(--faint);margin-top:4px;}
@@ -472,12 +475,26 @@ const NAV=[
 const SUB={dash:'Your trading at a glance',trades:'Every trade you have logged',playbooks:'The strategies & rules that power your grading',reports:'Breakdowns across every angle',journal:'Log how you traded, and how you felt',checklist:'Confirm every rule before you trade',goals:'Personal targets, separate from your evaluation',calc:'Position size & risk : reward',eval:'Track your prop-firm challenge live',calendar:'Your month, coloured by discipline',achievements:'Level up your discipline',weekly:'Reflect and reset each week',settings:'Account & preferences'};
 let current='dash';
 const SHORT={dash:'Dashboard',trades:'Trades',playbooks:'Playbooks',reports:'Reports',journal:'Journal',checklist:'Checklist',goals:'Goals',calc:'Calculators',eval:'Evaluation',calendar:'Calendar',achievements:'Awards',weekly:'Weekly',settings:'Settings'};
+const TIER={reports:2,goals:2,weekly:2,eval:3};
+const TIERLBL={2:'PRO',3:'FUNDED'};
+function planRank(){ const p=window._plan; return p==='funded'?3:p==='pro'?2:p==='starter'?1:0; }
+const LOCKSVG='<svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.4" style="margin-right:2px;vertical-align:-1px"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
 function buildNav(){
-  $('#topNav').innerHTML=NAV.map(([id,l,ic])=>`<button class="tab${id===current?' active':''}" data-go="${id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ic}</svg><span>${SHORT[id]||l}</span></button>`).join('');
+  const rank=planRank();
+  $('#topNav').innerHTML=NAV.map(([id,l,ic])=>{ const t=TIER[id]; const badge=(t&&rank<t)?`<span class="tier-badge t${t}">${LOCKSVG}${TIERLBL[t]}</span>`:''; return `<button class="tab${id===current?' active':''}" data-go="${id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ic}</svg><span>${SHORT[id]||l}</span>${badge}</button>`; }).join('');
   document.querySelectorAll('#topNav [data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
   const act=document.querySelector('#topNav .tab.active'); if(act)act.scrollIntoView({inline:'center',block:'nearest'});
 }
-function go(id){ current=id; buildNav(); $('#pageTitle').textContent=NAV.find(n=>n[0]===id)[1]; $('#pageSub').textContent=SUB[id]; VIEWS[id](); const _v=$('#view'); _v.classList.remove('anim'); void _v.offsetWidth; _v.classList.add('anim'); window.scrollTo(0,0); toggleNav(false); document.querySelectorAll('.cmd-btn[data-nav]').forEach(b=>b.classList.toggle('on',b.dataset.nav===id)); requestAnimationFrame(animateCounts); }
+function renderFeatureGate(id){
+  const t=TIER[id], name=TIERLBL[t], links=(window.EDGE_CONFIG||{}).stripeLinks||{}, link=t===3?links.funded:links.pro, tName=t===3?'Funded':'Pro';
+  $('#view').innerHTML='<div class="card" style="max-width:560px;margin:36px auto;text-align:center;padding:44px 32px">'
+    +'<div style="display:flex;justify-content:center;margin-bottom:14px">'+svgi('trophy',42,t===3?'var(--gold)':'var(--violet-2)')+'</div>'
+    +'<span class="chip" style="color:'+(t===3?'var(--gold)':'var(--violet-2)')+';border-color:'+(t===3?'rgba(255,196,61,.4)':'rgba(124,92,252,.4)')+'">'+name+' feature</span>'
+    +'<h1 style="font-size:25px;margin-top:14px">'+NAV.find(n=>n[0]===id)[1]+' is a '+tName+' feature</h1>'
+    +'<p class="hint" style="margin:10px 0 24px;font-size:14.5px">Upgrade to '+tName+' to unlock this — your data is all still here, waiting.</p>'
+    +'<a class="btn btn-primary btn-lg" href="'+planLink(link)+'"'+(link?' target="_blank" rel="noopener"':'')+'>Upgrade to '+tName+'</a></div>';
+}
+function go(id){ current=id; buildNav(); $('#pageTitle').textContent=NAV.find(n=>n[0]===id)[1]; $('#pageSub').textContent=SUB[id]; const st=planState(); if(st.hasPaid && planRank()<(TIER[id]||0)){ renderFeatureGate(id); } else { VIEWS[id](); } const _v=$('#view'); _v.classList.remove('anim'); void _v.offsetWidth; _v.classList.add('anim'); window.scrollTo(0,0); toggleNav(false); document.querySelectorAll('.cmd-btn[data-nav]').forEach(b=>b.classList.toggle('on',b.dataset.nav===id)); requestAnimationFrame(animateCounts); }
 
 /* ---- views ---- */
 const VIEWS={};
