@@ -351,6 +351,13 @@
     border: 1px solid var(--border-2);
   }
   .cta-card h2 { font-size: clamp(30px, 5vw, 52px); font-weight: 700; line-height: 1.08; }
+  .creator-band{position:relative;overflow:hidden;border-radius:26px;padding:clamp(30px,4vw,52px);background:linear-gradient(135deg,#7C5CFC,#A45CFC 45%,#E15CC6);display:grid;grid-template-columns:1fr;gap:30px;box-shadow:0 34px 90px -34px rgba(124,92,252,.75);}
+  @media(min-width:860px){ .creator-band{grid-template-columns:1.25fr .9fr;align-items:center;} }
+  .creator-band h2{color:#fff;margin-top:10px;font-size:clamp(28px,3.6vw,42px);line-height:1.08;}
+  .cb-earn{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:18px;padding:26px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+  .cb-earn .row{display:flex;justify-content:space-between;color:#fff;font-size:14px;padding:7px 0;}
+  .cb-earn .row b{font-family:'JetBrains Mono';}
+  .cta-nav{background:var(--grad);color:#fff!important;padding:7px 14px;border-radius:999px;font-weight:600;box-shadow:0 6px 18px rgba(124,92,252,.45);}
   .cta-form { margin: 32px auto 0; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-width: 460px; }
   .cta-form input {
     flex: 1; min-width: 220px; height: 54px; border-radius: 999px; padding: 0 22px; font-size: 15px;
@@ -588,7 +595,7 @@
       <a href="#stats">Why us</a>
       <a href="#pricing">Pricing</a>
       <a href="#contact">Contact</a>
-      <a href="affiliates.html">Creators</a>
+      <a href="affiliates.html" class="cta-nav">Creators · Earn 10%</a>
     </nav>
 
     <div class="nav-cta">
@@ -1105,6 +1112,33 @@
           <a href="mailto:hello@edgeprojournal.com" class="btn btn-ghost btn-lg">Say hello</a>
         </div>
         <p class="hero-note" style="margin-top:18px">support@edgeprojournal.com · hello@edgeprojournal.com</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Creator program ============ -->
+  <section style="padding:50px 0;">
+    <div class="wrap">
+      <div class="creator-band" data-reveal>
+        <div>
+          <span class="eyebrow" style="color:#fff;opacity:.9">Creator program · earn with us</span>
+          <h2>Got an audience?<br>Get paid to share EDGE Pro.</h2>
+          <p style="color:rgba(255,255,255,.9);margin-top:14px;max-width:46ch;line-height:1.65;font-size:16px">Post about EDGE Pro, share your promo code, and earn <b>10% recurring</b> on every trader who subscribes — every month they stay. We hand you ready-made posts, so it takes minutes.</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:26px">
+            <a href="creator.html" class="btn btn-lg" style="background:#fff;color:#7C5CFC;font-weight:700">Become a creator →</a>
+            <a href="affiliates.html" class="btn btn-lg" style="background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.35)">How it works</a>
+          </div>
+        </div>
+        <div class="cb-earn">
+          <div style="font-size:12.5px;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.85);font-weight:700">You earn</div>
+          <div style="font-family:'Space Grotesk';font-size:clamp(44px,6vw,58px);font-weight:700;color:#fff;line-height:1;margin-top:4px">10% <span style="font-size:20px;font-weight:600;opacity:.85">recurring</span></div>
+          <div style="color:rgba(255,255,255,.85);font-size:13.5px;margin-top:4px">every month your referrals stay subscribed</div>
+          <div style="height:1px;background:rgba(255,255,255,.22);margin:18px 0"></div>
+          <div class="row"><span>20 subscribers</span><b>$30 / mo</b></div>
+          <div class="row"><span>50 subscribers</span><b>$75 / mo</b></div>
+          <div class="row"><span>100 subscribers</span><b>$150 / mo</b></div>
+          <div style="color:rgba(255,255,255,.75);font-size:12px;margin-top:12px">…and it compounds as your audience grows.</div>
+        </div>
       </div>
     </div>
   </section>
