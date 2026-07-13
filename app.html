@@ -1180,11 +1180,48 @@ function cloudPush(){
   clearTimeout(_syncTimer);
   _syncTimer=setTimeout(async ()=>{ try{ const d={}; DATA_KEYS.forEach(k=>{ d[k]=Store.get(k,null); }); await window.SB.from('journals').upsert({ user_id:window._uid, data:d, updated_at:new Date().toISOString() }); }catch(e){} },800);
 }
+const TRIAL_DAYS=7;
+function trialStart(){ const k='edgepro_trial_'+(session.email||'x'); let t=localStorage.getItem(k); if(!t){ t=String(Date.now()); localStorage.setItem(k,t); } return +t; }
+function planState(){
+  const links=(window.EDGE_CONFIG||{}).stripeLinks||{};
+  const paymentsLive=!!(links.starter||links.pro||links.funded);
+  const hasPaid=window._plan && window._plan!=='trial' && window._plan!=='free';
+  const daysLeft=Math.max(0, TRIAL_DAYS - Math.floor((Date.now()-trialStart())/86400000));
+  const locked=paymentsLive && !hasPaid && daysLeft<=0 && !window.__DEMO;
+  return {links,paymentsLive,hasPaid,daysLeft,locked};
+}
+function planLink(link){ if(!link) return 'index.html#pricing'; let ref=null; try{ref=localStorage.getItem('edgepro_ref');}catch(e){} return link+(link.includes('?')?'&':'?')+'prefilled_email='+encodeURIComponent(session.email)+'&client_reference_id='+encodeURIComponent(ref||session.email); }
 function applyPlan(){
-  const links=(window.EDGE_CONFIG||{}).stripeLinks||{}; const up=document.getElementById('upgradeBtn'); const line=document.getElementById('planLine');
-  const paid=window._plan && window._plan!=='trial' && window._plan!=='free';
-  if(paid){ if(line)line.innerHTML='✓ <b style="color:var(--win)">'+window._plan.charAt(0).toUpperCase()+window._plan.slice(1)+' plan</b> — active.'; if(up){ up.textContent='Manage plan'; up.href='https://billing.stripe.com/p/login'; up.target='_blank'; } return; }
-  if(up && links.pro){ up.href=links.pro+(links.pro.includes('?')?'&':'?')+'prefilled_email='+encodeURIComponent(session.email)+'&client_reference_id='+encodeURIComponent(session.email); up.target='_blank'; up.rel='noopener'; }
+  const st=planState(); const up=document.getElementById('upgradeBtn'); const line=document.getElementById('planLine'); const cta=document.querySelector('#upgradeBtn .tp-cta');
+  if(st.hasPaid){ if(line)line.textContent=window._plan.charAt(0).toUpperCase()+window._plan.slice(1)+' plan · active'; if(cta)cta.textContent='Manage'; if(up){ up.href='https://billing.stripe.com/p/login'; up.target='_blank'; } return; }
+  if(line){ line.textContent = st.paymentsLive ? (st.daysLeft>0 ? 'Free trial — '+st.daysLeft+' day'+(st.daysLeft===1?'':'s')+' left' : 'Trial ended') : 'Free trial'; }
+  if(cta)cta.textContent='Upgrade';
+  if(up){ up.href=planLink(st.links.pro); if(st.links.pro){ up.target='_blank'; up.rel='noopener'; } }
+}
+function planCard(name,price,link,feats,hl){
+  return '<div class="card" style="'+(hl?'border:1px solid var(--violet-2);box-shadow:0 0 40px -12px rgba(124,92,252,.5)':'')+'">'
+    +(hl?'<span class="chip" style="color:var(--violet-2);border-color:rgba(124,92,252,.4)">Most popular</span>':'')
+    +'<div class="card-title" style="margin-top:'+(hl?'10px':'0')+'">'+name+'</div>'
+    +'<div class="kval violet" style="font-size:34px;margin:10px 0">'+price+'<span style="font-size:14px;color:var(--muted)"> /mo</span></div>'
+    +'<div style="display:flex;flex-direction:column;gap:9px;margin:14px 0 18px">'+feats.map(f=>'<div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--win);font-weight:800">✓</span><span class="hint" style="color:var(--text)">'+f+'</span></div>').join('')+'</div>'
+    +'<a class="btn '+(hl?'btn-primary':'btn-ghost')+' btn-full" href="'+planLink(link)+'"'+(link?' target="_blank" rel="noopener"':'')+'>Choose '+name+'</a></div>';
+}
+function renderPaywall(){
+  if(document.getElementById('paywall'))return; const {links}=planState();
+  const d=document.createElement('div'); d.id='paywall';
+  d.style.cssText='position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:rgba(10,10,22,.88);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);padding:24px;overflow:auto';
+  d.innerHTML='<div style="max-width:860px;width:100%;text-align:center">'
+    +'<div style="display:flex;justify-content:center;margin-bottom:10px">'+svgi('trophy',42,'var(--gold)')+'</div>'
+    +'<h1 style="font-size:30px">Your free trial has ended</h1>'
+    +'<p class="hint" style="margin:10px 0 26px;font-size:15px">Pick a plan to keep grading your discipline, tracking your evaluation, and building your track record.</p>'
+    +'<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr));text-align:left">'
+    +planCard('Starter','$9',links.starter,['Unlimited trades &amp; journaling','Discipline scoring','Pre-trade checklist','Cloud sync across devices'])
+    +planCard('Pro','$15',links.pro,['Everything in Starter','Full reports &amp; analytics','Head Space emotional analysis','Goals &amp; weekly review'],true)
+    +planCard('Funded','$25',links.funded,['Everything in Pro','Live prop-firm evaluation','50-trade track record','Priority support'])
+    +'</div>'
+    +'<div style="margin-top:22px;display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap"><span class="hint">Your data is safe — nothing is deleted.</span><button class="btn btn-ghost btn-sm" onclick="Store.logout()">Log out</button></div>'
+    +'</div>';
+  document.body.appendChild(d);
 }
 
 /* ---- init ---- */
@@ -1211,6 +1248,7 @@ function injectDemoBanner(){
   if(window.__DEMO){ seedDemo(); injectDemoBanner(); }
   await cloudPull();
   buildNav(); renderXP(); go('dash'); tickSession(); setInterval(tickSession,1000); applyPlan();
+  if(planState().locked){ renderPaywall(); }
   if(localStorage.getItem('edgepro_onboard')===session.email){ localStorage.removeItem('edgepro_onboard'); openOnboarding(); }
 })();
 </script>
