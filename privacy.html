@@ -42,10 +42,22 @@
     <li>To authenticate you and keep your account secure (via <b>Supabase</b>).</li>
   </ul>
 
+  <h2>AI features</h2>
+  <p>Some features are powered by AI. When you use them, the relevant data is sent to our AI provider, <b>Anthropic</b> (the makers of Claude), to generate a result:</p>
+  <ul>
+    <li><b>AI screenshot import</b> — the image you upload or paste is sent to Anthropic so it can read the trades in it.</li>
+    <li><b>AI Trade Coach</b> — an aggregated summary of your logged trades (statistics, tags, emotions and notes) is sent to Anthropic to generate your report.</li>
+  </ul>
+  <p>These requests are made server-side; your API activity is not exposed to other users. Under Anthropic's commercial API terms, your inputs are <b>not used to train their models</b>. Using the AI features is optional — the rest of the app works without them. Avoid pasting sensitive personal information into notes or screenshots you send to AI.</p>
+
+  <h2>Where your data lives</h2>
+  <p>Your journal is stored locally in your browser (localStorage) and, when you have an account, synced to your private record in <b>Supabase</b>. We rely on a small set of trusted sub-processors to run the service: <b>Vercel</b> (hosting), <b>Supabase</b> (accounts &amp; database), <b>Stripe</b> (payments) and <b>Anthropic</b> (AI features). We use only the cookies/local storage necessary to keep you signed in and remember preferences — no third-party advertising trackers.</p>
+
   <h2>What we don't do</h2>
   <ul>
     <li>We do not sell your personal data.</li>
     <li>We do not place trades or connect to your broker to move money.</li>
+    <li>We do not use your journal to give you personalized financial or investment advice.</li>
   </ul>
 
   <h2>Your choices</h2>
