@@ -1131,7 +1131,7 @@ VIEWS.settings=function(){
     </div>
     <button class="btn btn-primary" onclick="saveSettings()">Save settings</button>
     <div class="card set-section" style="margin-top:16px"><h3>Your data</h3><div class="card-sub" style="margin-bottom:12px">Your journal lives in this browser. Back it up or move it anytime.</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="exportData()">Export data (JSON)</button><label class="btn btn-ghost btn-sm" style="cursor:pointer">Import JSON<input type="file" accept="application/json" style="display:none" onchange="importData(this)"></label><label class="btn btn-ghost btn-sm" style="cursor:pointer">Import CSV<input type="file" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)"></label><button class="btn btn-ghost btn-sm" onclick="sampleCSV()">Sample CSV</button><button class="btn btn-ghost btn-sm" onclick="if(confirm('Reset all trades and data?')){wipe()}">Reset data</button></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="exportData()">Export data (JSON)</button><label class="btn btn-ghost btn-sm" style="cursor:pointer">Import JSON<input type="file" accept="application/json" style="display:none" onchange="importData(this)"></label><label class="btn btn-ghost btn-sm" style="cursor:pointer">Import CSV<input type="file" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)"></label><button class="btn btn-ghost btn-sm" onclick="sampleCSV()">Sample CSV</button><button class="btn btn-ghost btn-sm" onclick="openOnboarding()">Re-run setup</button><button class="btn btn-ghost btn-sm" onclick="if(confirm('Reset all trades and data?')){wipe()}">Reset data</button></div>
     </div>
     <div class="card set-section" style="border-color:rgba(245,71,107,0.3)"><h3 style="color:var(--loss)">Danger zone</h3><p class="hint" style="margin:6px 0 12px">Signed in as ${session.email}.</p><button class="btn btn-danger btn-sm" onclick="deleteAccount()">Delete my account</button></div>
   </div>`;
@@ -1382,7 +1382,23 @@ function saveOnboard(skip){
     st.goal=$('#ob-goal').value; st.account=+$('#ob-acct').value||10000; st.firm=$('#ob-firm')?$('#ob-firm').value:'';
     if(st.accountType!=='Personal account'){ const ev=Store.evalCfg(); ev.size=st.account; if(st.firm)ev.firm=st.firm; Store.saveEval(ev); }
   }
-  st.onboarded=true; Store.saveSettings(st); closeLog(); toast(skip?'You can set this up later in Settings':'You’re all set — welcome aboard!','good'); go('dash');
+  st.onboarded=true; Store.saveSettings(st);
+  Store.playbooks(); // ensure starter rules exist so discipline scoring works from trade #1
+  if(skip){ closeLog(); toast('You can set this up later in Settings'); go('dash'); return; }
+  go('dash'); onboardFirstTrade((st.name||'trader').split(' ')[0]);
+}
+function onboardFirstTrade(name){
+  const rules=(Store.playbooks()[0]||{rules:[]}).rules.slice(0,4);
+  $('#logModalInner').innerHTML=`<div class="card-title" style="font-size:21px">You’re set${name?', '+escHtml(name):''} 🎉</div>
+    <div class="card-sub" style="margin:5px 0 18px">One trade is all it takes to bring your dashboard, discipline score and AI coach to life. Add your first — pick whatever’s easiest:</div>
+    <div style="display:flex;flex-direction:column;gap:11px">
+      <button class="btn btn-primary btn-full" style="justify-content:flex-start;gap:11px;padding:15px 18px" onclick="closeLog();quickLog()">${svgi('bolt',18,'#fff')}<span style="text-align:left"><b style="display:block">Quick log a trade</b><span style="font-size:12px;opacity:.85">Symbol, P&L, done in seconds</span></span></button>
+      <label class="btn btn-ghost btn-full" style="cursor:pointer;justify-content:flex-start;gap:11px;padding:15px 18px;border-color:rgba(124,92,252,.4)">${svgi('image',18,'var(--violet-2)')}<span style="text-align:left"><b style="display:block">Snap or paste a screenshot</b><span class="hint">AI reads your broker/TradingView history</span></span><input type="file" accept="image/*" style="display:none" onchange="closeLog();importShot(this)"></label>
+      <label class="btn btn-ghost btn-full" style="cursor:pointer;justify-content:flex-start;gap:11px;padding:15px 18px;border-color:rgba(124,92,252,.4)">${svgi('book',18,'var(--violet-2)')}<span style="text-align:left"><b style="display:block">Import your history (CSV)</b><span class="hint">Any broker export — we auto-map the columns</span></span><input type="file" accept=".csv,text/csv" style="display:none" onchange="closeLog();importCSV(this)"></label>
+    </div>
+    <div class="card" style="background:var(--card);margin-top:16px;padding:14px 16px"><div class="flbl" style="margin-bottom:8px">Your starter rules — every trade is graded against these</div>${rules.map(r=>`<div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px"><span style="color:var(--win);flex:0 0 auto">✓</span><span class="hint" style="color:var(--text)">${escHtml(r)}</span></div>`).join('')}<button class="btn btn-ghost btn-sm" style="margin-top:12px" onclick="closeLog();go('playbooks')">Edit my rules →</button></div>
+    <div style="text-align:center;margin-top:16px"><button class="btn-link" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px" onclick="closeLog()">I’ll explore first</button></div>`;
+  $('#logModal').classList.add('show');
 }
 
 /* ---- celebration + detail ---- */
@@ -1435,17 +1451,35 @@ const DATA_KEYS=['trades','playbooks','journal','goals','eval','profile','weeks'
 function exportData(){ const out={}; DATA_KEYS.forEach(b=>out[b]=Store.get(b,null)); const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='edgepro-'+session.email+'.json'; a.click(); toast('Data exported','good'); }
 function importData(input){ const f=input.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(r.result); DATA_KEYS.forEach(b=>{ if(d[b]!=null) Store.set(b,d[b]); }); toast('Data imported','good'); renderXP(); go('dash'); }catch{ toast('Invalid file'); } }; r.readAsText(f); }
 function parseCSV(text){ const rows=[]; text.split(/\r?\n/).forEach(line=>{ if(!line.trim())return; const cells=[]; let cur='',q=false; for(let i=0;i<line.length;i++){ const c=line[i]; if(c==='"'){ if(q&&line[i+1]==='"'){cur+='"';i++;} else q=!q; } else if(c===','&&!q){ cells.push(cur);cur=''; } else cur+=c; } cells.push(cur); rows.push(cells); }); return rows; }
-function importCSV(input){ const f=input.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{ try{
-  const rows=parseCSV(r.result); if(rows.length<2){toast('Empty CSV');return;}
-  const head=rows[0].map(h=>h.trim().toLowerCase()); const find=(...ns)=>{ for(const n of ns){ const i=head.indexOf(n); if(i>=0)return i; } return -1; };
-  const iDate=find('date','time','opened','open date'),iSym=find('symbol','pair','ticker','instrument'),iSide=find('side','direction','type','action'),iEntry=find('entry','entry price','open','open price'),iExit=find('exit','exit price','close','close price'),iSize=find('size','qty','quantity','volume','lots','units'),iPnl=find('pnl','p&l','profit','net','net p&l','realized'),iRR=find('rr','r:r','r'),iNotes=find('notes','comment','comments');
-  const num=v=>{ const x=parseFloat((v||'').replace(/[$,]/g,'')); return isNaN(x)?null:x; };
-  const arr=Store.trades(); let n=0;
-  rows.slice(1).forEach(c=>{ if(!c.join('').trim())return; const sv=(c[iSide]||'').toLowerCase(); const side=(sv.includes('short')||sv.includes('sell')||sv==='s')?'short':'long';
-    const entry=num(c[iEntry]),exit=num(c[iExit]),size=num(c[iSize]); let pnl=num(c[iPnl]); if(pnl==null&&entry!=null&&exit!=null&&size!=null)pnl=(exit-entry)*size*(side==='long'?1:-1);
-    arr.push({id:Date.now()+Math.random(),date:(c[iDate]||new Date().toISOString().slice(0,10)).trim().slice(0,10),symbol:(c[iSym]||'—').toUpperCase().trim(),side,entry,exit,size,stop:null,target:null,pnl:pnl||0,rr:num(c[iRR]),emotion:'',tilt:null,rulesFollowed:0,rulesTotal:0,notes:(c[iNotes]||'').trim(),shot:null}); n++; });
-  Store.saveTrades(arr); toast('Imported '+n+' trades','good'); go('dash');
-  }catch(e){ toast('Could not parse that CSV'); } }; r.readAsText(f); }
+const CSV_FIELDS=[
+  {key:'date',label:'Date',syn:['date','time','opened','open time','open date','date/time','close time','closed','trade date']},
+  {key:'symbol',label:'Symbol',syn:['symbol','pair','ticker','instrument','market','asset','contract','stock']},
+  {key:'side',label:'Side',syn:['side','direction','type','action','buy/sell','position','long/short']},
+  {key:'pnl',label:'P&L',syn:['pnl','p&l','p/l','profit','net','net p&l','realized','realised','gain','result','profit/loss','net profit','realized p&l','realized pnl','return']},
+  {key:'entry',label:'Entry price',syn:['entry','entry price','open','open price','avg entry','price in','buy price','avg price','fill price']},
+  {key:'exit',label:'Exit price',syn:['exit','exit price','close','close price','avg exit','price out','sell price']},
+  {key:'size',label:'Size',syn:['size','qty','quantity','volume','lots','units','shares','contracts','position size']},
+  {key:'stop',label:'Stop',syn:['stop','sl','s/l','stop loss','stop-loss','stop price','stoploss']},
+  {key:'target',label:'Target',syn:['target','tp','t/p','take profit','take-profit','target price','limit price']},
+  {key:'rr',label:'R:R',syn:['rr','r:r','r-multiple','r multiple','risk reward','risk/reward']},
+  {key:'notes',label:'Notes / setup',syn:['notes','comment','comments','note','remark','description','setup','strategy','tag']}
+];
+function detectCol(low,syn){ for(const s of syn){ const i=low.indexOf(s); if(i>=0)return i; } for(let i=0;i<low.length;i++){ const h=low[i]; if(!h)continue; for(const s of syn){ if(s.length>=3&&(h.includes(s)||s.includes(h)))return i; } } return -1; }
+function csvNum(v){ if(v==null)return null; const x=parseFloat((''+v).replace(/[^0-9.\-]/g,'')); return isNaN(x)?null:x; }
+function csvTrade(c,m){ const g=k=>(m[k]>=0?c[m[k]]:undefined); const sv=((g('side')||'')+'').toLowerCase(); const side=(sv.includes('short')||sv.includes('sell')||sv.trim()==='s')?'short':'long'; const entry=csvNum(g('entry')),exit=csvNum(g('exit')),size=csvNum(g('size')); let pnl=csvNum(g('pnl')); if(pnl==null&&entry!=null&&exit!=null&&size!=null)pnl=(exit-entry)*Math.abs(size)*(side==='long'?1:-1); const dRaw=((g('date')||'')+'').trim(); return {date:dRaw?dRaw.slice(0,10):new Date().toISOString().slice(0,10),symbol:(((g('symbol')||'—')+'').toUpperCase().trim())||'—',side,entry,exit,size,stop:csvNum(g('stop')),target:csvNum(g('target')),pnl:pnl||0,rr:csvNum(g('rr')),notes:((g('notes')||'')+'').trim()}; }
+function importCSV(input){ const f=input.files[0]; if(!f)return; input.value=''; const r=new FileReader(); r.onload=()=>{ try{ const rows=parseCSV(r.result).filter(row=>row.join('').trim()); if(rows.length<2){ toast('That CSV looks empty'); return; } window._csvRows=rows; reviewCSV(); }catch(e){ toast('Could not read that CSV'); } }; r.readAsText(f); }
+function readCsvMap(){ const m={}; document.querySelectorAll('#csvMap select').forEach(s=>{ m[s.dataset.k]=parseInt(s.value,10); }); return m; }
+function csvPreview(){ const rows=window._csvRows; const m=readCsvMap(); const sample=rows.slice(1,6).map(c=>csvTrade(c,m)); document.getElementById('csvPreview').innerHTML='<table class="tbl"><thead><tr><th>Date</th><th>Symbol</th><th>Side</th><th style="text-align:right">P&L</th></tr></thead><tbody>'+sample.map(t=>'<tr><td class="mono">'+escHtml(t.date)+'</td><td style="font-weight:600">'+escHtml(t.symbol)+'</td><td><span class="tag '+t.side+'">'+t.side+'</span></td><td class="mono '+(t.pnl>=0?'pos':'neg')+'" style="text-align:right;font-weight:700">'+money(t.pnl)+'</td></tr>').join('')+'</tbody></table>'; }
+function reviewCSV(){ const rows=window._csvRows; const head=rows[0].map(h=>((h||'')+'').trim()); const low=head.map(h=>h.toLowerCase()); const map={}; CSV_FIELDS.forEach(f=>map[f.key]=detectCol(low,f.syn));
+  const opts=sel=>'<option value="-1">— none —</option>'+head.map((h,i)=>'<option value="'+i+'"'+(i===sel?' selected':'')+'>'+escHtml(h||('Column '+(i+1)))+'</option>').join('');
+  const fieldRows=CSV_FIELDS.map(f=>'<div class="fgrp"><label class="flbl">'+f.label+((f.key==='symbol'||f.key==='pnl')?' <span style="color:var(--loss)">*</span>':'')+'</label><select class="finp" data-k="'+f.key+'" onchange="csvPreview()">'+opts(map[f.key])+'</select></div>').join('');
+  document.getElementById('detailInner').innerHTML='<div class="row-sb"><div class="card-title">Import CSV — check the columns</div><button class="modal-x" onclick="closeDetail()" aria-label="Close">✕</button></div>'+
+    '<div class="card-sub" style="margin:4px 0 14px">We matched your broker\'s columns automatically. Fix any that look wrong, then import. <b>'+(rows.length-1)+'</b> rows found.</div>'+
+    '<div class="form-grid" id="csvMap">'+fieldRows+'</div>'+
+    '<div class="card-title" style="font-size:15px;margin-top:18px">Preview</div><div id="csvPreview" style="overflow:auto;max-height:32vh;border:1px solid var(--border);border-radius:12px;margin-top:10px"></div>'+
+    '<div style="display:flex;gap:12px;margin-top:16px"><button class="btn btn-primary" onclick="confirmCSVImport()">Import '+(rows.length-1)+' trade'+(rows.length-1===1?'':'s')+'</button><button class="btn btn-ghost" onclick="closeDetail()">Cancel</button></div>';
+  document.getElementById('detailModal').classList.add('show'); csvPreview(); }
+function confirmCSVImport(){ const rows=window._csvRows; const m=readCsvMap(); if(m.symbol<0&&m.pnl<0){ toast('Map at least the Symbol or P&L column'); return; } const arr=Store.trades(); let n=0; rows.slice(1).forEach(c=>{ if(!c.join('').trim())return; const t=csvTrade(c,m); t.id=Date.now()+Math.random(); t.emotion=''; t.tilt=null; t.rulesFollowed=0; t.rulesTotal=0; t.shot=null; t.account=''; t.tags=['imported']; arr.push(t); n++; }); Store.saveTrades(arr); closeDetail(); toast('Imported '+n+' trade'+(n===1?'':'s'),'good'); go('dash'); checkGoalRewards(); }
 function filterTrades(){ const q=($('#tf-q').value||'').toLowerCase().trim(); const side=$('#tf-side').value; const out=$('#tf-out').value; let tr=Store.trades().slice().reverse(); if(q)tr=tr.filter(t=>(t.symbol||'').toLowerCase().includes(q)); if(side)tr=tr.filter(t=>t.side===side); if(out==='win')tr=tr.filter(t=>t.pnl>0); else if(out==='loss')tr=tr.filter(t=>t.pnl<0); $('#tradeTableWrap').innerHTML=tradeTable(tr,true)+(tr.length?'':'<div class="hint" style="padding:14px 2px">No trades match those filters.</div>'); }
 function importShot(input){ const f=input.files[0]; if(!f)return; input.value=''; runShotImport(f); }
 function runShotImport(f){ if(!f)return; if(!/^image\//.test(f.type||'')){ toast('That’s not an image'); return; } if(f.size>4.4*1024*1024){ toast('Image too large — crop or screenshot a smaller area'); return; }
