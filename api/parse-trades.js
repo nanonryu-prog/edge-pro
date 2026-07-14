@@ -1,16 +1,22 @@
 // EDGE Pro — AI trade extraction from a broker/prop-firm screenshot.
 // Runs on Vercel. Needs env var ANTHROPIC_API_KEY (server-side only — never in client code).
 
-const PROMPT = `You are extracting trades from a screenshot of a trader's broker or prop-firm trade history.
-Return ONLY a JSON array (no prose, no markdown fences). Each element is one trade with these fields:
-- "date": the trade date as "YYYY-MM-DD" (best guess if partial; today's year if missing)
+const PROMPT = `You are extracting COMPLETED, CLOSED trades from a screenshot of a trader's broker or prop-firm trade history.
+Return ONLY a JSON array (no prose, no markdown fences). Each element is ONE closed trade with these fields:
+- "date": the trade date as "YYYY-MM-DD" (best guess if partial; current year if missing)
 - "symbol": the instrument/ticker, uppercase (e.g. "EURUSD", "NAS100", "BTCUSD")
-- "side": "long" or "short" (map buy->long, sell->short if unclear)
-- "pnl": the net profit/loss as a number (negative for losses, no currency symbols or commas)
-- "entry": entry price as a number, or null if not shown
-- "exit": exit price as a number, or null if not shown
+- "side": "long" or "short" (map buy->long, sell->short)
+- "pnl": the net profit/loss as a number (negative for losses; no currency symbols or commas)
+- "entry": entry/open price as a number, or null if not shown
+- "exit": exit/close price as a number, or null if not shown
 - "rr": realized risk:reward as a number, or null if not shown
-Only include rows that are clearly completed trades. If you cannot read any trades, return [].
+
+CRITICAL RULES — do not create false trades:
+1. A stop-loss (S/L, SL) and a take-profit (T/P, TP) are PART of a trade. They are NEVER separate trades. If one row/position shows an entry price plus an S/L and/or T/P, that is exactly ONE trade — use the entry as "entry" and the actual close price as "exit". Do NOT turn the S/L or T/P price into its own trade.
+2. IGNORE entirely: pending/working orders, orders that are still open/running, S/L or T/P order lines, deposits, withdrawals, balance/equity rows, commission-only or swap-only rows, and any header, total or summary rows.
+3. If the same position appears as several rows (open, modify, close), combine them into ONE trade.
+4. Only include a trade if it is clearly closed and has a real profit/loss.
+If you cannot confidently read any closed trades, return [].
 Example: [{"date":"2025-06-14","symbol":"EURUSD","side":"long","pnl":180,"entry":1.0821,"exit":1.0865,"rr":2.1}]`;
 
 module.exports = async function handler(req, res) {
