@@ -300,6 +300,10 @@ tr{transition:background .15s}
 .seg-btn:hover{color:var(--text);border-color:var(--border-2)}
 .seg-btn.on{background:var(--violet);color:#fff;border-color:transparent}
 .seg-btn.on.win{background:var(--win)} .seg-btn.on.loss{background:var(--loss)}
+.chip-tag{padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--muted);font-weight:600;font-size:13px;cursor:pointer;transition:.15s}
+.chip-tag:hover{color:var(--text);border-color:var(--border-2)}
+.chip-tag.on{background:var(--violet);color:#fff;border-color:transparent}
+.chip-tag.chip-add{border-style:dashed;color:var(--violet-2)}
 .step-n{flex:0 0 auto;width:26px;height:26px;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;background:var(--grad);box-shadow:0 4px 12px -4px rgba(124,92,252,.6)}
 .set-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px;align-items:start;max-width:1200px;}
 .set-grid .set-section{margin-bottom:0!important;}
@@ -399,6 +403,7 @@ tr{transition:background .15s}
           <span class="avatar" id="avatar" title="Account" role="button" tabindex="0" aria-label="Account menu" onclick="toggleMenu()">N</span>
           <div class="menu" id="userMenu">
             <div class="menu-head"><div class="mn" id="mName">–</div><div class="me" id="mEmail">–</div></div>
+            <button class="menu-item" onclick="toggleMenu(false);shareCard()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>Share Edge Card</button>
             <button class="menu-item" onclick="go('settings');toggleMenu(false)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L14.5 2h-4l-.3 2.6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4L4 11a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.6h4l.3-2.6a7 7 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6a7 7 0 0 0 .1-1Z"/></svg>Settings</button>
             <a class="menu-item" href="index.html"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>Back to site</a>
             <div class="menu-theme">
@@ -959,7 +964,7 @@ function renderCoachReport(rep,meta){
   '</div>'+
   (rep.bestSetup?'<div class="card section-gap"><div class="card-title" style="font-size:15px">Your money-maker</div><div style="display:flex;gap:11px;align-items:center;margin-top:10px">'+svgi('trophy',20,'var(--gold)')+'<span style="font-weight:600">'+E(rep.bestSetup)+'</span></div></div>':'')+
   '<div class="card section-gap" style="border-color:rgba(255,196,61,.4);background:radial-gradient(120% 100% at 0 0,rgba(255,196,61,.1),transparent 60%)"><div class="card-title" style="font-size:15px;color:var(--gold)">Do this week</div><p style="font-size:16px;line-height:1.55;margin-top:8px;font-weight:600">'+E(rep.focus||'')+'</p></div>'+
-  '<div style="display:flex;gap:14px;margin-top:20px;align-items:center;flex-wrap:wrap"><button class="btn btn-primary" id="coachGenBtn" onclick="generateCoach()">Regenerate report</button><span class="hint">Log more trades, then regenerate to see your progress.</span></div>';
+  '<div style="display:flex;gap:14px;margin-top:20px;align-items:center;flex-wrap:wrap"><button class="btn btn-primary" id="coachGenBtn" onclick="generateCoach()">Regenerate report</button><button class="btn btn-ghost" onclick="shareCard()">Share my card</button><span class="hint">Log more trades, then regenerate to see your progress.</span></div>';
 }
 VIEWS.coach=function(){
   const n=Store.trades().filter(t=>t&&typeof t.pnl==='number').length;
@@ -983,6 +988,65 @@ async function generateCoach(){
     Store.set('coachReport',{report:data.report,at:new Date().toISOString(),n}); addXP(15); confetti();
     VIEWS.coach(); toast('Your Edge Report is ready · +15 XP','good');
   }catch(e){ toast('AI coach runs on the live site once the API key is set.'); VIEWS.coach(); }
+}
+/* ---- Shareable Edge Card ---- */
+function buildShareSVG(){
+  const s=stats(); const E=escHtml;
+  const ret=s.acct?(s.net/s.acct*100):0;
+  const retTxt=(ret>=0?'+':'')+ret.toFixed(1)+'%';
+  const pfTxt=s.pf===Infinity?'∞':(s.pf||0).toFixed(2);
+  const grade=((Store.get('coachReport',null)||{}).report||{}).grade||'';
+  const name=((Store.settings().name||'Trader')+'').toUpperCase();
+  const tags=(typeof tagStat==='function'?tagStat(s.tr):[]).filter(t=>t.k!=='imported'&&t.k!=='open'&&t.net>0);
+  let best=tags.length?tags[0].k:'';
+  if(best.length>15) best=best.slice(0,14)+'…';
+  const dates=s.tr.map(t=>t.date).filter(Boolean).sort();
+  const fmt=d=>{ try{ return new Date(d+'T00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'}); }catch(e){ return d; } };
+  const period=dates.length?(fmt(dates[0])+' – '+fmt(dates[dates.length-1])):'All time';
+  const FONT="'Space Grotesk','Segoe UI',system-ui,-apple-system,Arial,sans-serif";
+  const cell=(x,y,label,value,color,vsize)=>`<g><rect x="${x}" y="${y}" width="416" height="176" rx="22" fill="#12121C" stroke="#242433"/><text x="${x+30}" y="${y+52}" font-family="${FONT}" font-size="22" fill="#8A8AA3" letter-spacing="1.5">${label}</text><text x="${x+30}" y="${y+130}" font-family="${FONT}" font-size="${vsize||62}" font-weight="700" fill="${color}">${value}</text></g>`;
+  return `<svg id="shareSvg" xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <defs>
+    <linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C5CFC"/><stop offset="1" stop-color="#E15CC6"/></linearGradient>
+    <radialGradient id="sglow" cx="0.85" cy="0.08" r="0.9"><stop offset="0" stop-color="#7C5CFC" stop-opacity="0.25"/><stop offset="1" stop-color="#7C5CFC" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1080" height="1080" fill="#0B0B12"/>
+  <rect width="1080" height="1080" fill="url(#sglow)"/>
+  <rect x="60" y="72" width="60" height="60" rx="15" fill="url(#sg)"/>
+  <rect x="76" y="102" width="9" height="18" rx="3" fill="#fff"/><rect x="90" y="92" width="9" height="28" rx="3" fill="#fff"/><rect x="104" y="82" width="9" height="38" rx="3" fill="#fff"/>
+  <text x="138" y="115" font-family="${FONT}" font-size="36" font-weight="700" fill="#fff">EDGE Pro</text>
+  ${grade?`<circle cx="1008" cy="102" r="46" fill="url(#sg)"/><text x="1008" y="118" text-anchor="middle" font-family="${FONT}" font-size="40" font-weight="700" fill="#fff">${E(grade)}</text>`:''}
+  <text x="60" y="184" font-family="${FONT}" font-size="22" fill="#8A8AA3" letter-spacing="2">${E(name)} · ${E(period)}</text>
+  <text x="540" y="330" text-anchor="middle" font-family="${FONT}" font-size="26" fill="#8A8AA3" letter-spacing="7">WIN RATE</text>
+  <text x="540" y="470" text-anchor="middle" font-family="${FONT}" font-size="158" font-weight="700" fill="url(#sg)">${s.wr}%</text>
+  <text x="540" y="528" text-anchor="middle" font-family="${FONT}" font-size="26" fill="#8A8AA3">over ${s.tr.length} logged trade${s.tr.length===1?'':'s'}</text>
+  ${cell(60,600,'RETURN',retTxt,ret>=0?'#24D19B':'#F5476B')}
+  ${cell(604,600,'PROFIT FACTOR',pfTxt,'#fff')}
+  ${cell(60,800,'DISCIPLINE',s.dis+'/100','#B79CFF')}
+  ${cell(604,800,'BEST SETUP',best?E(best):'—','#FFC43D',best&&best.length>9?40:52)}
+  <text x="540" y="1032" text-anchor="middle" font-family="${FONT}" font-size="24" fill="#8A8AA3">Verified with discipline · edgeprojournal.com</text>
+  </svg>`;
+}
+function shareCard(){
+  if(!Store.trades().length){ toast('Log a trade first — your card needs stats'); return; }
+  document.getElementById('detailInner').innerHTML=`<div class="row-sb"><div class="card-title">Your Edge Card</div><button class="modal-x" onclick="closeDetail()" aria-label="Close">✕</button></div>
+    <div class="card-sub" style="margin-bottom:14px">Flex your verified stats. No account balance is ever shown — only your %.</div>
+    <div style="max-width:400px;margin:0 auto;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px -20px rgba(124,92,252,.5)">${buildShareSVG()}</div>
+    <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap"><button class="btn btn-primary" onclick="downloadCard()">Download PNG</button><button class="btn btn-ghost" onclick="closeDetail()">Close</button></div>
+    <div class="hint" style="margin-top:12px">Post it on X, Discord or your story — your followers can start their own free at edgeprojournal.com.</div>`;
+  const svg=document.querySelector('#detailInner #shareSvg'); if(svg){ svg.style.width='100%'; svg.style.height='auto'; svg.style.display='block'; }
+  document.getElementById('detailModal').classList.add('show');
+}
+function downloadCard(){
+  const svg=document.getElementById('shareSvg'); if(!svg){ toast('Card not ready'); return; }
+  const xml=new XMLSerializer().serializeToString(svg);
+  const url=URL.createObjectURL(new Blob([xml],{type:'image/svg+xml;charset=utf-8'}));
+  const img=new Image();
+  img.onload=()=>{ const c=document.createElement('canvas'); c.width=1080; c.height=1080; const ctx=c.getContext('2d'); ctx.drawImage(img,0,0,1080,1080); URL.revokeObjectURL(url);
+    try{ c.toBlob(b=>{ if(!b){ toast('Could not render — screenshot the card instead'); return; } const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='edge-pro-card.png'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500); toast('Edge Card saved','good'); },'image/png'); }
+    catch(e){ toast('Could not render — screenshot the card instead'); } };
+  img.onerror=()=>{ URL.revokeObjectURL(url); toast('Could not render — screenshot the card instead'); };
+  img.src=url;
 }
 VIEWS.weekly=function(){
   const s=stats(); const weeks=Store.get('weeks',[])||[];
@@ -1065,8 +1129,11 @@ VIEWS.settings=function(){
 };
 
 /* ---- Log trade modal ---- */
+function setupList(){ const s=Store.settings().setups; return (Array.isArray(s)&&s.length)?s:['No-Wick','FVG','Breakout','Pullback','Reversal','News']; }
+function qToggleSetup(btn){ btn.classList.toggle('on'); const v=btn.dataset.v; window._qSetups=window._qSetups||[]; const i=window._qSetups.indexOf(v); if(i>=0)window._qSetups.splice(i,1); else window._qSetups.push(v); }
+function qAddSetup(){ const wrap=document.getElementById('qSetups'); if(!wrap||wrap.querySelector('#qNewSetup'))return; const inp=document.createElement('input'); inp.id='qNewSetup'; inp.className='finp'; inp.placeholder='name…'; inp.style.cssText='width:120px;padding:6px 10px;font-size:13px'; inp.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=inp.value.trim(); if(v){ const list=setupList(); if(!list.some(x=>x.toLowerCase()===v.toLowerCase())){ const st=Store.settings(); st.setups=list.concat([v]); Store.saveSettings(st); } const b=document.createElement('button'); b.type='button'; b.className='chip-tag on'; b.dataset.v=v; b.textContent=v; b.onclick=function(){qToggleSetup(this);}; wrap.insertBefore(b,inp); window._qSetups=(window._qSetups||[]).concat([v]); } inp.remove(); } else if(e.key==='Escape'){ inp.remove(); } }; wrap.insertBefore(inp,wrap.lastElementChild); inp.focus(); }
 function quickLog(){
-  window._editId=null; window._qSide='long'; window._qRules='yes';
+  window._editId=null; window._qSide='long'; window._qRules='yes'; window._qSetups=[];
   const rt=(Store.playbooks()[0]||{rules:[]}).rules.length;
   $('#logModalInner').innerHTML=`<div class="row-sb"><div class="card-title">Quick log</div><button class="modal-x" onclick="closeLog()" aria-label="Close">✕</button></div>
     <div class="card-sub" style="margin-bottom:18px">Log a trade in seconds. Add details later if you want.</div>
@@ -1075,6 +1142,8 @@ function quickLog(){
       <div class="fgrp" style="margin-top:14px"><label class="flbl">Profit / loss ($)</label><input class="finp mono" type="number" step="any" id="q-pnl" placeholder="250   or   -80" required style="font-size:24px;font-weight:700"></div>
       <div class="fgrp" style="margin-top:16px"><label class="flbl">Side</label><div class="seg"><button type="button" class="seg-btn on" data-v="long" onclick="qSel('side',this)">Long</button><button type="button" class="seg-btn" data-v="short" onclick="qSel('side',this)">Short</button></div></div>
       ${rt?`<div class="fgrp" style="margin-top:16px"><label class="flbl">Did you follow your rules?</label><div class="seg"><button type="button" class="seg-btn on win" data-v="yes" onclick="qSel('rules',this)">Yes</button><button type="button" class="seg-btn loss" data-v="no" onclick="qSel('rules',this)">No</button></div></div>`:''}
+      <div class="fgrp" style="margin-top:16px"><label class="flbl">Setup <span class="hint" style="font-weight:400">· tap any that apply</span></label>
+        <div id="qSetups" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px">${setupList().map(su=>`<button type="button" class="chip-tag" data-v="${escHtml(su)}" onclick="qToggleSetup(this)">${escHtml(su)}</button>`).join('')}<button type="button" class="chip-tag chip-add" onclick="qAddSetup()">＋ Add</button></div></div>
       <div style="display:flex;gap:12px;margin-top:22px;flex-wrap:wrap"><button type="submit" class="btn btn-primary" style="flex:1;min-width:150px">Log it (+10 XP)</button><button type="button" class="btn btn-ghost btn-sm" onclick="openLog()">+ Full details</button></div>
       <label class="btn btn-ghost btn-sm btn-full" style="cursor:pointer;margin-top:12px;border-color:rgba(124,92,252,.4);color:var(--violet-2)">${svgi('image',15,'currentColor')}<span style="margin-left:7px">Or snap a screenshot — AI logs them for you</span><input type="file" accept="image/*" style="display:none" onchange="importShot(this)"></label>
     </form>`;
@@ -1082,7 +1151,7 @@ function quickLog(){
 }
 function qSel(g,btn){ btn.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); if(g==='side')window._qSide=btn.dataset.v; else window._qRules=btn.dataset.v; }
 function saveQuick(e){ e.preventDefault(); const _b=achCount(); const rt=(Store.playbooks()[0]||{rules:[]}).rules.length; const followed=window._qRules!=='no';
-  const t={id:Date.now(),date:new Date().toISOString().slice(0,10),symbol:($('#q-sym').value||'—').toUpperCase().trim(),side:window._qSide||'long',entry:null,exit:null,size:null,stop:null,target:null,pnl:parseFloat($('#q-pnl').value)||0,rr:null,emotion:'',tilt:null,rulesFollowed:(rt?(followed?rt:0):0),rulesTotal:rt,notes:'',shot:null,account:'',tags:[]};
+  const t={id:Date.now(),date:new Date().toISOString().slice(0,10),symbol:($('#q-sym').value||'—').toUpperCase().trim(),side:window._qSide||'long',entry:null,exit:null,size:null,stop:null,target:null,pnl:parseFloat($('#q-pnl').value)||0,rr:null,emotion:'',tilt:null,rulesFollowed:(rt?(followed?rt:0):0),rulesTotal:rt,notes:'',shot:null,account:'',tags:(window._qSetups||[]).slice()};
   const a=Store.trades(); a.push(t); Store.saveTrades(a); const xp=10+(followed&&rt?5:0); addXP(xp); closeLog(); toast('Trade logged · +'+xp+' XP','good'); celebrateNewAch(_b); go(current); checkGoalRewards(); }
 function openLog(editId){ window._editId=editId||null;
   const rules=(Store.playbooks()[0]||{rules:[]}).rules;
