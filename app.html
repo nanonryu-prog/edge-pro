@@ -173,6 +173,17 @@
   .modal-bg.show{display:flex;}
   .modal{background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--border-2);border-radius:18px;padding:24px;max-width:760px;width:100%;box-shadow:0 40px 100px rgba(0,0,0,0.6);}
   .modal-x{background:transparent;border:none;color:var(--faint);cursor:pointer;font-size:22px;line-height:1;}
+  .cmdk-bg{position:fixed;inset:0;background:rgba(5,5,12,0.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);z-index:120;display:none;align-items:flex-start;justify-content:center;padding:14vh 16px 16px;}
+  .cmdk-bg.show{display:flex;}
+  .cmdk{background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--border-2);border-radius:16px;width:100%;max-width:560px;box-shadow:0 40px 100px rgba(0,0,0,0.6);overflow:hidden;animation:popIn .16s var(--ease);}
+  #cmdInput{width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);font-size:17px;padding:18px 20px;outline:none;font-family:inherit;}
+  .cmd-list{max-height:44vh;overflow-y:auto;padding:8px;}
+  .cmd-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;cursor:pointer;font-size:14.5px;color:var(--text);}
+  .cmd-row.sel{background:var(--violet);color:#fff;}
+  .cmd-ic{flex:0 0 auto;width:24px;height:24px;border-radius:7px;display:grid;place-items:center;background:var(--surface-2);color:var(--violet-2);font-size:13px;}
+  .cmd-row.sel .cmd-ic{background:rgba(255,255,255,.2);color:#fff;}
+  .cmd-empty{padding:22px;text-align:center;color:var(--muted);font-size:14px;}
+  .cmd-foot{display:flex;gap:16px;padding:10px 16px;border-top:1px solid var(--border);color:var(--faint);font-size:11.5px;}
 
   #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-2);border:1px solid var(--border-2);color:var(--text);padding:13px 20px;border-radius:12px;font-size:14px;font-weight:500;box-shadow:0 16px 40px rgba(0,0,0,0.5);opacity:0;pointer-events:none;transition:.3s var(--ease);z-index:100;}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0);} #toast.good{border-color:rgba(36,209,155,0.4);}
@@ -397,6 +408,7 @@ tr{transition:background .15s}
       <a href="index.html" class="brand" title="Back to site">EDGE&nbsp;<span class="p">Pro</span></a>
       <div class="top-right">
         <span class="sess-pill">Session <b id="sessCount">–</b></span>
+        <button class="icon-btn cmdk-btn" title="Quick actions (⌘K)" aria-label="Open command palette" onclick="openCmd()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
         <button class="icon-btn" id="themeBtn" title="Theme" aria-label="Toggle light or dark theme" onclick="cycleTheme()"></button>
         <button class="btn btn-primary btn-sm log-btn" onclick="quickLog()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Log trade</button>
         <div class="avatar-wrap">
@@ -430,6 +442,7 @@ tr{transition:background .15s}
 
 <div class="modal-bg" id="logModal"><div class="modal" id="logModalInner"></div></div>
 <div class="modal-bg" id="detailModal" onclick="if(event.target===this)closeDetail()"><div class="modal" id="detailInner"></div></div>
+<div class="cmdk-bg" id="cmdk" onclick="if(event.target===this)closeCmd()"><div class="cmdk"><input id="cmdInput" placeholder="Search actions — log a trade, jump anywhere…" oninput="renderCmd(this.value)" autocomplete="off" spellcheck="false"><div id="cmdList" class="cmd-list"></div><div class="cmd-foot"><span>↑↓ move</span><span>↵ select</span><span>esc close</span></div></div></div>
 <div id="toast"></div>
 
 <script>
@@ -543,6 +556,23 @@ function go(id){ current=id; buildNav(); $('#pageTitle').textContent=NAV.find(n=
 
 /* ---- views ---- */
 const VIEWS={};
+function momentumStrip(){
+  const tr=Store.trades(); if(tr.length<3)return '';
+  const now=new Date(); const thisM=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const lm=new Date(now.getFullYear(),now.getMonth()-1,1); const lastM=lm.getFullYear()+'-'+String(lm.getMonth()+1).padStart(2,'0');
+  const mk=d=>((d||'')+'').slice(0,7).replace(/\./g,'-');
+  const cur=tr.filter(t=>mk(t.date)===thisM), prev=tr.filter(t=>mk(t.date)===lastM);
+  if(!cur.length)return '';
+  const agg=a=>{ const n=a.length,net=a.reduce((x,t)=>x+t.pnl,0),w=a.filter(t=>t.pnl>0).length; const dg=a.filter(t=>t.rulesTotal>0); const dis=dg.length?Math.round(dg.reduce((x,t)=>x+t.rulesFollowed/t.rulesTotal,0)/dg.length*100):null; return {n,net:Math.round(net),wr:n?Math.round(w/n*100):0,dis}; };
+  const c=agg(cur),p=agg(prev);
+  const cell=(label,cv,pv,fmt,dfmt)=>{ const has=prev.length>0&&pv!=null&&cv!=null; const d=has?cv-pv:null; const col=d==null||d===0?'var(--muted)':(d>0?'var(--win)':'var(--loss)'); const arrow=d==null?'':(d>0?'▲':d<0?'▼':'—'); return `<div style="flex:1;min-width:118px"><div class="hint" style="font-size:10.5px;letter-spacing:.5px;text-transform:uppercase">${label}</div><div style="display:flex;align-items:baseline;gap:8px;margin-top:3px"><b class="mono" style="font-size:19px">${fmt(cv==null?0:cv)}</b>${has?`<span class="mono" style="font-size:12px;color:${col}">${arrow} ${dfmt(Math.abs(d))}</span>`:'<span class="hint" style="font-size:10.5px">no last month</span>'}</div></div>`; };
+  return `<div class="card section-gap"><div class="card-title" style="font-size:15px">This month vs last</div><div style="display:flex;flex-wrap:wrap;gap:22px;margin-top:14px">
+    ${cell('Net P&L',c.net,p.net,v=>money(v),v=>money0(v))}
+    ${cell('Win rate',c.wr,p.wr,v=>v+'%',v=>v+'%')}
+    ${cell('Discipline',c.dis,p.dis,v=>v+'',v=>v+'')}
+    ${cell('Trades',c.n,p.n,v=>v+'',v=>v+'')}
+  </div></div>`;
+}
 function coachBanner(){
   const n=Store.trades().filter(t=>t&&typeof t.pnl==='number').length;
   if(n<5) return '';
@@ -568,6 +598,7 @@ VIEWS.dash=function(){
       ${kpi('Avg win / avg loss',s.avgWin||s.avgLoss?money0(s.avgWin)+' / '+money0(s.avgLoss):'—','','Size of typical win vs. typical loss')}
     </div>
     ${lossGuard(s)}
+    ${momentumStrip()}
     <div class="two-col section-gap">
       <div class="card">
         <div class="row-sb"><div><div class="card-title">Equity curve</div><div class="mono" style="font-size:15px;margin-top:6px">${money0(s.acct)} → ${money0(eq)}</div></div><span class="pct-pill ${pct<0?'neg':''}">${(pct>=0?'+':'')+pct.toFixed(1)}%</span></div>
@@ -693,6 +724,7 @@ VIEWS.reports=function(){
     </div>
     <div class="two-col section-gap"><div class="card">${reportTable('By symbol',bySym)}</div><div class="card">${reportTable('By emotion',byEmo)}</div></div>
     <div class="two-col section-gap"><div class="card">${reportTable('By weekday',byDay)}</div><div class="card">${rrDistribution(tr)}</div></div>
+    ${sessionSection(tr)}
     ${(()=>{const tg=tagStat(tr);return tg.length?`<div class="card section-gap">${reportTable('By tag',tg)}<div class="hint" style="margin-top:10px">Tag your setups when logging trades to see which ones actually make you money.</div></div>`:`<div class="card section-gap"><div class="card-title">By tag</div><div class="hint" style="margin-top:10px">Add tags like “breakout” or “news” when you log a trade — then see which setups win here.</div></div>`;})()}`;
 };
 VIEWS.journal=function(){
@@ -1162,7 +1194,7 @@ function quickLog(){
 }
 function qSel(g,btn){ btn.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); if(g==='side')window._qSide=btn.dataset.v; else window._qRules=btn.dataset.v; }
 function saveQuick(e){ e.preventDefault(); const _b=achCount(); const rt=(Store.playbooks()[0]||{rules:[]}).rules.length; const followed=window._qRules!=='no';
-  const t={id:Date.now(),date:new Date().toISOString().slice(0,10),symbol:($('#q-sym').value||'—').toUpperCase().trim(),side:window._qSide||'long',entry:null,exit:null,size:null,stop:null,target:null,pnl:parseFloat($('#q-pnl').value)||0,rr:null,emotion:'',tilt:null,rulesFollowed:(rt?(followed?rt:0):0),rulesTotal:rt,notes:'',shot:null,account:'',tags:(window._qSetups||[]).slice()};
+  const t={id:Date.now(),date:new Date().toISOString().slice(0,10),time:new Date().toTimeString().slice(0,5),symbol:($('#q-sym').value||'—').toUpperCase().trim(),side:window._qSide||'long',entry:null,exit:null,size:null,stop:null,target:null,pnl:parseFloat($('#q-pnl').value)||0,rr:null,emotion:'',tilt:null,rulesFollowed:(rt?(followed?rt:0):0),rulesTotal:rt,notes:'',shot:null,account:'',tags:(window._qSetups||[]).slice()};
   const a=Store.trades(); a.push(t); Store.saveTrades(a); const xp=10+(followed&&rt?5:0); addXP(xp); closeLog(); toast('Trade logged · +'+xp+' XP','good'); celebrateNewAch(_b); go(current); checkGoalRewards(); }
 function openLog(editId){ window._editId=editId||null;
   const rules=(Store.playbooks()[0]||{rules:[]}).rules;
@@ -1171,6 +1203,7 @@ function openLog(editId){ window._editId=editId||null;
     <div id="mcl">${rules.map((r,i)=>`<div class="rule" data-i="${i}"><span class="box"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></span><span style="font-size:13px">${r}</span></div>`).join('')||'<div class="hint">No rules — add them in Playbooks.</div>'}</div></div>
     <form id="mForm" style="margin-top:8px"><div class="form-grid">
       <div class="fgrp"><label class="flbl">Date</label><input class="finp" type="date" id="m-date"></div>
+      <div class="fgrp"><label class="flbl">Time <span class="hint" style="font-weight:400">· for session stats</span></label><input class="finp" type="time" id="m-time"></div>
       <div class="fgrp"><label class="flbl">Symbol</label><input class="finp" id="m-sym" placeholder="EURUSD" required></div>
       <div class="fgrp"><label class="flbl">Side</label><select class="finp" id="m-side"><option value="long">Long</option><option value="short">Short</option></select></div>
       <div class="fgrp"><label class="flbl">Entry</label><input class="finp" type="number" step="any" id="m-entry" oninput="mCalc()"></div>
@@ -1194,7 +1227,7 @@ function openLog(editId){ window._editId=editId||null;
   document.querySelectorAll('#mcl .rule').forEach(r=>r.onclick=()=>{ r.classList.toggle('on'); $('#mlProg').textContent=`${document.querySelectorAll('#mcl .rule.on').length} / ${rules.length}`; });
   $('#mForm').onsubmit=saveTradeModal;
   if(editId){ const t=Store.trades().find(x=>x.id===editId); if(t){ const S=(id,v)=>{const el=$('#'+id); if(el&&v!=null&&v!=='')el.value=v;};
-    S('m-date',t.date);S('m-sym',t.symbol);S('m-side',t.side);S('m-entry',t.entry);S('m-exit',t.exit);S('m-size',t.size);S('m-stop',t.stop);S('m-target',t.target);S('m-emotion',t.emotion);S('m-pnl',t.pnl);S('m-rr',t.rr);S('m-tilt',t.tilt);S('m-notes',t.notes);S('m-account',t.account);S('m-tags',(t.tags||[]).join(', '));
+    S('m-date',t.date);S('m-time',t.time);S('m-sym',t.symbol);S('m-side',t.side);S('m-entry',t.entry);S('m-exit',t.exit);S('m-size',t.size);S('m-stop',t.stop);S('m-target',t.target);S('m-emotion',t.emotion);S('m-pnl',t.pnl);S('m-rr',t.rr);S('m-tilt',t.tilt);S('m-notes',t.notes);S('m-account',t.account);S('m-tags',(t.tags||[]).join(', '));
     const kids=document.querySelectorAll('#mcl .rule'); for(let i=0;i<(t.rulesFollowed||0)&&i<kids.length;i++)kids[i].classList.add('on'); if($('#mlProg'))$('#mlProg').textContent=(t.rulesFollowed||0)+' / '+rules.length;
     if(t.shot){ window._pendingShot=t.shot; const z=$('#shotZone'); if(z)z.innerHTML='<img src="'+t.shot+'" style="max-width:100%;border-radius:8px;max-height:180px">'; } } }
 }
@@ -1204,7 +1237,7 @@ function mCalc(){ const e=+$('#m-entry').value,x=+$('#m-exit').value,sz=+$('#m-s
   if(e&&st&&tg&&e-st!==0) $('#m-rr').value=(Math.abs(tg-e)/Math.abs(e-st)).toFixed(2); }
 function saveTradeModal(ev){ ev.preventDefault(); const _b=achCount();
   const rules=(Store.playbooks()[0]||{rules:[]}).rules; const followed=document.querySelectorAll('#mcl .rule.on').length;
-  const t={id:Date.now(),date:$('#m-date').value||new Date().toISOString().slice(0,10),symbol:($('#m-sym').value||'—').toUpperCase(),side:$('#m-side').value,
+  const t={id:Date.now(),date:$('#m-date').value||new Date().toISOString().slice(0,10),time:($('#m-time')?$('#m-time').value:'')||null,symbol:($('#m-sym').value||'—').toUpperCase(),side:$('#m-side').value,
     entry:+$('#m-entry').value||null,exit:+$('#m-exit').value||null,size:+$('#m-size').value||null,stop:+$('#m-stop').value||null,target:+$('#m-target').value||null,
     pnl:parseFloat($('#m-pnl').value)||0,rr:$('#m-rr').value?+$('#m-rr').value:null,emotion:$('#m-emotion').value,tilt:+$('#m-tilt').value||null,
     rulesFollowed:followed,rulesTotal:rules.length,notes:$('#m-notes').value.trim(),shot:window._pendingShot||null,account:($('#m-account')?$('#m-account').value:''),tags:($('#m-tags')?$('#m-tags').value.split(',').map(x=>x.trim()).filter(Boolean):[])};
@@ -1262,6 +1295,18 @@ function insights(s){ const out=[]; if(!s.tr.length){out.push('Log your first tr
     if(s.net<0)out.push(`Net ${money(s.net)} so far. Focus on discipline over P&L while you rebuild.`); }
   return out.slice(0,3).map(t=>`<div class="insight"><span class="ci"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>${t}</span></div>`).join('<div style="height:8px"></div>'); }
 function groupStat(tr,keyFn){ const m={}; tr.forEach(t=>{const k=keyFn(t);(m[k]=m[k]||{n:0,net:0,w:0}); m[k].n++; m[k].net+=t.pnl; if(t.pnl>0)m[k].w++;}); return Object.entries(m).map(([k,v])=>({k,n:v.n,net:v.net,wr:Math.round(v.w/v.n*100)})).sort((a,b)=>b.net-a.net); }
+function hourOf(t){ if(!t.time)return null; const h=parseInt((''+t.time).slice(0,2),10); return isNaN(h)?null:h; }
+function sessionOf(t){ const h=hourOf(t); if(h==null)return null; if(h<7)return 'Asia · 00–07'; if(h<13)return 'London · 07–13'; if(h<20)return 'New York · 13–20'; return 'Evening · 20–24'; }
+function sessionSection(tr){ const wt=tr.filter(t=>t.time); if(wt.length<3)return '';
+  const bySess=groupStat(wt,sessionOf); const best=bySess.filter(r=>r.n>=3).slice().sort((a,b)=>b.net-a.net)[0];
+  const hm={}; wt.forEach(t=>{ const h=hourOf(t); if(h==null)return; (hm[h]=hm[h]||{net:0,n:0,w:0}); hm[h].net+=t.pnl; hm[h].n++; if(t.pnl>0)hm[h].w++; });
+  const maxH=Math.max(1,...Object.values(hm).map(v=>Math.abs(v.net)));
+  const bars=[...Array(24).keys()].map(h=>{ const v=hm[h]; const val=v?v.net:0; const ht=v?Math.max(5,Math.abs(val)/maxH*100):2; const hd=v?` onmousemove="barTip(event,'${h}:00',${val},${v.n},${v.w})" onmouseleave="hideTip()"`:''; return `<div${hd} style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end;${v?'cursor:pointer':''}"><div style="width:100%;border-radius:4px 4px 0 0;height:${ht}%;background:${val>=0?'linear-gradient(0,rgba(36,209,155,.4),var(--win))':'linear-gradient(0,rgba(245,71,107,.4),var(--loss))'};opacity:${v?1:.22}"></div><div class="hint" style="font-size:8px">${h%3===0?h:''}</div></div>`; }).join('');
+  return `<div class="card section-gap"><div class="row-sb"><div class="card-title">When you trade best</div>${best?`<span class="pct-pill">Best: ${escHtml(best.k.split(' · ')[0])}</span>`:''}</div>
+    <div style="display:flex;align-items:flex-end;gap:3px;height:120px;margin-top:16px">${bars}</div>
+    <div class="hint" style="margin-top:6px">Net P&L by hour of day (your clock). Hover a bar for detail.</div>
+    <div style="margin-top:18px">${reportTable('By session',bySess)}</div></div>`;
+}
 function reportTable(title,rows){ const thin=rows.some(r=>r.n<5); return `<div class="card-title">${title}</div><div style="overflow-x:auto;margin-top:12px"><table class="tbl"><thead><tr><th>${title.replace('By ','')}</th><th>Trades</th><th>Win %</th><th style="text-align:right">Net</th></tr></thead><tbody>${rows.map(r=>{ const low=r.n<5; return `<tr${low?' style="opacity:.62"':''}><td style="font-weight:600">${r.k}${low?' <span class="hint" title="Fewer than 5 trades — not statistically reliable yet" style="cursor:help">•</span>':''}</td><td class="mono">${r.n}</td><td class="mono">${r.wr}%</td><td style="text-align:right;font-weight:700" class="${r.net>=0?'pos':'neg'}">${money(r.net)}</td></tr>`; }).join('')}</tbody></table>${thin?'<div class="hint" style="margin-top:9px">• Fewer than 5 trades — provisional, not a proven edge yet.</div>':''}</div>`; }
 function showTip(ev,html){ let t=document.getElementById('barTip'); if(!t){ t=document.createElement('div'); t.id='barTip'; t.className='bar-tip'; document.body.appendChild(t); } t.innerHTML=html; t.style.display='block'; const w2=t.offsetWidth||140; t.style.left=Math.max(8,Math.min(window.innerWidth-w2-8,ev.clientX+14))+'px'; t.style.top=Math.max(8,ev.clientY-62)+'px'; }
 function barTip(ev,label,pnl,n,w){ showTip(ev,'<b>'+label+'</b><div class="bt-pnl '+(pnl>=0?'pos':'neg')+'">'+money(pnl)+'</div><div class="bt-sub">'+n+' trade'+(n!==1?'s':'')+' · '+w+'W · '+(n-w)+'L</div>'); }
@@ -1466,7 +1511,7 @@ const CSV_FIELDS=[
 ];
 function detectCol(low,syn){ for(const s of syn){ const i=low.indexOf(s); if(i>=0)return i; } for(let i=0;i<low.length;i++){ const h=low[i]; if(!h)continue; for(const s of syn){ if(s.length>=3&&(h.includes(s)||s.includes(h)))return i; } } return -1; }
 function csvNum(v){ if(v==null)return null; const x=parseFloat((''+v).replace(/[^0-9.\-]/g,'')); return isNaN(x)?null:x; }
-function csvTrade(c,m){ const g=k=>(m[k]>=0?c[m[k]]:undefined); const sv=((g('side')||'')+'').toLowerCase(); const side=(sv.includes('short')||sv.includes('sell')||sv.trim()==='s')?'short':'long'; const entry=csvNum(g('entry')),exit=csvNum(g('exit')),size=csvNum(g('size')); let pnl=csvNum(g('pnl')); if(pnl==null&&entry!=null&&exit!=null&&size!=null)pnl=(exit-entry)*Math.abs(size)*(side==='long'?1:-1); const dRaw=((g('date')||'')+'').trim(); return {date:dRaw?dRaw.slice(0,10):new Date().toISOString().slice(0,10),symbol:(((g('symbol')||'—')+'').toUpperCase().trim())||'—',side,entry,exit,size,stop:csvNum(g('stop')),target:csvNum(g('target')),pnl:pnl||0,rr:csvNum(g('rr')),notes:((g('notes')||'')+'').trim()}; }
+function csvTrade(c,m){ const g=k=>(m[k]>=0?c[m[k]]:undefined); const sv=((g('side')||'')+'').toLowerCase(); const side=(sv.includes('short')||sv.includes('sell')||sv.trim()==='s')?'short':'long'; const entry=csvNum(g('entry')),exit=csvNum(g('exit')),size=csvNum(g('size')); let pnl=csvNum(g('pnl')); if(pnl==null&&entry!=null&&exit!=null&&size!=null)pnl=(exit-entry)*Math.abs(size)*(side==='long'?1:-1); const dRaw=((g('date')||'')+'').trim(); const tm=dRaw.match(/(\d{1,2}):(\d{2})/); const time=tm?((''+tm[1]).padStart(2,'0')+':'+tm[2]):null; return {date:dRaw?dRaw.slice(0,10).replace(/[./]/g,'-'):new Date().toISOString().slice(0,10),time,symbol:(((g('symbol')||'—')+'').toUpperCase().trim())||'—',side,entry,exit,size,stop:csvNum(g('stop')),target:csvNum(g('target')),pnl:pnl||0,rr:csvNum(g('rr')),notes:((g('notes')||'')+'').trim()}; }
 function importCSV(input){ const f=input.files[0]; if(!f)return; input.value=''; const r=new FileReader(); r.onload=()=>{ try{ const rows=parseCSV(r.result).filter(row=>row.join('').trim()); if(rows.length<2){ toast('That CSV looks empty'); return; } window._csvRows=rows; reviewCSV(); }catch(e){ toast('Could not read that CSV'); } }; r.readAsText(f); }
 function readCsvMap(){ const m={}; document.querySelectorAll('#csvMap select').forEach(s=>{ m[s.dataset.k]=parseInt(s.value,10); }); return m; }
 function csvPreview(){ const rows=window._csvRows; const m=readCsvMap(); const sample=rows.slice(1,6).map(c=>csvTrade(c,m)); document.getElementById('csvPreview').innerHTML='<table class="tbl"><thead><tr><th>Date</th><th>Symbol</th><th>Side</th><th style="text-align:right">P&L</th></tr></thead><tbody>'+sample.map(t=>'<tr><td class="mono">'+escHtml(t.date)+'</td><td style="font-weight:600">'+escHtml(t.symbol)+'</td><td><span class="tag '+t.side+'">'+t.side+'</span></td><td class="mono '+(t.pnl>=0?'pos':'neg')+'" style="text-align:right;font-weight:700">'+money(t.pnl)+'</td></tr>').join('')+'</tbody></table>'; }
@@ -1493,7 +1538,29 @@ function runShotImport(f){ if(!f)return; if(!/^image\//.test(f.type||'')){ toast
   r.readAsDataURL(f); }
 /* paste a chart image anywhere → AI logs it; press N → quick log */
 document.addEventListener('paste',e=>{ const items=(e.clipboardData||{}).items||[]; for(const it of items){ if(it.type&&it.type.indexOf('image')===0){ const f=it.getAsFile(); if(f){ e.preventDefault(); toast('Screenshot pasted — reading it with AI…'); runShotImport(f); } return; } } });
-document.addEventListener('keydown',e=>{ if(e.key!=='n'&&e.key!=='N')return; if(e.metaKey||e.ctrlKey||e.altKey)return; const a=document.activeElement; if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))return; if(document.querySelector('.modal-bg.show'))return; if(typeof quickLog==='function'){ e.preventDefault(); quickLog(); } });
+document.addEventListener('keydown',e=>{ if(e.key!=='n'&&e.key!=='N')return; if(e.metaKey||e.ctrlKey||e.altKey)return; const a=document.activeElement; if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))return; if(document.querySelector('.modal-bg.show')||document.querySelector('.cmdk-bg.show'))return; if(typeof quickLog==='function'){ e.preventDefault(); quickLog(); } });
+/* command palette (⌘/Ctrl+K) */
+function cmdActions(){ const acts=[
+  {label:'Log a trade',icon:'+',run:()=>quickLog(),kw:'log trade new add quick record'},
+  {label:'AI Coach — Edge Report',icon:'✦',run:()=>go('coach'),kw:'coach ai report advice'},
+  {label:'Share Edge Card',icon:'↗',run:()=>shareCard(),kw:'share card export flex stats'},
+  {label:'Import history (CSV)',icon:'⬇',run:()=>{ const i=document.createElement('input'); i.type='file'; i.accept='.csv,text/csv'; i.onchange=()=>importCSV(i); i.click(); },kw:'import csv broker history upload'},
+  {label:'Toggle theme',icon:'◐',run:()=>cycleTheme(),kw:'theme dark light mode'}
+]; NAV.forEach(([id,l])=>acts.push({label:'Go to '+l,icon:'→',run:()=>go(id),kw:('go '+l+' '+id).toLowerCase()})); return acts; }
+let _cmdSel=0,_cmdFiltered=[];
+function openCmd(){ const el=$('#cmdk'); if(!el)return; el.classList.add('show'); const inp=$('#cmdInput'); inp.value=''; _cmdSel=0; renderCmd(''); setTimeout(()=>inp.focus(),20); }
+function closeCmd(){ const el=$('#cmdk'); if(el)el.classList.remove('show'); }
+function renderCmd(q){ q=((q||'')+'').toLowerCase().trim(); const all=cmdActions(); _cmdFiltered=q?all.filter(a=>a.label.toLowerCase().includes(q)||a.kw.includes(q)):all; if(_cmdSel>=_cmdFiltered.length)_cmdSel=0; const L=$('#cmdList'); if(!L)return; L.innerHTML=_cmdFiltered.map((a,i)=>`<div class="cmd-row${i===_cmdSel?' sel':''}" data-i="${i}" onmouseenter="_cmdSel=${i};hlCmd()" onclick="runCmd(${i})"><span class="cmd-ic">${a.icon}</span><span>${escHtml(a.label)}</span></div>`).join('')||'<div class="cmd-empty">No matches</div>'; }
+function hlCmd(){ document.querySelectorAll('#cmdList .cmd-row').forEach((r,i)=>r.classList.toggle('sel',i===_cmdSel)); }
+function runCmd(i){ const a=_cmdFiltered[i]; closeCmd(); if(a&&a.run)setTimeout(a.run,10); }
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&(e.key==='k'||e.key==='K')){ e.preventDefault(); const el=$('#cmdk'); el&&el.classList.contains('show')?closeCmd():openCmd(); return; }
+  const el=$('#cmdk'); if(!el||!el.classList.contains('show'))return;
+  if(e.key==='Escape'){ e.preventDefault(); closeCmd(); }
+  else if(e.key==='ArrowDown'){ e.preventDefault(); _cmdSel=Math.min(_cmdFiltered.length-1,_cmdSel+1); hlCmd(); const r=document.querySelectorAll('#cmdList .cmd-row')[_cmdSel]; r&&r.scrollIntoView({block:'nearest'}); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); _cmdSel=Math.max(0,_cmdSel-1); hlCmd(); const r=document.querySelectorAll('#cmdList .cmd-row')[_cmdSel]; r&&r.scrollIntoView({block:'nearest'}); }
+  else if(e.key==='Enter'){ e.preventDefault(); runCmd(_cmdSel); }
+});
 function reviewShotTrades(trades){ if(!trades||!trades.length){ toast('No trades found in that image — try a clearer screenshot'); return; }
   window._shotTrades=trades;
   const anyOpen=trades.some(t=>((t.status||'')+'').toLowerCase()==='open');
