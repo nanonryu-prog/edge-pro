@@ -18,7 +18,9 @@ CRITICAL RULES — do not create false trades:
 2. IGNORE entirely: pending/working orders, orders that are still open/running, S/L or T/P order lines, deposits, withdrawals, balance/equity rows, commission-only or swap-only rows, and any header, total or summary rows.
 3. If the same position appears as several rows (open, modify, close), combine them into ONE trade.
 4. Only include a trade if it is clearly closed and has a real profit/loss.
-If you cannot confidently read any closed trades, return [].
+5. If the image is a price CHART (candlesticks) with horizontal lines or floating labels showing orders/positions (e.g. "TP", "SL", "T/P", "S/L", or amounts like "+262.00 USD", "1,000 +375.00 USD"), those are an OPEN position and its take-profit / stop-loss ORDERS — they are NOT closed trades. Do NOT output a trade for each line. A single chart normally shows at most ONE open position; an open position is not a completed trade, so return [] for it.
+6. Only extract trades from a clear trade-HISTORY TABLE: rows with columns such as date/time, symbol, side, open & close price, and profit/loss. If the image is a chart with no such table, return [].
+If you cannot confidently read any CLOSED trades from a history table, return [].
 Example: [{"date":"2025-06-14","symbol":"EURUSD","side":"long","pnl":180,"entry":1.0821,"exit":1.0865,"rr":2.1}]`;
 
 module.exports = async function handler(req, res) {
