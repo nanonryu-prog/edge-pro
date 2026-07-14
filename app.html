@@ -472,6 +472,15 @@ function stats(trArg){
   return {tr,acct,wins:wins.length,losses:losses.length,net,wr,pf,exp,avgRR,avgWin,avgLoss,tilt,dis,broken,rulesFollowed,slips};
 }
 function levelInfo(){ const xp=Store.profile().xp||0; return {xp,lvl:Math.floor(xp/100)+1,into:xp%100}; }
+function lossGuard(s){
+  const w=s.avgWin, l=s.avgLoss;
+  if(!s.wins||!s.losses||s.tr.length<8||!w||!l) return '';
+  const reqWR=Math.round(l/(w+l)*100); const bad=l>w; const thin=(s.wr-reqWR)<8;
+  if(!bad&&!thin){
+    return '<div class="card section-gap" style="border-color:rgba(36,209,155,.32)"><div style="display:flex;gap:14px;align-items:center"><span style="flex:0 0 auto;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:var(--win);background:rgba(36,209,155,.14)">'+svgi('flame',21,'currentColor')+'</span><div><b>Loss guard — healthy</b><div class="hint" style="margin-top:3px">Avg win <b class="mono pos">'+money0(w)+'</b> vs avg loss <b class="mono neg">'+money0(l)+'</b>. You only need <b>'+reqWR+'%</b> to break even and you\'re winning <b>'+s.wr+'%</b> — comfortable cushion. Keep cutting losers tight.</div></div></div></div>';
+  }
+  return '<div class="card section-gap" style="border-color:rgba(245,71,107,.5);background:radial-gradient(120% 100% at 0 0,rgba(245,71,107,.1),transparent 60%)"><div style="display:flex;gap:14px;align-items:flex-start"><span style="flex:0 0 auto;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:var(--loss);background:rgba(245,71,107,.14)">'+svgi('warn',21,'currentColor')+'</span><div><b style="color:var(--loss)">Loss guard — watch your losers</b><div class="hint" style="margin-top:3px">Your average loss <b class="mono neg">'+money0(l)+'</b> is '+(bad?'bigger than':'creeping up on')+' your average win <b class="mono pos">'+money0(w)+'</b>. With a high win rate that can still work — but one oversized loss erases several wins. You need <b>'+reqWR+'%</b> to break even and you\'re at <b>'+s.wr+'%</b>. Tighten your stops and don\'t let losers run.</div></div></div></div>';
+}
 
 /* ---- nav ---- */
 const NAV=[
@@ -531,6 +540,7 @@ VIEWS.dash=function(){
       ${kpi('Avg win / avg loss',s.avgWin||s.avgLoss?money0(s.avgWin)+' / '+money0(s.avgLoss):'—','','Size of typical win vs. typical loss')}
       ${kpi('Tilt meter',s.tilt!=null?s.tilt.toFixed(1):'—','','Avg emotional intensity logged')}
     </div>
+    ${lossGuard(s)}
     <div class="two-col section-gap">
       <div class="card">
         <div class="row-sb"><div><div class="card-title">Equity curve</div><div class="mono" style="font-size:15px;margin-top:6px">${money0(s.acct)} → ${money0(eq)}</div></div><span class="pct-pill ${pct<0?'neg':''}">${(pct>=0?'+':'')+pct.toFixed(1)}%</span></div>
@@ -1125,7 +1135,8 @@ function svgi(n,size,color){ size=size||24; color=color||'var(--violet-2)'; cons
   bolt:'<path d="M13 3L5.5 13.5H11l-1 7.5 8-11H12.5z"/>',
   target:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>',
   moon:'<path d="M20.5 14.5A8.5 8.5 0 019.5 3.5a8.5 8.5 0 1011 11z"/>',
-  wave:'<path d="M12 21a9 9 0 009-9M3 12a9 9 0 019-9"/><path d="M8.5 12.5l2 2 4-4"/>'
+  wave:'<path d="M12 21a9 9 0 009-9M3 12a9 9 0 019-9"/><path d="M8.5 12.5l2 2 4-4"/>',
+  warn:'<path d="M12 3.5l9 15.5H3z"/><path d="M12 9.5v4.5"/><circle cx="12" cy="16.6" r=".7" fill="currentColor" stroke="none"/>'
 }; return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="color:'+color+';flex:0 0 auto">'+(p[n]||'')+'</svg>'; }
 function emotionRadar(s){
   const tr=s.tr; const cnt={Calm:0,Confident:0,Focused:0,Fear:0,FOMO:0,Greed:0,Revenge:0}; let tagged=0;
