@@ -478,7 +478,16 @@ function stats(trArg){
   const broken=disTr.reduce((a,t)=>a+(t.rulesFollowed<t.rulesTotal?1:0),0);
   const rulesFollowed=disTr.filter(t=>t.rulesFollowed===t.rulesTotal).length;
   const slips=tr.filter(t=>t.pnl>0&&t.rulesTotal>0&&t.rulesFollowed<t.rulesTotal).length;
-  return {tr,acct,wins:wins.length,losses:losses.length,net,wr,pf,exp,avgRR,avgWin,avgLoss,tilt,dis,broken,rulesFollowed,slips};
+  // max drawdown — peak-to-trough on equity, in chronological order (precise)
+  const chron=tr.slice().sort((a,b)=>((a.date||'')+'').localeCompare((b.date||'')+''));
+  let peak=acct, eqRun=acct, mdd=0; chron.forEach(t=>{ eqRun+=t.pnl; if(eqRun>peak)peak=eqRun; const d=peak-eqRun; if(d>mdd)mdd=d; });
+  const maxDD=Math.round(mdd), maxDDpct=acct?mdd/acct*100:0;
+  // realized R-multiples where risk is actually defined (entry, stop, size) — the honest number
+  const rTr=tr.filter(t=>t.entry!=null&&t.stop!=null&&t.size&&Math.abs(t.entry-t.stop)>0);
+  const rMults=rTr.map(t=>{ const risk=Math.abs(t.entry-t.stop)*Math.abs(t.size); return risk?t.pnl/risk:0; });
+  const avgR=rMults.length?rMults.reduce((a,b)=>a+b,0)/rMults.length:null;
+  const rCount=rMults.length;
+  return {tr,acct,wins:wins.length,losses:losses.length,net,wr,pf,exp,avgRR,avgWin,avgLoss,tilt,dis,broken,rulesFollowed,slips,maxDD,maxDDpct,avgR,rCount};
 }
 function levelInfo(){ const xp=Store.profile().xp||0; return {xp,lvl:Math.floor(xp/100)+1,into:xp%100}; }
 function lossGuard(s){
@@ -554,9 +563,9 @@ VIEWS.dash=function(){
     </div>
     <div class="grid kpis section-gap">
       ${kpi('Expectancy',money(s.exp),s.exp>=0?'win':'loss','Expected $ per trade — your real edge')}
-      ${kpi('Avg planned R:R',s.avgRR?s.avgRR.toFixed(2):'—','','Across trades with entry/stop/target set')}
+      ${kpi('Avg R multiple',s.avgR!=null?(s.avgR>=0?'+':'')+s.avgR.toFixed(2)+'R':'—',s.avgR!=null?(s.avgR>=0?'win':'loss'):'','Realized reward per $1 risked · '+(s.rCount||0)+' trade'+(s.rCount===1?'':'s')+' with a stop set')}
+      ${kpi('Max drawdown',s.maxDD?'-'+money0(s.maxDD):'$0','',s.maxDD?('-'+s.maxDDpct.toFixed(1)+'% peak-to-trough'):'No drawdown yet')}
       ${kpi('Avg win / avg loss',s.avgWin||s.avgLoss?money0(s.avgWin)+' / '+money0(s.avgLoss):'—','','Size of typical win vs. typical loss')}
-      ${kpi('Tilt meter',s.tilt!=null?s.tilt.toFixed(1):'—','','Avg emotional intensity logged')}
     </div>
     ${lossGuard(s)}
     <div class="two-col section-gap">
@@ -935,7 +944,7 @@ function coachBrief(){
   const pnls=tr.map(t=>t.pnl);
   return {
     range:{from:tr[0]&&tr[0].date,to:tr[tr.length-1]&&tr[tr.length-1].date,trades:tr.length},
-    totals:{net:Math.round(s.net),winRate:s.wr,profitFactor:s.pf===Infinity?null:Math.round(s.pf*100)/100,expectancy:Math.round(s.exp),avgWin:Math.round(s.avgWin),avgLoss:Math.round(s.avgLoss),avgDiscipline:s.dis,bestTrade:Math.round(Math.max.apply(null,pnls.concat(0))),worstTrade:Math.round(Math.min.apply(null,pnls.concat(0)))},
+    totals:{net:Math.round(s.net),winRate:s.wr,profitFactor:s.pf===Infinity?null:Math.round(s.pf*100)/100,expectancy:Math.round(s.exp),avgWin:Math.round(s.avgWin),avgLoss:Math.round(s.avgLoss),avgRmultiple:s.avgR!=null?Math.round(s.avgR*100)/100:null,maxDrawdown:s.maxDD,avgDiscipline:s.dis,bestTrade:Math.round(Math.max.apply(null,pnls.concat(0))),worstTrade:Math.round(Math.min.apply(null,pnls.concat(0)))},
     disciplineSplit:{cleanRuleTrades:sub(clean),ruleBrokenTrades:sub(broke),timesBrokeRules:broke.length},
     bySide:{long:sub(tr.filter(t=>t.side==='long')),short:sub(tr.filter(t=>t.side==='short'))},
     byTag,byEmotion,afterALoss:sub(afterLoss),
@@ -1130,6 +1139,8 @@ VIEWS.settings=function(){
 
 /* ---- Log trade modal ---- */
 function setupList(){ const s=Store.settings().setups; return (Array.isArray(s)&&s.length)?s:['No-Wick','FVG','Breakout','Pullback','Reversal','News']; }
+function recentSymbols(){ const seen=[]; const tr=Store.trades(); for(let i=tr.length-1;i>=0&&seen.length<6;i--){ const sy=((tr[i].symbol||'')+'').toUpperCase().trim(); if(sy&&sy!=='—'&&!seen.includes(sy))seen.push(sy); } return seen; }
+function qPick(sy){ const el=document.getElementById('q-sym'); if(el)el.value=sy; const p=document.getElementById('q-pnl'); if(p)p.focus(); }
 function qToggleSetup(btn){ btn.classList.toggle('on'); const v=btn.dataset.v; window._qSetups=window._qSetups||[]; const i=window._qSetups.indexOf(v); if(i>=0)window._qSetups.splice(i,1); else window._qSetups.push(v); }
 function qAddSetup(){ const wrap=document.getElementById('qSetups'); if(!wrap||wrap.querySelector('#qNewSetup'))return; const inp=document.createElement('input'); inp.id='qNewSetup'; inp.className='finp'; inp.placeholder='name…'; inp.style.cssText='width:120px;padding:6px 10px;font-size:13px'; inp.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=inp.value.trim(); if(v){ const list=setupList(); if(!list.some(x=>x.toLowerCase()===v.toLowerCase())){ const st=Store.settings(); st.setups=list.concat([v]); Store.saveSettings(st); } const b=document.createElement('button'); b.type='button'; b.className='chip-tag on'; b.dataset.v=v; b.textContent=v; b.onclick=function(){qToggleSetup(this);}; wrap.insertBefore(b,inp); window._qSetups=(window._qSetups||[]).concat([v]); } inp.remove(); } else if(e.key==='Escape'){ inp.remove(); } }; wrap.insertBefore(inp,wrap.lastElementChild); inp.focus(); }
 function quickLog(){
@@ -1138,14 +1149,14 @@ function quickLog(){
   $('#logModalInner').innerHTML=`<div class="row-sb"><div class="card-title">Quick log</div><button class="modal-x" onclick="closeLog()" aria-label="Close">✕</button></div>
     <div class="card-sub" style="margin-bottom:18px">Log a trade in seconds. Add details later if you want.</div>
     <form id="qForm" autocomplete="off">
-      <div class="fgrp"><label class="flbl">Symbol</label><input class="finp" id="q-sym" placeholder="EURUSD" required style="font-size:18px" autofocus></div>
+      <div class="fgrp"><label class="flbl">Symbol</label><input class="finp" id="q-sym" placeholder="EURUSD" required style="font-size:18px" autofocus>${(function(){ const rs=recentSymbols(); return rs.length?'<div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:8px">'+rs.map(sy=>'<button type="button" class="chip-tag" onclick="qPick(\''+escHtml(sy).replace(/'/g,'')+'\')">'+escHtml(sy)+'</button>').join('')+'</div>':''; })()}</div>
       <div class="fgrp" style="margin-top:14px"><label class="flbl">Profit / loss ($)</label><input class="finp mono" type="number" step="any" id="q-pnl" placeholder="250   or   -80" required style="font-size:24px;font-weight:700"></div>
       <div class="fgrp" style="margin-top:16px"><label class="flbl">Side</label><div class="seg"><button type="button" class="seg-btn on" data-v="long" onclick="qSel('side',this)">Long</button><button type="button" class="seg-btn" data-v="short" onclick="qSel('side',this)">Short</button></div></div>
       ${rt?`<div class="fgrp" style="margin-top:16px"><label class="flbl">Did you follow your rules?</label><div class="seg"><button type="button" class="seg-btn on win" data-v="yes" onclick="qSel('rules',this)">Yes</button><button type="button" class="seg-btn loss" data-v="no" onclick="qSel('rules',this)">No</button></div></div>`:''}
       <div class="fgrp" style="margin-top:16px"><label class="flbl">Setup <span class="hint" style="font-weight:400">· tap any that apply</span></label>
         <div id="qSetups" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px">${setupList().map(su=>`<button type="button" class="chip-tag" data-v="${escHtml(su)}" onclick="qToggleSetup(this)">${escHtml(su)}</button>`).join('')}<button type="button" class="chip-tag chip-add" onclick="qAddSetup()">＋ Add</button></div></div>
       <div style="display:flex;gap:12px;margin-top:22px;flex-wrap:wrap"><button type="submit" class="btn btn-primary" style="flex:1;min-width:150px">Log it (+10 XP)</button><button type="button" class="btn btn-ghost btn-sm" onclick="openLog()">+ Full details</button></div>
-      <label class="btn btn-ghost btn-sm btn-full" style="cursor:pointer;margin-top:12px;border-color:rgba(124,92,252,.4);color:var(--violet-2)">${svgi('image',15,'currentColor')}<span style="margin-left:7px">Or snap a screenshot — AI logs them for you</span><input type="file" accept="image/*" style="display:none" onchange="importShot(this)"></label>
+      <label class="btn btn-ghost btn-sm btn-full" style="cursor:pointer;margin-top:12px;border-color:rgba(124,92,252,.4);color:var(--violet-2)">${svgi('image',15,'currentColor')}<span style="margin-left:7px">Upload a screenshot — or just paste one (⌘/Ctrl + V)</span><input type="file" accept="image/*" style="display:none" onchange="importShot(this)"></label>
     </form>`;
   $('#logModal').classList.add('show'); $('#qForm').onsubmit=saveQuick;
 }
@@ -1251,7 +1262,7 @@ function insights(s){ const out=[]; if(!s.tr.length){out.push('Log your first tr
     if(s.net<0)out.push(`Net ${money(s.net)} so far. Focus on discipline over P&L while you rebuild.`); }
   return out.slice(0,3).map(t=>`<div class="insight"><span class="ci"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>${t}</span></div>`).join('<div style="height:8px"></div>'); }
 function groupStat(tr,keyFn){ const m={}; tr.forEach(t=>{const k=keyFn(t);(m[k]=m[k]||{n:0,net:0,w:0}); m[k].n++; m[k].net+=t.pnl; if(t.pnl>0)m[k].w++;}); return Object.entries(m).map(([k,v])=>({k,n:v.n,net:v.net,wr:Math.round(v.w/v.n*100)})).sort((a,b)=>b.net-a.net); }
-function reportTable(title,rows){ return `<div class="card-title">${title}</div><div style="overflow-x:auto;margin-top:12px"><table class="tbl"><thead><tr><th>${title.replace('By ','')}</th><th>Trades</th><th>Win %</th><th style="text-align:right">Net</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="font-weight:600">${r.k}</td><td class="mono">${r.n}</td><td class="mono">${r.wr}%</td><td style="text-align:right;font-weight:700" class="${r.net>=0?'pos':'neg'}">${money(r.net)}</td></tr>`).join('')}</tbody></table></div>`; }
+function reportTable(title,rows){ const thin=rows.some(r=>r.n<5); return `<div class="card-title">${title}</div><div style="overflow-x:auto;margin-top:12px"><table class="tbl"><thead><tr><th>${title.replace('By ','')}</th><th>Trades</th><th>Win %</th><th style="text-align:right">Net</th></tr></thead><tbody>${rows.map(r=>{ const low=r.n<5; return `<tr${low?' style="opacity:.62"':''}><td style="font-weight:600">${r.k}${low?' <span class="hint" title="Fewer than 5 trades — not statistically reliable yet" style="cursor:help">•</span>':''}</td><td class="mono">${r.n}</td><td class="mono">${r.wr}%</td><td style="text-align:right;font-weight:700" class="${r.net>=0?'pos':'neg'}">${money(r.net)}</td></tr>`; }).join('')}</tbody></table>${thin?'<div class="hint" style="margin-top:9px">• Fewer than 5 trades — provisional, not a proven edge yet.</div>':''}</div>`; }
 function showTip(ev,html){ let t=document.getElementById('barTip'); if(!t){ t=document.createElement('div'); t.id='barTip'; t.className='bar-tip'; document.body.appendChild(t); } t.innerHTML=html; t.style.display='block'; const w2=t.offsetWidth||140; t.style.left=Math.max(8,Math.min(window.innerWidth-w2-8,ev.clientX+14))+'px'; t.style.top=Math.max(8,ev.clientY-62)+'px'; }
 function barTip(ev,label,pnl,n,w){ showTip(ev,'<b>'+label+'</b><div class="bt-pnl '+(pnl>=0?'pos':'neg')+'">'+money(pnl)+'</div><div class="bt-sub">'+n+' trade'+(n!==1?'s':'')+' · '+w+'W · '+(n-w)+'L</div>'); }
 function tipEquity(ev,val,start,i){ const ch=val-start; showTip(ev,'<b>'+(i===0?'Start':'After trade '+i)+'</b><div class="bt-pnl '+(ch>=0?'pos':'neg')+'">'+money0(val)+'</div><div class="bt-sub">'+money(ch)+' from start</div>'); }
@@ -1436,7 +1447,8 @@ function importCSV(input){ const f=input.files[0]; if(!f)return; const r=new Fil
   Store.saveTrades(arr); toast('Imported '+n+' trades','good'); go('dash');
   }catch(e){ toast('Could not parse that CSV'); } }; r.readAsText(f); }
 function filterTrades(){ const q=($('#tf-q').value||'').toLowerCase().trim(); const side=$('#tf-side').value; const out=$('#tf-out').value; let tr=Store.trades().slice().reverse(); if(q)tr=tr.filter(t=>(t.symbol||'').toLowerCase().includes(q)); if(side)tr=tr.filter(t=>t.side===side); if(out==='win')tr=tr.filter(t=>t.pnl>0); else if(out==='loss')tr=tr.filter(t=>t.pnl<0); $('#tradeTableWrap').innerHTML=tradeTable(tr,true)+(tr.length?'':'<div class="hint" style="padding:14px 2px">No trades match those filters.</div>'); }
-function importShot(input){ const f=input.files[0]; if(!f)return; input.value=''; if(f.size>4.4*1024*1024){ toast('Image too large — crop or screenshot a smaller area'); return; }
+function importShot(input){ const f=input.files[0]; if(!f)return; input.value=''; runShotImport(f); }
+function runShotImport(f){ if(!f)return; if(!/^image\//.test(f.type||'')){ toast('That’s not an image'); return; } if(f.size>4.4*1024*1024){ toast('Image too large — crop or screenshot a smaller area'); return; }
   const r=new FileReader(); r.onload=async ()=>{ const b64=(r.result+'').split(',')[1]; const mt=f.type||'image/png';
     const t=$('#toast'); t.textContent='Reading your screenshot with AI…'; t.className='show';
     try{ const resp=await fetch('/api/parse-trades',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({image:b64,media_type:mt})});
@@ -1445,6 +1457,9 @@ function importShot(input){ const f=input.files[0]; if(!f)return; input.value=''
       reviewShotTrades(data.trades||[]);
     }catch(e){ toast('AI import runs on the live site once the API key is set.'); } };
   r.readAsDataURL(f); }
+/* paste a chart image anywhere → AI logs it; press N → quick log */
+document.addEventListener('paste',e=>{ const items=(e.clipboardData||{}).items||[]; for(const it of items){ if(it.type&&it.type.indexOf('image')===0){ const f=it.getAsFile(); if(f){ e.preventDefault(); toast('Screenshot pasted — reading it with AI…'); runShotImport(f); } return; } } });
+document.addEventListener('keydown',e=>{ if(e.key!=='n'&&e.key!=='N')return; if(e.metaKey||e.ctrlKey||e.altKey)return; const a=document.activeElement; if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))return; if(document.querySelector('.modal-bg.show'))return; if(typeof quickLog==='function'){ e.preventDefault(); quickLog(); } });
 function reviewShotTrades(trades){ if(!trades||!trades.length){ toast('No trades found in that image — try a clearer screenshot'); return; }
   window._shotTrades=trades;
   const anyOpen=trades.some(t=>((t.status||'')+'').toLowerCase()==='open');
