@@ -853,6 +853,13 @@ VIEWS.achievements=function(){
     {i:'sparkle',n:'Clean Week',d:'A full week with zero broken rules',cur:(s.tr.length>=5&&s.broken===0)?1:0,goal:1},
   ];
   A.forEach(a=>a.on=a.cur>=a.goal);
+  const claimed=Store.get('rewardsClaimed',[]);
+  const REWARDS=[
+    {id:'r10',n:'Getting started',d:'Log 10 trades',prog:Math.min(100,s.tr.length/10*100),done:s.tr.length>=10,xp:100},
+    {id:'r25',n:'Building the habit',d:'Log 25 trades',prog:Math.min(100,s.tr.length/25*100),done:s.tr.length>=25,xp:150},
+    {id:'rdis',n:'Disciplined mind',d:'Reach a 90+ discipline score',prog:Math.min(100,(s.tr.length?s.dis:0)/90*100),done:!!(s.tr.length&&s.dis>=90),xp:200},
+    {id:'r50',n:'Committed trader',d:'Log 50 trades',prog:Math.min(100,s.tr.length/50*100),done:s.tr.length>=50,xp:300,perk:'LOYAL20'},
+  ];
   const unlocked=A.filter(a=>a.on).length, pct=Math.round(unlocked/A.length*100);
   const next=A.filter(a=>!a.on).sort((x,y)=>(y.cur/y.goal)-(x.cur/x.goal))[0];
   const badge='<div style="margin-top:10px;font-size:10.5px;font-weight:700;color:var(--win);background:rgba(36,209,155,.14);border:1px solid rgba(36,209,155,.3);padding:3px 9px;border-radius:6px;display:inline-block">Unlocked ✓</div>';
@@ -867,8 +874,19 @@ VIEWS.achievements=function(){
     <div class="card section-gap"><div class="ach-grid" style="grid-template-columns:repeat(auto-fill,minmax(215px,1fr))">${A.map(a=>`
       <div class="ach ${a.on?'on':''}"><div class="ic">${svgi(a.i,28,a.on?'var(--gold)':'var(--violet-2)')}</div><div class="an">${a.n}</div><div class="ad">${a.d}</div>
         ${a.on?badge:`<div class="mtrack" style="margin-top:12px"><div class="mfill" style="width:${Math.min(100,a.cur/a.goal*100)}%"></div></div><div class="hint" style="margin-top:6px">${Math.min(a.cur,a.goal)} / ${a.goal}</div>`}
-      </div>`).join('')}</div></div>`;
+      </div>`).join('')}</div></div>
+    <div class="card section-gap"><div class="row-sb"><div><div class="card-title">Rewards</div><div class="card-sub">Hit milestones — claim XP boosts &amp; loyalty perks</div></div><span class="chip">claim &amp; earn</span></div>
+      <div style="display:flex;flex-direction:column;gap:18px;margin-top:18px">
+        ${REWARDS.map(r=>{ const isC=claimed.includes(r.id); return `<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+          <span style="flex:0 0 auto">${svgi(r.perk?'diamond':'sparkle',22,r.done?'var(--gold)':'var(--violet-2)')}</span>
+          <div style="flex:1;min-width:220px"><div class="row-sb"><b>${r.n}</b><span class="hint">${r.d}</span></div><div class="pbar-tr" style="margin-top:8px"><div class="pbar-fl" style="width:${Math.max(2,r.prog)}%;background:var(--grad)"></div></div>${(r.perk&&isC)?`<div class="hint" style="margin-top:9px;color:var(--text)">Your perk: <b class="mono" style="color:var(--violet-2)">${r.perk}</b> — 20% off your next month <span style="color:var(--faint)">(applies at checkout)</span></div>`:''}</div>
+          <span style="flex:0 0 auto">${isC?'<span class="chip" style="color:var(--win);border-color:rgba(36,209,155,.4)">Claimed ✓</span>':(r.done?`<button class="btn btn-primary btn-sm" onclick="claimReward('${r.id}',${r.xp})">Claim +${r.xp} XP</button>`:`<span class="hint">${Math.round(r.prog)}%</span>`)}</span>
+        </div>`; }).join('')}
+      </div>
+      <div class="hint" style="margin-top:16px">Loyalty perks turn into real discount codes the moment payments go live.</div>
+    </div>`;
 };
+function claimReward(id,xp){ const c=Store.get('rewardsClaimed',[]); if(c.includes(id))return; c.push(id); Store.set('rewardsClaimed',c); addXP(xp); confetti(); toast('Reward claimed · +'+xp+' XP','good'); VIEWS.achievements(); }
 VIEWS.weekly=function(){
   const s=stats(); const weeks=Store.get('weeks',[])||[];
   $('#view').innerHTML=`
