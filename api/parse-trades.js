@@ -8,11 +8,13 @@ Return ONLY a JSON array (no prose, no markdown fences). Each element is ONE clo
 - "side": "long" or "short" (map buy->long, sell->short)
 - "pnl": the net profit/loss as a number (negative for losses; no currency symbols or commas)
 - "entry": entry/open price as a number, or null if not shown
-- "exit": exit/close price as a number, or null if not shown
-- "rr": realized risk:reward as a number, or null if not shown
+- "exit": exit/close price as a number (the price it actually closed at), or null if not shown
+- "stop": the stop-loss (S/L) price of THIS trade as a number, or null if not shown
+- "target": the take-profit (T/P) price of THIS trade as a number, or null if not shown
+- "rr": planned or realized risk:reward as a number, or null if not shown
 
 CRITICAL RULES — do not create false trades:
-1. A stop-loss (S/L, SL) and a take-profit (T/P, TP) are PART of a trade. They are NEVER separate trades. If one row/position shows an entry price plus an S/L and/or T/P, that is exactly ONE trade — use the entry as "entry" and the actual close price as "exit". Do NOT turn the S/L or T/P price into its own trade.
+1. A stop-loss (S/L, SL) and a take-profit (T/P, TP) are PART of a trade. They are NEVER separate trades. If one row/position shows an entry price plus an S/L and/or T/P, that is exactly ONE trade — put the entry in "entry", the actual close price in "exit", the S/L in "stop", and the T/P in "target". Do NOT turn the S/L or T/P price into its own trade. Note: a stop-loss moved to break-even (equal to the entry price) is normal — still just part of the one trade.
 2. IGNORE entirely: pending/working orders, orders that are still open/running, S/L or T/P order lines, deposits, withdrawals, balance/equity rows, commission-only or swap-only rows, and any header, total or summary rows.
 3. If the same position appears as several rows (open, modify, close), combine them into ONE trade.
 4. Only include a trade if it is clearly closed and has a real profit/loss.
