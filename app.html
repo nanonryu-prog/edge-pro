@@ -632,6 +632,7 @@ VIEWS.dash=function(){
   $('#view').innerHTML=`
     ${riskGuardBanner()}
     ${gamePlanCard()}
+    ${reviewNudge()}
     ${coachBanner()}
     <div class="grid kpis">
       ${kpi('Win rate',s.wr+'%',s.wr>=50?'win':(s.tr.length?'loss':'win'),s.wins+'W · '+s.losses+'L')}
@@ -778,6 +779,16 @@ VIEWS.reports=function(){
     ${mistakeReport(tr)}
     ${(()=>{const tg=tagStat(tr);return tg.length?`<div class="card section-gap">${reportTable('By tag',tg)}<div class="hint" style="margin-top:10px">Tag your setups when logging trades to see which ones actually make you money.</div></div>`:`<div class="card section-gap"><div class="card-title">By tag</div><div class="hint" style="margin-top:10px">Add tags like “breakout” or “news” when you log a trade — then see which setups win here.</div></div>`;})()}`;
 };
+function reviewQueue(){ return Store.trades().filter(t=>{ const broke=t.rulesTotal>0&&t.rulesFollowed<t.rulesTotal; return (t.pnl<0||broke)&&!((t.lesson||'')+'').trim(); }).sort((a,b)=>{ const av=(a.rulesTotal>0&&a.rulesFollowed<a.rulesTotal)?1:0, bv=(b.rulesTotal>0&&b.rulesFollowed<b.rulesTotal)?1:0; if(av!==bv)return bv-av; return a.pnl-b.pnl; }); }
+function saveLesson(id){ const el=document.getElementById('lesson-'+id); if(!el)return; const v=el.value.trim(); if(!v){ toast('Write a quick lesson first'); return; } const arr=Store.trades(); const t=arr.find(x=>x.id===id); if(!t)return; t.lesson=v; Store.saveTrades(arr); addXP(8); toast('Lesson saved · +8 XP','good'); VIEWS.journal(); }
+function reviewSection(){
+  const q=reviewQueue();
+  if(!q.length) return '<div class="card section-gap"><div class="card-title">Trades to learn from</div><div class="hint" style="margin-top:8px">Nothing to review — every loss and rule-break has a lesson attached. That\'s exactly how pros compound. 🎯</div></div>';
+  const items=q.slice(0,5).map(t=>{ const broke=t.rulesTotal>0&&t.rulesFollowed<t.rulesTotal; return '<div class="card" style="background:var(--card);margin-bottom:12px"><div class="row-sb"><div><b>'+escHtml(t.symbol||'—')+'</b> <span class="tag '+t.side+'">'+t.side+'</span>'+(broke?' <span class="tag" style="background:rgba(245,71,107,.15);color:var(--loss)">rule break</span>':'')+' <span class="hint">'+fmtDate(t.date)+'</span></div><b class="mono '+(t.pnl>=0?'pos':'neg')+'">'+money(t.pnl)+'</b></div>'+((t.mistakes&&t.mistakes.length)?'<div class="hint" style="margin-top:6px">Mistakes: '+t.mistakes.map(escHtml).join(', ')+'</div>':'')+'<textarea class="finp" id="lesson-'+t.id+'" placeholder="What did you learn? What will you do differently next time?" style="margin-top:10px;min-height:64px"></textarea><button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="saveLesson('+t.id+')">Save lesson (+8 XP)</button></div>'; }).join('');
+  return '<div class="card section-gap"><div class="row-sb"><div class="card-title">Trades to learn from</div><span class="chip">'+q.length+' to review</span></div><div class="card-sub">Your losses and rule-breaks are your best teachers — capture the lesson before you forget it.</div><div style="margin-top:14px">'+items+'</div></div>';
+}
+function lessonsList(){ const done=Store.trades().filter(t=>((t.lesson||'')+'').trim()).slice().reverse(); if(!done.length) return ''; return '<div class="card section-gap"><div class="card-title">Lessons learned</div><div class="card-sub">The playbook you\'re writing from your own trades.</div><div style="margin-top:12px">'+done.slice(0,20).map(t=>'<div class="card" style="background:var(--card);margin-bottom:8px"><div class="row-sb"><b>'+escHtml(t.symbol||'—')+' <span class="hint" style="font-weight:400">'+fmtDate(t.date)+'</span></b><b class="mono '+(t.pnl>=0?'pos':'neg')+'">'+money(t.pnl)+'</b></div><p style="margin:8px 0 0;color:var(--text);line-height:1.5">'+escHtml(t.lesson)+'</p></div>').join('')+'</div></div>'; }
+function reviewNudge(){ const q=reviewQueue(); if(!q.length) return ''; return '<button onclick="go(\'journal\')" class="coach-banner" style="width:100%;text-align:left;border:1px solid rgba(245,71,107,.3);border-radius:16px;padding:15px 18px;margin-bottom:18px;cursor:pointer;background:radial-gradient(120% 200% at 100% 0,rgba(245,71,107,.1),transparent 60%);display:flex;align-items:center;gap:13px">'+svgi('book',22,'var(--loss)')+'<span style="flex:1;min-width:0"><b>'+q.length+' trade'+(q.length===1?'':'s')+' to learn from</b> <span class="hint">· turn your losses into lessons</span></span><span style="color:var(--violet-2);font-weight:600;flex:0 0 auto">Review →</span></button>'; }
 VIEWS.journal=function(){
   const j=Store.journal(); const today=new Date().toISOString().slice(0,10); const ex=j.find(e=>e.date===today);
   let streak=0; { let d=new Date(); for(;;){ const ds=d.toISOString().slice(0,10); if(j.find(e=>e.date===ds)){streak++; d.setDate(d.getDate()-1);} else break; } }
@@ -803,6 +814,8 @@ VIEWS.journal=function(){
       </div>
     </div>
   </div>
+  ${reviewSection()}
+  ${lessonsList()}
   <div class="card section-gap"><div class="card-title">Past entries</div><div style="margin-top:12px">${j.slice().reverse().map(e=>`<div class="card" style="background:var(--card);margin-bottom:8px"><div class="row-sb"><b>${fmtDate(e.date)}</b><span class="tag long">${e.mood}</span></div>${e.plan?`<p class="hint" style="margin:8px 0 0;color:var(--muted);line-height:1.5">${e.plan}</p>`:''}</div>`).join('')||'<div class="empty" style="padding:30px"><div class="hint">No entries yet — your journal timeline grows here.</div></div>'}</div></div>`;
 };
 VIEWS.checklist=function(){
