@@ -61,7 +61,6 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-5',
         max_tokens: 1400,
-        temperature: 0.2,
         system: SYSTEM,
         messages: [{ role: 'user', content: "Here is my aggregated trading journal. Give me my Edge Report.\n\n" + JSON.stringify(brief) }]
       })

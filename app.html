@@ -579,8 +579,8 @@ function momentumStrip(){
 function coachBanner(){
   const n=Store.trades().filter(t=>t&&typeof t.pnl==='number').length;
   if(n<5) return '';
-  const rep=(Store.get('coachReport',null)||{}).report;
-  if(rep){ return '<button onclick="go(\'coach\')" class="coach-banner" style="width:100%;text-align:left;border:1px solid rgba(124,92,252,.35);border-radius:16px;padding:16px 18px;margin-bottom:18px;cursor:pointer;background:radial-gradient(120% 200% at 100% 0,rgba(124,92,252,.16),transparent 60%);display:flex;align-items:center;gap:14px"><span style="width:44px;height:44px;border-radius:11px;background:var(--grad);display:grid;place-items:center;font-weight:700;color:#fff;flex:0 0 auto">'+escHtml(rep.grade||'—')+'</span><span style="flex:1;min-width:0"><b style="display:block">Your Edge Report</b><span class="hint" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(rep.headline||'')+'</span></span><span style="color:var(--violet-2);font-weight:600;flex:0 0 auto">Open →</span></button>'; }
+  const cr=Store.get('coachReport',null)||{}; const rep=cr.report;
+  if(rep){ const stale=cr.n&&Math.abs(n-cr.n)>=1; return '<button onclick="go(\'coach\')" class="coach-banner" style="width:100%;text-align:left;border:1px solid rgba(124,92,252,.35);border-radius:16px;padding:16px 18px;margin-bottom:18px;cursor:pointer;background:radial-gradient(120% 200% at 100% 0,rgba(124,92,252,.16),transparent 60%);display:flex;align-items:center;gap:14px"><span style="width:44px;height:44px;border-radius:11px;background:var(--grad);display:grid;place-items:center;font-weight:700;color:#fff;flex:0 0 auto">'+escHtml(rep.grade||'—')+'</span><span style="flex:1;min-width:0"><b style="display:block">Your Edge Report'+(stale?' <span class="hint" style="color:var(--gold);font-weight:600">· outdated</span>':'')+'</b><span class="hint" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(rep.headline||'')+'</span></span><span style="color:var(--violet-2);font-weight:600;flex:0 0 auto">'+(stale?'Update →':'Open →')+'</span></button>'; }
   return '<button onclick="go(\'coach\')" class="coach-banner" style="width:100%;text-align:left;border:1px solid rgba(124,92,252,.35);border-radius:16px;padding:16px 18px;margin-bottom:18px;cursor:pointer;background:radial-gradient(120% 200% at 100% 0,rgba(124,92,252,.16),transparent 60%);display:flex;align-items:center;gap:14px">'+svgi('sparkle',26,'var(--violet-2)')+'<span style="flex:1;min-width:0"><b style="display:block">Your AI coach is ready</b><span class="hint">It read '+n+' trades — get your personal Edge Report.</span></span><span style="color:var(--violet-2);font-weight:600;flex:0 0 auto">Generate →</span></button>';
 }
 function todayRisk(){
@@ -1061,7 +1061,10 @@ function coachEmpty(n){ return '<div class="card" style="text-align:center;paddi
 function renderCoachReport(rep,meta){
   const A=x=>Array.isArray(x)?x:[]; const E=escHtml;
   const when=meta&&meta.at?new Date(meta.at).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'';
+  const nowN=Store.trades().filter(t=>t&&typeof t.pnl==='number').length;
+  const stale=meta&&meta.n&&Math.abs(nowN-meta.n)>=1;
   return ''+
+  (stale?'<div class="card" style="border-color:rgba(255,196,61,.45);background:rgba(255,196,61,.07);margin-bottom:16px;padding:13px 16px"><div style="display:flex;gap:10px;align-items:center"><span style="color:var(--gold);flex:0 0 auto">'+svgi('warn',17,'currentColor')+'</span><span class="hint" style="color:var(--text)">Your journal changed since this report ('+meta.n+' → '+nowN+' trades). <button onclick="generateCoach()" style="background:none;border:none;color:var(--violet-2);font-weight:700;cursor:pointer;padding:0">Regenerate</button> for current numbers.</span></div></div>':'')+
   '<div class="card" style="background:radial-gradient(120% 130% at 100% 0,rgba(124,92,252,.16),transparent 55%);border-color:rgba(124,92,252,.35)">'+
     '<div class="row-sb"><div style="display:flex;align-items:center;gap:15px">'+
       '<div style="width:66px;height:66px;border-radius:16px;background:var(--grad);display:grid;place-items:center;font-family:var(--font-display,inherit);font-size:29px;font-weight:700;color:#fff;flex:0 0 auto">'+E(rep.grade||'—')+'</div>'+

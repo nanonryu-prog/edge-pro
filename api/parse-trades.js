@@ -81,7 +81,6 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-5',
         max_tokens: 3000,
-        temperature: 0,
         messages: [{ role: 'user', content: [
           { type: 'image', source: { type: 'base64', media_type, data: image } },
           { type: 'text', text: PROMPT }
