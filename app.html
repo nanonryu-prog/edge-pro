@@ -583,10 +583,55 @@ function coachBanner(){
   if(rep){ return '<button onclick="go(\'coach\')" class="coach-banner" style="width:100%;text-align:left;border:1px solid rgba(124,92,252,.35);border-radius:16px;padding:16px 18px;margin-bottom:18px;cursor:pointer;background:radial-gradient(120% 200% at 100% 0,rgba(124,92,252,.16),transparent 60%);display:flex;align-items:center;gap:14px"><span style="width:44px;height:44px;border-radius:11px;background:var(--grad);display:grid;place-items:center;font-weight:700;color:#fff;flex:0 0 auto">'+escHtml(rep.grade||'—')+'</span><span style="flex:1;min-width:0"><b style="display:block">Your Edge Report</b><span class="hint" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(rep.headline||'')+'</span></span><span style="color:var(--violet-2);font-weight:600;flex:0 0 auto">Open →</span></button>'; }
   return '<button onclick="go(\'coach\')" class="coach-banner" style="width:100%;text-align:left;border:1px solid rgba(124,92,252,.35);border-radius:16px;padding:16px 18px;margin-bottom:18px;cursor:pointer;background:radial-gradient(120% 200% at 100% 0,rgba(124,92,252,.16),transparent 60%);display:flex;align-items:center;gap:14px">'+svgi('sparkle',26,'var(--violet-2)')+'<span style="flex:1;min-width:0"><b style="display:block">Your AI coach is ready</b><span class="hint">It read '+n+' trades — get your personal Edge Report.</span></span><span style="color:var(--violet-2);font-weight:600;flex:0 0 auto">Generate →</span></button>';
 }
+function todayRisk(){
+  const st=Store.settings(); const today=new Date().toISOString().slice(0,10);
+  let loss=+st.dailyLossLimit||0; if(!loss){ try{ const ev=Store.activeEval&&Store.activeEval(); if(ev&&ev.dailyLoss)loss=ev.dailyLoss; }catch(e){} }
+  const maxT=+st.maxTradesPerDay||0;
+  const td=Store.trades().filter(t=>((t.date||'')+'').slice(0,10)===today);
+  const pnl=td.reduce((a,t)=>a+t.pnl,0), count=td.length;
+  let state='ok';
+  if(loss>0){ if(pnl<=-loss)state='stop'; else if(pnl<0&&Math.abs(pnl)>=0.7*loss)state='warn'; }
+  if(maxT>0&&count>=maxT)state='stop'; else if(maxT>0&&count>=Math.ceil(maxT*0.8)&&state==='ok')state='warn';
+  return {enabled:(loss>0||maxT>0),loss,maxT,pnl,count,state};
+}
+function riskGuardBanner(){
+  const r=todayRisk(); if(!r.enabled) return '';
+  const lossTxt=r.loss?('today '+money(r.pnl)+' / limit -'+money0(r.loss)):('today '+money(r.pnl));
+  const tradeTxt=r.maxT?(r.count+'/'+r.maxT+' trades'):(r.count+' trade'+(r.count===1?'':'s'));
+  if(r.state==='stop') return '<div class="card section-gap" style="border-color:rgba(245,71,107,.6);background:radial-gradient(120% 100% at 0 0,rgba(245,71,107,.14),transparent 60%)"><div style="display:flex;gap:14px;align-items:center"><span style="flex:0 0 auto;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:var(--loss);background:rgba(245,71,107,.16)">'+svgi('warn',22,'currentColor')+'</span><div><b style="color:var(--loss);font-size:16px">Stand down — daily limit hit</b><div class="hint" style="margin-top:3px">You\'re at '+lossTxt+' · '+tradeTxt+'. Protecting the day is the edge — close the platform, tomorrow\'s a fresh start.</div></div></div></div>';
+  if(r.state==='warn') return '<div class="card section-gap" style="border-color:rgba(255,196,61,.5);background:radial-gradient(120% 100% at 0 0,rgba(255,196,61,.1),transparent 60%)"><div style="display:flex;gap:14px;align-items:center"><span style="flex:0 0 auto;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:var(--gold);background:rgba(255,196,61,.14)">'+svgi('warn',22,'currentColor')+'</span><div><b style="color:var(--gold)">Careful — close to your daily limit</b><div class="hint" style="margin-top:3px">You\'re at '+lossTxt+' · '+tradeTxt+'. One more loss could end your day — take only your A+ setup now.</div></div></div></div>';
+  return '<div class="card section-gap" style="border-color:rgba(36,209,155,.3)"><div style="display:flex;gap:12px;align-items:center"><span style="flex:0 0 auto;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;color:var(--win);background:rgba(36,209,155,.14)">'+svgi('wave',20,'currentColor')+'</span><div><b>Within your daily limits</b> <span class="hint">· '+lossTxt+' · '+tradeTxt+'</span></div></div></div>';
+}
+function checkRiskGuard(){ const r=todayRisk(); if(r.state==='stop') riskStopModal(r); }
+function todayPlanKey(){ return new Date().toISOString().slice(0,10); }
+function todayPlan(){ const p=Store.get('plans',{})||{}; return p[todayPlanKey()]||null; }
+function openGamePlan(){ const p=todayPlan()||{bias:'Neutral',watchlist:'',levels:'',focus:''};
+  document.getElementById('detailInner').innerHTML='<div class="row-sb"><div class="card-title">Today\'s game plan</div><button class="modal-x" onclick="closeDetail()" aria-label="Close">✕</button></div>'+
+    '<div class="card-sub" style="margin-bottom:14px">Two minutes before the open beats two hours of regret. Plan the day, then trade the plan.</div>'+
+    '<div class="fgrp"><label class="flbl">Market bias</label><div class="seg" id="gp-bias">'+['Long','Neutral','Short'].map(b=>'<button type="button" class="seg-btn '+(p.bias===b?'on':'')+'" data-v="'+b+'" onclick="document.querySelectorAll(\'#gp-bias .seg-btn\').forEach(x=>x.classList.remove(\'on\'));this.classList.add(\'on\')">'+b+'</button>').join('')+'</div></div>'+
+    '<div class="fgrp" style="margin-top:14px"><label class="flbl">Watchlist</label><input class="finp" id="gp-watch" value="'+escHtml(p.watchlist||'')+'" placeholder="SOLUSD, BTCUSD, NAS100"></div>'+
+    '<div class="fgrp" style="margin-top:14px"><label class="flbl">Key levels / notes</label><textarea class="finp" id="gp-levels" placeholder="SOL 74.2 support · watch FVG at 75">'+escHtml(p.levels||'')+'</textarea></div>'+
+    '<div class="fgrp" style="margin-top:14px"><label class="flbl">One focus for today</label><input class="finp" id="gp-focus" value="'+escHtml(p.focus||'')+'" placeholder="Wait for confluence. No revenge trades."></div>'+
+    '<div style="display:flex;gap:12px;margin-top:18px"><button class="btn btn-primary" onclick="saveGamePlan()">Save plan (+5 XP)</button><button class="btn btn-ghost" onclick="closeDetail()">Cancel</button></div>';
+  document.getElementById('detailModal').classList.add('show');
+}
+function saveGamePlan(){ const p=Store.get('plans',{})||{}; const on=document.querySelector('#gp-bias .seg-btn.on'); const bias=on?on.dataset.v:'Neutral'; const existed=!!p[todayPlanKey()]; p[todayPlanKey()]={bias,watchlist:$('#gp-watch').value.trim(),levels:$('#gp-levels').value.trim(),focus:$('#gp-focus').value.trim()}; Store.set('plans',p); if(!existed)addXP(5); closeDetail(); toast('Game plan set — now trade it','good'); if(current==='dash')VIEWS.dash(); }
+function gamePlanCard(){ const p=todayPlan();
+  if(!p) return '<button onclick="openGamePlan()" class="coach-banner" style="width:100%;text-align:left;border:1px dashed var(--border-2);border-radius:16px;padding:15px 18px;margin-bottom:18px;cursor:pointer;background:transparent;display:flex;align-items:center;gap:13px">'+svgi('target',22,'var(--violet-2)')+'<span style="flex:1;min-width:0"><b>Set today\'s game plan</b> <span class="hint">· plan the day before you trade it</span></span><span style="color:var(--violet-2);font-weight:600;flex:0 0 auto">Plan →</span></button>';
+  const biasCol=p.bias==='Long'?'var(--win)':p.bias==='Short'?'var(--loss)':'var(--muted)';
+  return '<div class="card section-gap"><div class="row-sb"><div class="card-title" style="font-size:15px">Today\'s game plan</div><button class="btn btn-ghost btn-sm" onclick="openGamePlan()">Edit</button></div><div style="display:flex;gap:26px;flex-wrap:wrap;margin-top:12px">'+
+    '<div><div class="hint" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Bias</div><b style="color:'+biasCol+';font-size:16px">'+escHtml(p.bias||'Neutral')+'</b></div>'+
+    (p.watchlist?'<div style="min-width:0"><div class="hint" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Watchlist</div><b>'+escHtml(p.watchlist)+'</b></div>':'')+
+    (p.focus?'<div style="flex:1;min-width:180px"><div class="hint" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Focus</div><b>'+escHtml(p.focus)+'</b></div>':'')+
+    '</div>'+(p.levels?'<div class="hint" style="margin-top:10px;line-height:1.5;white-space:pre-wrap">'+escHtml(p.levels)+'</div>':'')+'</div>';
+}
+function riskStopModal(r){ const el=document.getElementById('detailInner'); if(!el)return; const reason=(r.maxT&&r.count>=r.maxT)?('You\'ve taken '+r.count+' trades — your daily max.'):('You\'re down '+money(r.pnl)+', past your -'+money0(r.loss)+' daily limit.'); el.innerHTML='<div style="text-align:center;padding:14px 8px"><div style="display:flex;justify-content:center;margin-bottom:14px"><span style="width:64px;height:64px;border-radius:16px;display:grid;place-items:center;color:var(--loss);background:rgba(245,71,107,.14)">'+svgi('warn',34,'currentColor')+'</span></div><div class="card-title" style="font-size:23px;color:var(--loss)">Stand down for today</div><p class="hint" style="max-width:400px;margin:12px auto 0;line-height:1.6">'+reason+' The market will be here tomorrow — your account and your challenge won\'t be if you keep pushing. Protecting the day IS the edge.</p><button class="btn btn-primary" style="margin-top:20px" onclick="closeDetail()">I\'m done for today</button></div>'; document.getElementById('detailModal').classList.add('show'); }
 VIEWS.dash=function(){
   const s=stats(); const li=levelInfo(); const eq=s.acct+s.net; const pct=s.net/s.acct*100;
   const disBadge = s.dis>=90?'GREAT':s.dis>=70?'GOOD':s.dis>=50?'OK':'WORK';
   $('#view').innerHTML=`
+    ${riskGuardBanner()}
+    ${gamePlanCard()}
     ${coachBanner()}
     <div class="grid kpis">
       ${kpi('Win rate',s.wr+'%',s.wr>=50?'win':(s.tr.length?'loss':'win'),s.wins+'W · '+s.losses+'L')}
@@ -958,8 +1003,28 @@ VIEWS.achievements=function(){
         </div>`; }).join('')}
       </div>
       <div class="hint" style="margin-top:16px">Loyalty perks turn into real discount codes the moment payments go live.</div>
-    </div>`;
+    </div>
+    ${personalRecordsCard()}`;
 };
+function personalRecordsCard(){
+  const tr=Store.trades(); if(!tr.length) return '';
+  const dm={}; tr.forEach(t=>{ const d=(t.date||'').slice(0,10); dm[d]=(dm[d]||0)+t.pnl; });
+  const days=Object.values(dm); const bestDay=days.length?Math.max(...days):0, worstDay=days.length?Math.min(...days):0;
+  const dc={}; tr.forEach(t=>{ const d=(t.date||'').slice(0,10); dc[d]=(dc[d]||0)+1; });
+  const busiest=Object.values(dc).length?Math.max(...Object.values(dc)):0;
+  const chron=tr.slice().sort((a,b)=>((a.date||'')+'').localeCompare((b.date||'')+'')); let ws=0,maxWs=0; chron.forEach(t=>{ if(t.pnl>0){ws++;maxWs=Math.max(maxWs,ws);}else if(t.pnl<0)ws=0; });
+  const greenDays=days.filter(v=>v>0).length;
+  const bigWin=Math.max(0,...tr.map(t=>t.pnl));
+  const recs=[
+    {i:'chartup',n:'Best day',v:money(bestDay),c:bestDay>=0?'win':'loss'},
+    {i:'bolt',n:'Biggest win',v:money(bigWin),c:'win'},
+    {i:'flame',n:'Longest win streak',v:maxWs+' trade'+(maxWs===1?'':'s'),c:'violet'},
+    {i:'calendar',n:'Green days',v:greenDays+'',c:'win'},
+    {i:'wave',n:'Busiest day',v:busiest+' trade'+(busiest===1?'':'s'),c:''},
+    {i:'chartdown',n:'Worst day',v:money(worstDay),c:worstDay<0?'loss':''},
+  ];
+  return '<div class="card section-gap"><div class="card-title">Personal records</div><div class="card-sub">Your milestones so far — chase your own bests.</div><div class="grid kpis" style="margin-top:16px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">'+recs.map(r=>'<div class="kpi"><div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">'+svgi(r.i,15,'var(--violet-2)')+'<span class="card-label">'+r.n+'</span></div><div class="kval '+(r.c||'')+'" style="font-size:24px">'+r.v+'</div></div>').join('')+'</div></div>';
+}
 function claimReward(id,xp){ const c=Store.get('rewardsClaimed',[]); if(c.includes(id))return; c.push(id); Store.set('rewardsClaimed',c); addXP(xp); confetti(); toast('Reward claimed · +'+xp+' XP','good'); VIEWS.achievements(); }
 /* ---- AI Trade Coach ---- */
 function escHtml(x){ return (x==null?'':String(x)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -1162,6 +1227,13 @@ VIEWS.settings=function(){
         <div class="fgrp"><label class="flbl">Session start (HH:MM)</label><input class="finp" type="time" id="st-session" value="${st.sessionStart||'09:30'}"></div>
       </div>
     </div>
+    <div class="card set-section"><h3>Daily risk guardrail</h3><div class="card-sub" style="margin-bottom:12px">EDGE warns you the moment you're about to blow your day. Leave blank to turn off.</div>
+      <div class="form-grid" style="margin-top:4px">
+        <div class="fgrp"><label class="flbl">Daily loss limit ($)</label><input class="finp" type="number" step="1" id="st-dll" value="${st.dailyLossLimit||''}" placeholder="e.g. 300"></div>
+        <div class="fgrp"><label class="flbl">Max trades / day</label><input class="finp" type="number" step="1" id="st-mtd" value="${st.maxTradesPerDay||''}" placeholder="e.g. 5"></div>
+      </div>
+      <div class="hint" style="margin-top:8px">Prop traders: set this to your challenge's daily loss limit and never fail on a tilt day again.</div>
+    </div>
     <div class="card set-section"><h3>Notifications</h3>
       <div class="toggle"><div><b style="font-size:13.5px">Session start reminder</b><div class="hint">Ping me when my session opens</div></div><div class="sw ${n.session?'on':''}" id="nt-session" onclick="this.classList.toggle('on')"></div></div>
       <div class="toggle"><div><b style="font-size:13.5px">Daily journal reminder</b><div class="hint">Nudge me to journal each day</div></div><div class="sw ${n.journal?'on':''}" id="nt-journal" onclick="this.classList.toggle('on')"></div></div>
@@ -1209,7 +1281,7 @@ function qSel(g,btn){ btn.parentElement.querySelectorAll('.seg-btn').forEach(b=>
 function qRepeatLast(){ const tr=Store.trades(); const l=tr[tr.length-1]; if(!l)return; const sym=$('#q-sym'); if(sym)sym.value=l.symbol||''; window._qSide=l.side||'long'; document.querySelectorAll('#qForm .seg-btn[data-v="long"],#qForm .seg-btn[data-v="short"]').forEach(b=>b.classList.toggle('on',b.dataset.v===window._qSide)); window._qSetups=(l.tags||[]).filter(t=>t!=='imported'&&t!=='open'); document.querySelectorAll('#qSetups .chip-tag:not(.chip-add)').forEach(b=>b.classList.toggle('on',window._qSetups.includes(b.dataset.v))); const p=$('#q-pnl'); if(p)p.focus(); }
 function saveQuick(e){ e.preventDefault(); const _b=achCount(); const rt=(Store.playbooks()[0]||{rules:[]}).rules.length; const followed=window._qRules!=='no';
   const t={id:Date.now(),date:new Date().toISOString().slice(0,10),time:new Date().toTimeString().slice(0,5),symbol:($('#q-sym').value||'—').toUpperCase().trim(),side:window._qSide||'long',entry:null,exit:null,size:null,stop:null,target:null,pnl:parseFloat($('#q-pnl').value)||0,rr:null,emotion:'',tilt:null,rulesFollowed:(rt?(followed?rt:0):0),rulesTotal:rt,notes:'',shot:null,account:'',tags:(window._qSetups||[]).slice(),mistakes:(window._qMistakes||[]).slice()};
-  const a=Store.trades(); a.push(t); Store.saveTrades(a); const xp=10+(followed&&rt?5:0); addXP(xp); closeLog(); toast('Trade logged · +'+xp+' XP','good'); celebrateNewAch(_b); go(current); checkGoalRewards(); }
+  const a=Store.trades(); a.push(t); Store.saveTrades(a); const xp=10+(followed&&rt?5:0); addXP(xp); closeLog(); toast('Trade logged · +'+xp+' XP','good'); celebrateNewAch(_b); go(current); checkGoalRewards(); checkRiskGuard(); }
 function openLog(editId){ window._editId=editId||null;
   const rules=(Store.playbooks()[0]||{rules:[]}).rules;
   $('#logModalInner').innerHTML=`<div class="row-sb"><div class="card-title">${editId?'Edit trade':'Log a trade'}</div><button class="modal-x" onclick="closeLog()">✕</button></div>
@@ -1259,7 +1331,7 @@ function saveTradeModal(ev){ ev.preventDefault(); const _b=achCount();
     rulesFollowed:followed,rulesTotal:rules.length,notes:$('#m-notes').value.trim(),shot:window._pendingShot||null,account:($('#m-account')?$('#m-account').value:''),tags:($('#m-tags')?$('#m-tags').value.split(',').map(x=>x.trim()).filter(Boolean):[]),mistakes:[...document.querySelectorAll('#m-mistakes .chip-miss.on')].map(b=>b.dataset.v)};
   if(window._editId){ const arr=Store.trades(); const i=arr.findIndex(x=>x.id===window._editId); t.id=window._editId; if(i>=0)arr[i]=t; Store.saveTrades(arr); window._editId=null; closeLog(); toast('Trade updated','good'); go(current); return; }
   const a=Store.trades(); a.push(t); Store.saveTrades(a); addXP(10+(followed===rules.length&&rules.length?5:0));
-  closeLog(); toast('Trade logged','good'); go(current==='trades'?'trades':'dash'); celebrateNewAch(_b); checkGoalRewards();
+  closeLog(); toast('Trade logged','good'); go(current==='trades'?'trades':'dash'); celebrateNewAch(_b); checkGoalRewards(); checkRiskGuard();
 }
 
 /* ---- actions ---- */
@@ -1283,6 +1355,7 @@ function saveSettings(){ const st=Store.settings();
   st.name=$('#st-name').value; st.account=+$('#st-acct').value||10000;
   st.style=$('#st-style').value; st.timezone=$('#st-tz').value; st.currency=$('#st-cur').value;
   st.risk=+$('#st-risk').value||1; st.rrTarget=+$('#st-rr').value||2; st.commission=+$('#st-comm').value||0;
+  if($('#st-dll'))st.dailyLossLimit=+$('#st-dll').value||0; if($('#st-mtd'))st.maxTradesPerDay=+$('#st-mtd').value||0;
   st.notif={session:$('#nt-session').classList.contains('on'),journal:$('#nt-journal').classList.contains('on'),goals:$('#nt-goals').classList.contains('on')};
   if($('#st-session'))st.sessionStart=$('#st-session').value;
   Store.saveSettings(st);
@@ -1514,7 +1587,7 @@ function toggleMenu(force){ const m=$('#userMenu'); const open=force===undefined
 document.addEventListener('click',e=>{ if(!e.target.closest('.avatar-wrap')) toggleMenu(false); });
 
 /* ---- data export / import / delete ---- */
-const DATA_KEYS=['trades','playbooks','journal','goals','eval','profile','weeks','settings','coachReport'];
+const DATA_KEYS=['trades','playbooks','journal','goals','eval','profile','weeks','settings','coachReport','plans'];
 function exportData(){ const out={}; DATA_KEYS.forEach(b=>out[b]=Store.get(b,null)); const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='edgepro-'+session.email+'.json'; a.click(); toast('Data exported','good'); }
 function importData(input){ const f=input.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(r.result); DATA_KEYS.forEach(b=>{ if(d[b]!=null) Store.set(b,d[b]); }); toast('Data imported','good'); renderXP(); go('dash'); }catch{ toast('Invalid file'); } }; r.readAsText(f); }
 function parseCSV(text){ const rows=[]; text.split(/\r?\n/).forEach(line=>{ if(!line.trim())return; const cells=[]; let cur='',q=false; for(let i=0;i<line.length;i++){ const c=line[i]; if(c==='"'){ if(q&&line[i+1]==='"'){cur+='"';i++;} else q=!q; } else if(c===','&&!q){ cells.push(cur);cur=''; } else cur+=c; } cells.push(cur); rows.push(cells); }); return rows; }
@@ -1564,6 +1637,7 @@ document.addEventListener('keydown',e=>{ if(e.key!=='n'&&e.key!=='N')return; if(
 /* command palette (⌘/Ctrl+K) */
 function cmdActions(){ const acts=[
   {label:'Log a trade',icon:'+',run:()=>quickLog(),kw:'log trade new add quick record'},
+  {label:'Set today\'s game plan',icon:'◎',run:()=>openGamePlan(),kw:'game plan bias watchlist prepare pre-market'},
   {label:'AI Coach — Edge Report',icon:'✦',run:()=>go('coach'),kw:'coach ai report advice'},
   {label:'Share Edge Card',icon:'↗',run:()=>shareCard(),kw:'share card export flex stats'},
   {label:'Import history (CSV)',icon:'⬇',run:()=>{ const i=document.createElement('input'); i.type='file'; i.accept='.csv,text/csv'; i.onchange=()=>importCSV(i); i.click(); },kw:'import csv broker history upload'},

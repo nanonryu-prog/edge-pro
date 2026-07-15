@@ -10,6 +10,8 @@ Rules:
 - A high win rate with small wins is a valid edge — protect it by keeping losses small. Only warn if avg loss is near/above avg win.
 - If a tag/setup clearly performs best, name it as their money-maker.
 - Keep every string tight. No markdown, no emoji, no preamble.
+- ACCURACY IS CRITICAL: only cite numbers that literally appear in the provided data. NEVER invent, guess, or estimate a statistic that isn't given, and never restate a number inaccurately. If a figure isn't in the data, speak qualitatively instead of stating a number.
+- Respect sample size: a tag, emotion or mistake based on very few trades (roughly under 5) is an early signal, not a proven pattern — say so rather than overclaiming.
 - Give a fair letter grade for overall trading discipline & edge (A+ down to F): reward good discipline, positive expectancy and consistency; penalise rule-breaking and losses bigger than wins.
 
 Return ONLY a JSON object (no markdown fences), shaped exactly:
@@ -59,6 +61,7 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-5',
         max_tokens: 1400,
+        temperature: 0.2,
         system: SYSTEM,
         messages: [{ role: 'user', content: "Here is my aggregated trading journal. Give me my Edge Report.\n\n" + JSON.stringify(brief) }]
       })
