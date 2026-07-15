@@ -772,7 +772,9 @@ VIEWS.reports=function(){
     </div>
     <div class="two-col section-gap"><div class="card">${reportTable('By symbol',bySym)}</div><div class="card">${reportTable('By emotion',byEmo)}</div></div>
     <div class="two-col section-gap"><div class="card">${reportTable('By weekday',byDay)}</div><div class="card">${rrDistribution(tr)}</div></div>
+    ${improvementCard(tr)}
     ${sessionSection(tr)}
+    ${whatIfCard(tr)}
     ${mistakeReport(tr)}
     ${(()=>{const tg=tagStat(tr);return tg.length?`<div class="card section-gap">${reportTable('By tag',tg)}<div class="hint" style="margin-top:10px">Tag your setups when logging trades to see which ones actually make you money.</div></div>`:`<div class="card section-gap"><div class="card-title">By tag</div><div class="hint" style="margin-top:10px">Add tags like “breakout” or “news” when you log a trade — then see which setups win here.</div></div>`;})()}`;
 };
@@ -1409,6 +1411,37 @@ function mistakeStat(tr){ const m={}; tr.forEach(t=>{ (t.mistakes||[]).forEach(m
 function mistakeReport(tr){ const ms=mistakeStat(tr); if(!ms.length) return '';
   const totalCost=ms.filter(m=>m.net<0).reduce((a,m)=>a+m.net,0); const max=Math.max(1,...ms.map(x=>Math.abs(x.net)));
   return '<div class="card section-gap"><div class="row-sb"><div class="card-title">Your costliest mistakes</div>'+(totalCost<0?'<span class="pct-pill neg">'+money(totalCost)+' leaked</span>':'')+'</div><div style="margin-top:14px">'+ms.slice(0,8).map(m=>{ const bad=m.net<0; return '<div style="margin-bottom:12px"><div class="row-sb" style="margin-bottom:5px"><span style="font-weight:600">'+escHtml(m.k)+' <span class="hint">· '+m.n+'×</span></span><b class="mono '+(bad?'neg':'pos')+'">'+money(m.net)+'</b></div><div class="pbar-tr"><div class="pbar-fl" style="width:'+Math.max(4,Math.abs(m.net)/max*100)+'%;background:'+(bad?'var(--loss)':'var(--win)')+'"></div></div></div>'; }).join('')+'</div><div class="hint" style="margin-top:8px">Tag mistakes when you log a trade — then kill your most expensive habit first.</div></div>'; }
+function whatIfCard(tr){
+  if(tr.length<8) return '';
+  const net=Math.round(tr.reduce((a,t)=>a+t.pnl,0));
+  const breaks=tr.filter(t=>t.rulesTotal>0&&t.rulesFollowed<t.rulesTotal);
+  const breakNet=Math.round(breaks.reduce((a,t)=>a+t.pnl,0));
+  const potential=net-breakNet;
+  const worst3=tr.slice().sort((a,b)=>a.pnl-b.pnl).slice(0,3); const worst3Net=Math.round(worst3.reduce((a,t)=>a+t.pnl,0));
+  const items=[];
+  if(breaks.length&&breakNet<0) items.push(['Rule-breaks cost you',money(breakNet),breaks.length+' trade'+(breaks.length===1?'':'s')+' where you broke your plan']);
+  if(worst3Net<0) items.push(['Your 3 worst trades',money(worst3Net),'were any of them avoidable?']);
+  const ms=(typeof mistakeStat==='function')?mistakeStat(tr):[]; const topMiss=ms[0];
+  if(topMiss&&topMiss.net<0) items.push(['Costliest habit — '+topMiss.k,money(topMiss.net),topMiss.n+'× · fix this one first']);
+  if(!items.length) return '';
+  const showP=breaks.length&&breakNet<0;
+  return '<div class="card section-gap" style="border-color:rgba(124,92,252,.3)"><div class="card-title">The math of your habits</div><div class="card-sub">What your leaks actually cost — and what fixing them is worth.</div>'+
+    (showP?'<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;margin:18px 0 8px"><div><div class="hint" style="text-transform:uppercase;font-size:11px;letter-spacing:.5px">Your net</div><b class="mono '+(net>=0?'pos':'neg')+'" style="font-size:26px">'+money(net)+'</b></div><div style="color:var(--muted);font-size:22px">→</div><div><div class="hint" style="text-transform:uppercase;font-size:11px;letter-spacing:.5px">If you\'d followed your rules</div><b class="mono pos" style="font-size:26px">'+money(potential)+'</b></div><span class="pct-pill" style="align-self:center">+'+money0(Math.abs(potential-net))+' left on the table</span></div>':'')+
+    '<div style="margin-top:14px">'+items.map(it=>'<div class="row-sb" style="padding:10px 0;border-top:1px solid var(--border)"><div style="min-width:0"><b>'+escHtml(it[0])+'</b><div class="hint">'+escHtml(it[2])+'</div></div><b class="mono neg" style="flex:0 0 auto">'+it[1]+'</b></div>').join('')+'</div></div>';
+}
+function improvementCard(tr){
+  if(tr.length<10) return '';
+  const chron=tr.slice().sort((a,b)=>((a.date||'')+'').localeCompare((b.date||'')+''));
+  const half=Math.floor(chron.length/2); const early=chron.slice(0,half), recent=chron.slice(half);
+  const m=arr=>{ const n=arr.length,net=arr.reduce((a,t)=>a+t.pnl,0),w=arr.filter(t=>t.pnl>0).length; const g=arr.filter(t=>t.rulesTotal>0); const dis=g.length?Math.round(g.reduce((a,t)=>a+t.rulesFollowed/t.rulesTotal,0)/g.length*100):null; return {wr:n?Math.round(w/n*100):0,exp:n?Math.round(net/n):0,dis}; };
+  const e=m(early), r=m(recent);
+  const row=(label,ev,rv,fmt)=>{ const d=(rv==null||ev==null)?null:rv-ev; const col=(d==null||d===0)?'var(--muted)':(d>0?'var(--win)':'var(--loss)'); const arrow=d==null?'':(d>0?'▲':d<0?'▼':'—'); return '<div class="row-sb" style="padding:11px 0;border-top:1px solid var(--border)"><span style="font-weight:600">'+label+'</span><span style="display:flex;gap:16px;align-items:center"><span class="hint mono">'+fmt(ev)+' → '+fmt(rv)+'</span><b class="mono" style="color:'+col+';min-width:52px;text-align:right">'+arrow+' '+(d==null?'—':fmt(Math.abs(d)))+'</b></span></div>'; };
+  return '<div class="card section-gap"><div class="card-title">Are you improving?</div><div class="card-sub">Your recent half vs your earlier half — the trend that actually matters.</div><div style="margin-top:6px">'+
+    row('Win rate',e.wr,r.wr,v=>v+'%')+
+    row('Expectancy / trade',e.exp,r.exp,v=>money(v))+
+    row('Discipline',e.dis,r.dis,v=>v==null?'—':v+'')+
+    '</div></div>';
+}
 function rrDistribution(tr){ const b=[['< 1:1',t=>t.rr!=null&&t.rr<1],['1:1 – 2:1',t=>t.rr!=null&&t.rr>=1&&t.rr<2],['2:1 – 3:1',t=>t.rr!=null&&t.rr>=2&&t.rr<3],['3:1 +',t=>t.rr!=null&&t.rr>=3]];
   const rows=b.map(([label,f])=>{const set=tr.filter(f); const w=set.filter(t=>t.pnl>0).length; return {label,n:set.length,wr:set.length?Math.round(w/set.length*100):0,net:set.reduce((a,t)=>a+t.pnl,0)};}); const max=Math.max(1,...rows.map(r=>r.n));
   return `<div class="card-title">R:R distribution</div><div class="card-sub">Where your trades land, and how each band performs</div><div style="margin-top:16px;display:flex;flex-direction:column;gap:14px">${rows.map(r=>`<div><div class="pbar-top"><span>${r.label} · <span class="mono">${r.n}</span> trades · ${r.wr}% win</span><b class="mono ${r.net>=0?'pos':'neg'}">${money(r.net)}</b></div><div class="pbar-tr"><div class="pbar-fl" style="width:${Math.max(2,Math.round(r.n/max*100))}%;background:linear-gradient(90deg,${r.net>=0?'var(--win)':'var(--loss)'},var(--violet-2))"></div></div></div>`).join('')}</div>`; }
