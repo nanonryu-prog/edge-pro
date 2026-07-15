@@ -44,6 +44,7 @@ If it is a trade-HISTORY TABLE, each data ROW (with date/time, symbol, side, ope
 === CHART WITH A LIVE POSITION ===
 A chart usually shows at MOST ONE real position (sometimes zero, occasionally a couple if genuinely pyramiding the same symbol). If you see a real position (currency P&L, quantity, close "X"), output exactly ONE trade for it. If the position is still running, set "status":"open" and use the floating P&L. If nothing but candles, indicators and signal arrows are present with no real position, return "trades":[].
 
+All numeric fields must be plain JSON numbers — no quotes, no currency symbols, no thousands separators (write 1234.5, not "1,234.50 USD"). If a mark could be a drawn plan/projection rather than a really-executed fill, leave it out. Before you answer, RECOUNT: the number of items in "trades" MUST equal "positions" — if they differ you double-counted; fix it.
 If you truly cannot read any real trade, return {"source":"other","positions":0,"notes":"...","trades":[]}.
 Example: {"source":"chart","positions":1,"notes":"one open SOL short with SL trailed to profit and a TP line","trades":[{"date":"2026-07-14","symbol":"SOLUSD","side":"short","pnl":337.09,"entry":75.09,"exit":null,"stop":74.99,"target":74.88,"rr":2.0,"status":"open"}]}`;
 
@@ -80,6 +81,7 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-5',
         max_tokens: 3000,
+        temperature: 0,
         messages: [{ role: 'user', content: [
           { type: 'image', source: { type: 'base64', media_type, data: image } },
           { type: 'text', text: PROMPT }
@@ -90,8 +92,27 @@ module.exports = async function handler(req, res) {
     if (!r.ok) { res.status(502).json({ error: (data.error && data.error.message) || 'AI request failed' }); return; }
     const text = (data.content || []).map(c => c.text || '').join('');
     let trades = extractTrades(text);
-    // sanity: drop anything without a usable P&L number
-    trades = trades.filter(t => t && typeof t.pnl === 'number' && !isNaN(t.pnl)).slice(0, 100);
+    // normalize + coerce string numbers (models sometimes return "1,234.50 USD")
+    const num = v => { if (v == null || v === '') return null; const n = parseFloat(String(v).replace(/[^0-9.\-]/g, '')); return isNaN(n) ? null : n; };
+    const norm = t => {
+      if (!t || typeof t !== 'object') return null;
+      const pnl = num(t.pnl);
+      if (pnl === null) return null; // no usable P&L → not a trade
+      let side = String(t.side || '').toLowerCase();
+      side = (side.includes('short') || side.includes('sell')) ? 'short' : 'long';
+      return {
+        date: t.date ? String(t.date).slice(0, 10) : null,
+        symbol: t.symbol ? String(t.symbol).toUpperCase().trim() : '—',
+        side, pnl,
+        entry: num(t.entry), exit: num(t.exit), stop: num(t.stop), target: num(t.target), rr: num(t.rr),
+        status: String(t.status || '').toLowerCase() === 'open' ? 'open' : 'closed'
+      };
+    };
+    trades = trades.map(norm).filter(Boolean);
+    // guard against one position being read twice: drop exact duplicates
+    const seen = new Set();
+    trades = trades.filter(t => { const k = [t.date, t.symbol, t.side, t.pnl, t.entry, t.exit].join('|'); if (seen.has(k)) return false; seen.add(k); return true; });
+    trades = trades.slice(0, 100);
     res.status(200).json({ trades });
   } catch (e) {
     res.status(500).json({ error: e.message || 'Server error' });
