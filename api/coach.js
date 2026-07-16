@@ -1,4 +1,5 @@
 // EDGE Pro — AI Trade Coach. Turns a trader's own aggregated journal into a
+const guardAbuse = require('./_guard');
 // personal "Edge Report". Runs on Vercel. Needs env var ANTHROPIC_API_KEY.
 
 const SYSTEM = `You are EDGE Pro's AI trading coach — sharp, honest, and encouraging like a great mentor, never generic. You are given ONE trader's aggregated journal statistics (already computed and accurate — trust them, do not recalculate). Your job is to read the numbers like a coach and hand back a short, punchy, personal report.
@@ -46,6 +47,7 @@ function extractReport(text) {
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({ error: 'POST only' }); return; }
+  if (!guardAbuse(req, res)) return;
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) { res.status(503).json({ error: 'AI coach is not configured yet. Add ANTHROPIC_API_KEY in Vercel.' }); return; }
   try {

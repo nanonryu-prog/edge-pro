@@ -1,4 +1,5 @@
 // EDGE Pro — EDGE AI chat assistant. A conversational trading coach that can
+const guardAbuse = require('./_guard');
 // answer anything and is grounded in the trader's own journal.
 // Runs on Vercel. Needs env var ANTHROPIC_API_KEY (server-side only).
 
@@ -31,6 +32,7 @@ Style: warm, direct, no fluff. You're in a chat window — keep answers focused 
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({ error: 'POST only' }); return; }
+  if (!guardAbuse(req, res)) return;
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) { res.status(503).json({ error: 'EDGE AI is not configured yet. Add ANTHROPIC_API_KEY in Vercel.' }); return; }
   try {

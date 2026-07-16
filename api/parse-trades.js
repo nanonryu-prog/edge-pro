@@ -1,4 +1,5 @@
 // EDGE Pro — AI trade extraction from a broker/prop-firm screenshot or chart.
+const guardAbuse = require('./_guard');
 // Runs on Vercel. Needs env var ANTHROPIC_API_KEY (server-side only — never in client code).
 
 const PROMPT = `You extract a trader's REAL trades from a screenshot. The screenshot is either a trade-HISTORY TABLE or a price CHART (candlesticks). Your #1 job: count trades correctly. ONE trade must never be split into two or more.
@@ -79,6 +80,7 @@ function extractTrades(text) {
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({ error: 'POST only' }); return; }
+  if (!guardAbuse(req, res)) return;
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) { res.status(503).json({ error: 'AI import is not configured yet. Add ANTHROPIC_API_KEY in Vercel.' }); return; }
   try {
