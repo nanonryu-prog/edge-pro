@@ -1855,10 +1855,10 @@ function setTheme(p){ localStorage.setItem('edgepro_theme',p); applyTheme(); toa
 function cycleTheme(){ const o=['auto','light','dark']; setTheme(o[(o.indexOf(getThemePref())+1)%3]); }
 /* ---- seasonal theming: recolours the whole app + themed effects, only on the real event ---- */
 const SEASONS={
-  halloween:{emoji:'🎃',name:'Halloween',grad:'linear-gradient(135deg,#FF7A1A 0%,#FF5C1A 42%,#7C3AED 100%)',v1:'#FF8A2A',v2:'#FFA75C',pink:'#B15CFF',mode:'spooky'},
-  christmas:{emoji:'🎄',name:'Christmas',grad:'linear-gradient(135deg,#E23B3B 0%,#D4462E 42%,#2FB86B 100%)',v1:'#2FB86B',v2:'#57D98A',pink:'#E23B3B',mode:'snow'},
-  newyear:{emoji:'🎆',name:'New Year',grad:'linear-gradient(135deg,#FFC43D 0%,#FF8A3D 45%,#E15CC6 100%)',v1:'#FFB01F',v2:'#FFD873',pink:'#FF8A3D',mode:'confetti'},
-  valentine:{emoji:'💗',name:"Valentine's",grad:'linear-gradient(135deg,#FF5C8A 0%,#FF3D6E 45%,#E15CC6 100%)',v1:'#FF5C8A',v2:'#FF87AB',pink:'#FF3D6E',mode:'hearts'}
+  halloween:{emoji:'🎃',name:'Halloween',grad:'linear-gradient(135deg,#FF7A1A 0%,#FF5C1A 42%,#7C3AED 100%)',v1:'#FF8A2A',v2:'#FFA75C',pink:'#B15CFF',mode:'spooky',bg:'#140A05',bg2:'#1B0F1A',glow:'radial-gradient(900px 520px at 50% -6%,rgba(255,122,26,.16),transparent 55%),radial-gradient(720px 520px at 88% 18%,rgba(124,58,237,.15),transparent 55%)'},
+  christmas:{emoji:'🎄',name:'Christmas',grad:'linear-gradient(135deg,#E23B3B 0%,#D4462E 42%,#2FB86B 100%)',v1:'#2FB86B',v2:'#57D98A',pink:'#E23B3B',mode:'snow',bg:'#07120E',bg2:'#0D1A12',glow:'radial-gradient(900px 520px at 15% -6%,rgba(47,184,107,.18),transparent 55%),radial-gradient(880px 520px at 88% 2%,rgba(226,59,59,.15),transparent 55%)'},
+  newyear:{emoji:'🎆',name:'New Year',grad:'linear-gradient(135deg,#FFC43D 0%,#FF8A3D 45%,#E15CC6 100%)',v1:'#FFB01F',v2:'#FFD873',pink:'#FF8A3D',mode:'confetti',bg:'#12100A',bg2:'#191509',glow:'radial-gradient(900px 520px at 50% -6%,rgba(255,196,61,.17),transparent 55%),radial-gradient(720px 520px at 15% 28%,rgba(225,92,198,.13),transparent 55%)'},
+  valentine:{emoji:'💗',name:"Valentine's",grad:'linear-gradient(135deg,#FF5C8A 0%,#FF3D6E 45%,#E15CC6 100%)',v1:'#FF5C8A',v2:'#FF87AB',pink:'#FF3D6E',mode:'hearts',bg:'#160A11',bg2:'#1E0F19',glow:'radial-gradient(900px 520px at 30% -6%,rgba(255,92,138,.17),transparent 55%),radial-gradient(720px 520px at 85% 12%,rgba(225,92,198,.14),transparent 55%)'}
 };
 function currentSeason(){ const d=new Date(),m=d.getMonth()+1,day=d.getDate();
   if(m===10&&day>=20) return 'halloween';
@@ -1872,10 +1872,12 @@ function activeSeasonId(){ if(_seasonPreview!==undefined) return _seasonPreview;
 function applySeasonal(){ const root=document.documentElement; const id=activeSeasonId(); const s=id?SEASONS[id]:null;
   if(window._seasonRAF){ cancelAnimationFrame(window._seasonRAF); window._seasonRAF=null; }
   const oldCv=document.getElementById('seasonCv'); if(oldCv)oldCv.remove();
-  ['--grad','--violet','--violet-2','--pink'].forEach(v=>root.style.removeProperty(v));
+  ['--grad','--violet','--violet-2','--pink','--bg','--bg-2'].forEach(v=>root.style.removeProperty(v)); document.body.style.removeProperty('background');
   const brand=document.querySelector('.hdr .brand'); let b=document.getElementById('seasonBadge');
   if(!s){ if(b)b.remove(); return; }
   root.style.setProperty('--grad',s.grad); root.style.setProperty('--violet',s.v1); root.style.setProperty('--violet-2',s.v2); root.style.setProperty('--pink',s.pink);
+  if(s.bg)root.style.setProperty('--bg',s.bg); if(s.bg2)root.style.setProperty('--bg-2',s.bg2);
+  if(s.glow)document.body.style.background=s.glow+',var(--bg)';
   if(!b&&brand){ b=document.createElement('span'); b.id='seasonBadge'; b.style.cssText='margin-left:8px;font-size:17px;cursor:default'; brand.appendChild(b); } if(b){ b.textContent=s.emoji; b.title=s.name; }
   if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches) startSeasonParticles(s.mode);
 }
