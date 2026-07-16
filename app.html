@@ -201,6 +201,7 @@
   #edgeAiFab{position:fixed;bottom:22px;right:22px;z-index:110;display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border:none;border-radius:999px;background:var(--grad);color:#fff;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 12px 34px -8px rgba(124,92,252,.7);transition:transform .2s var(--ease);}
   #edgeAiFab:hover{transform:translateY(-2px);}
   #edgeAiFab.hidden{display:none;}
+  .ai-badge{position:absolute;top:-2px;right:-2px;width:13px;height:13px;border-radius:50%;background:var(--loss);border:2px solid var(--bg-2);animation:aiblink 1.3s infinite;}
   #edgeAiPanel{position:fixed;bottom:22px;right:22px;z-index:111;width:390px;max-width:calc(100vw - 32px);height:600px;max-height:calc(100vh - 44px);background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--border-2);border-radius:18px;box-shadow:0 40px 100px rgba(0,0,0,.6);display:none;flex-direction:column;overflow:hidden;}
   #edgeAiPanel.open{display:flex;animation:popIn .18s var(--ease);}
   .ai-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);}
@@ -474,7 +475,7 @@ tr{transition:background .15s}
   <div class="pagehead">
     <div style="min-width:0"><h1 id="pageTitle">Dashboard</h1><div class="sub" id="pageSub">Your trading at a glance</div></div>
     <div class="ph-right">
-      <div class="xp-mini" title="Your level &amp; XP"><span class="xp-mini-lvl">Lv&nbsp;<b id="xpLvl">1</b></span><span class="xp-mini-track"><span class="xp-fill" id="xpFill"></span></span><span id="xpTxt" class="mono xp-mini-txt">0/100</span></div>
+      <div class="xp-mini" title="Your level &amp; XP — click to see what you unlock" style="cursor:pointer" onclick="showLevels()"><span class="xp-mini-lvl">Lv&nbsp;<b id="xpLvl">1</b></span><span class="xp-mini-track"><span class="xp-fill" id="xpFill"></span></span><span id="xpTxt" class="mono xp-mini-txt">0/100</span></div>
       <a id="upgradeBtn" href="index.html#pricing" class="trial-pill"><span id="planLine">Pro trial — 7 days left</span><span class="tp-cta">Upgrade →</span></a>
     </div>
   </div>
@@ -834,6 +835,7 @@ VIEWS.reports=function(){
     ${insightsCard(tr)}
     ${improvementCard(tr)}
     ${sessionSection(tr)}
+    ${heatmapCard(tr)}
     ${whatIfCard(tr)}
     ${excursionCard(tr)}
     ${holdTimeCard(tr)}
@@ -1504,7 +1506,12 @@ function saveTradeModal(ev){ ev.preventDefault(); const _b=achCount();
 
 /* ---- actions ---- */
 function addXP(n){ const p=Store.profile(); const before=Math.floor((p.xp||0)/100); p.xp=(p.xp||0)+n; Store.saveProfile(p); renderXP(); if(Math.floor(p.xp/100)>before){ confetti(); toast('⭐ Level up — you reached level '+(Math.floor(p.xp/100)+1)+'!','good'); } }
-function renderXP(){ const li=levelInfo(); $('#xpLvl').textContent=li.lvl; $('#xpTxt').textContent=li.into+'/100 XP'; $('#xpFill').style.width=li.into+'%'; }
+function renderXP(){ const li=levelInfo(); $('#xpLvl').textContent=li.lvl; $('#xpTxt').textContent=li.into+'/100 XP'; $('#xpFill').style.width=li.into+'%'; updateAiBadge(); }
+const LEVELS=[{l:2,t:'Getting consistent',d:'You’re building the habit — keep logging every trade.'},{l:3,t:'Habit formed',d:'Journaling is sticking. Now the data starts talking.'},{l:5,t:'Disciplined Trader',d:'You’re following your rules more than you break them — this is where accounts stop blowing up.'},{l:8,t:'Ice cold',d:'Tilt rarely gets you anymore. Consistency is your edge.'},{l:12,t:'Elite discipline',d:'Top-tier. Your process is bulletproof.'}];
+function showLevels(){ const li=levelInfo(); const el=document.getElementById('detailInner'); if(!el)return;
+  const rows=LEVELS.map(x=>{ const done=li.lvl>=x.l; const cur=li.lvl<x.l && LEVELS.filter(y=>y.l>li.lvl).sort((a,b)=>a.l-b.l)[0]===x; return '<div style="display:flex;gap:13px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--border);'+(done?'':'opacity:.7')+'"><span style="flex:0 0 auto;width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-weight:700;font-family:var(--font-display,inherit);'+(done?'background:var(--grad);color:#fff':'background:var(--surface-2,rgba(255,255,255,.06));color:var(--muted)')+'">'+x.l+'</span><div><b>'+(done?'✓ ':'')+escHtml(x.t)+'</b>'+(cur?' <span class="chip" style="color:var(--gold);border-color:rgba(255,196,61,.4)">next</span>':'')+'<div class="hint" style="margin-top:2px;line-height:1.5">'+escHtml(x.d)+'</div></div></div>'; }).join('');
+  el.innerHTML='<div class="row-sb"><div class="card-title">Your discipline levels</div><button class="modal-x" onclick="closeDetail()" aria-label="Close">✕</button></div><div class="card-sub" style="margin-bottom:12px">You earn XP for <b>following your rules</b> and reviewing trades — not for winning. Level '+li.lvl+' · '+li.into+'/100 XP to next.</div><div class="mtrack" style="margin-bottom:6px"><div class="mfill" style="width:'+li.into+'%"></div></div><div>'+rows+'</div>';
+  document.getElementById('detailModal').classList.add('show'); }
 function delTrade(id){ const arr=Store.trades(); const idx=arr.findIndex(t=>t.id===id); if(idx<0)return; const removed=arr[idx]; arr.splice(idx,1); Store.saveTrades(arr); VIEWS[current](); toastUndo('Trade deleted', ()=>{ const a=Store.trades(); a.splice(Math.min(idx,a.length),0,removed); Store.saveTrades(a); VIEWS[current](); toast('Trade restored','good'); }); }
 function addPlaybook(){ const v=$('#newPb').value.trim(); if(!v)return; const p=Store.playbooks(); p.push({name:v,rules:[]}); Store.savePlaybooks(p); VIEWS.playbooks(); toast('Playbook added','good'); }
 function delPlaybook(i){ const p=Store.playbooks(); p.splice(i,1); Store.savePlaybooks(p); VIEWS.playbooks(); }
@@ -1541,8 +1548,13 @@ function equitySVG(tr,acct){ const pts=[acct]; let c=acct; tr.forEach(t=>{c+=t.p
   const min=Math.min(...pts),max=Math.max(...pts),range=(max-min)||1,W=500,H=150;
   const path=pts.map((p,i)=>`${i?'L':'M'}${(i/(pts.length-1)*W).toFixed(1)},${(H-(p-min)/range*H).toFixed(1)}`).join(' ');
   const start=pts[0]; const segW=W/pts.length;
+  // running discipline (0-100) aligned to the same x-axis — overlaid to show it leads the account
+  let dsum=0,dn=0; const disc=[null]; tr.forEach(t=>{ if(t.rulesTotal>0){ dsum+=t.rulesFollowed/t.rulesTotal; dn++; } disc.push(dn?dsum/dn*100:null); });
+  const dpts=pts.map((p,i)=>({x:(i/(pts.length-1)*W),y:disc[i]==null?null:(H-(disc[i]/100)*H)})).filter(o=>o.y!=null);
+  const dPath=dpts.map((o,idx)=>`${idx?'L':'M'}${o.x.toFixed(1)},${o.y.toFixed(1)}`).join(' ');
   const dots=pts.map((p,i)=>{ const x=(i/(pts.length-1)*W); const y=(H-(p-min)/range*H); const rx=Math.max(0,x-segW/2); return `<rect x="${rx.toFixed(1)}" y="0" width="${segW.toFixed(1)}" height="${H}" fill="transparent" style="cursor:crosshair" onmousemove="tipEquity(event,${p},${start},${i})" onmouseleave="hideTip()"/><circle class="eq-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="#fff" style="opacity:0;pointer-events:none"/>`; }).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="240" preserveAspectRatio="none"><defs><linearGradient id="ef" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(124,92,252,.35)"/><stop offset="100%" stop-color="rgba(124,92,252,0)"/></linearGradient><linearGradient id="el" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#7C5CFC"/><stop offset="100%" stop-color="#E15CC6"/></linearGradient></defs><path d="${path} L${W},${H} L0,${H} Z" fill="url(#ef)"/><path class="eqline" d="${path}" fill="none" stroke="url(#el)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}</svg>`; }
+  const discLine=dPath?`<path d="${dPath}" fill="none" stroke="#FFC43D" stroke-width="1.6" stroke-dasharray="4 4" opacity=".8" vector-effect="non-scaling-stroke"/>`:'';
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="240" preserveAspectRatio="none"><defs><linearGradient id="ef" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(124,92,252,.35)"/><stop offset="100%" stop-color="rgba(124,92,252,0)"/></linearGradient><linearGradient id="el" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#7C5CFC"/><stop offset="100%" stop-color="#E15CC6"/></linearGradient></defs><path d="${path} L${W},${H} L0,${H} Z" fill="url(#ef)"/><path class="eqline" d="${path}" fill="none" stroke="url(#el)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${discLine}${dots}</svg>${dPath?'<div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--muted)"><span><i style="display:inline-block;width:14px;height:3px;border-radius:2px;background:var(--grad);vertical-align:middle;margin-right:5px"></i>Equity</span><span><i style="display:inline-block;width:14px;height:0;border-top:2px dashed #FFC43D;vertical-align:middle;margin-right:5px"></i>Discipline</span><span class="hint" style="margin-left:auto">when discipline dips, the account follows</span></div>':''}`; }
 function ring(pct){ const r=42,c=2*Math.PI*r,off=c-(pct/100)*c; return `<div class="ring-wrap"><svg width="176" height="176" viewBox="0 0 100 100"><circle cx="50" cy="50" r="${r}" fill="none" stroke="var(--track)" stroke-width="10"/><circle class="ring-fg" cx="50" cy="50" r="${r}" fill="none" stroke="url(#rg)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 50 50)"/><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7C5CFC"/><stop offset="100%" stop-color="#E15CC6"/></linearGradient></defs></svg><div class="ring-num"><div><div class="n">${pct}</div><div class="o">OF 100</div></div></div></div>`; }
 function meter(label,cur,tgt,cls){ const p=tgt?Math.max(0,Math.min(100,cur/tgt*100)):0; return `<div class="meter"><div class="mrow"><span>${label}</span><b>${money0(cur)}</b></div><div class="mtrack"><div class="mfill ${cls}" style="width:${p}%"></div></div></div>`; }
 function insights(s){ const out=[]; if(!s.tr.length){out.push('Log your first trade and EDGE will start surfacing patterns here.');}
@@ -1631,6 +1643,19 @@ function excursionCard(tr){
   if(maeT.length>=3){ html+=kpi('Avg heat (MAE)',money0(avg(maeT.map(t=>Math.abs(t.mae||0)))),'loss','max drawdown in-trade'); }
   html+='</div><div class="hint" style="margin-top:10px">Low exit efficiency = you cut winners early. Lots of heat on winners = your stops may be wider than they need to be.</div></div>';
   return html;
+}
+function heatmapCard(tr){ const wt=tr.filter(t=>t.time&&t.date); if(wt.length<6) return '';
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; const cols=['Asia','London','New York','Evening'];
+  const sc=t=>{ const h=hourOf(t); if(h==null)return null; return h<7?0:h<13?1:h<20?2:3; };
+  const wd=t=>{ try{ return (new Date(t.date+'T00:00').getDay()+6)%7; }catch(e){ return null; } };
+  const grid={}; wt.forEach(t=>{ const r=wd(t),c=sc(t); if(r==null||c==null)return; const k=r+'-'+c; (grid[k]=grid[k]||{net:0,n:0}); grid[k].net+=t.pnl; grid[k].n++; });
+  const max=Math.max(1,...Object.values(grid).map(v=>Math.abs(v.net)));
+  const rows=[0,1,2,3,4,5,6].filter(r=>cols.some((c,ci)=>grid[r+'-'+ci]));
+  let g='<div style="overflow-x:auto"><div style="display:grid;grid-template-columns:56px repeat(4,minmax(64px,1fr));gap:5px;margin-top:14px;min-width:340px">';
+  g+='<div></div>'+cols.map(c=>'<div class="hint" style="font-size:10px;text-align:center">'+c+'</div>').join('');
+  rows.forEach(r=>{ g+='<div class="hint" style="font-size:11px;display:flex;align-items:center">'+days[r]+'</div>'; cols.forEach((c,ci)=>{ const v=grid[r+'-'+ci]; if(!v){ g+='<div style="aspect-ratio:1.7;border-radius:6px;background:rgba(255,255,255,.03)"></div>'; return; } const pos=v.net>=0, a=Math.min(.92,.16+Math.abs(v.net)/max*.76); g+='<div title="'+days[r]+' '+c+' · '+money(v.net)+' ('+v.n+' trade'+(v.n===1?'':'s')+')" style="aspect-ratio:1.7;border-radius:6px;background:'+(pos?'rgba(36,209,155,':'rgba(245,71,107,')+a+');cursor:help"></div>'; }); });
+  g+='</div></div>';
+  return '<div class="card section-gap"><div class="card-title">Your money heatmap</div><div class="card-sub">Net P&L by weekday × session — spot exactly when you bleed money (hover a cell).</div>'+g+'</div>';
 }
 function holdTimeCard(tr){ const ht=tr.filter(t=>t.hold); if(ht.length<4) return ''; return '<div class="card section-gap">'+reportTable('By hold time',groupStat(ht,t=>t.hold))+'<div class="hint" style="margin-top:8px">If your Scalps lose but Swings win, you may be overtrading on impulse — trade the timeframe that actually pays you.</div></div>'; }
 function monteCarloCard(tr){
@@ -1939,12 +1964,14 @@ document.addEventListener('keydown',e=>{ if(e.key!=='?'||e.metaKey||e.ctrlKey||e
 /* ---- EDGE AI chat ---- */
 let _aiChat=[]; try{ _aiChat=JSON.parse(localStorage.getItem('edgepro_aichat')||'[]')||[]; }catch(e){ _aiChat=[]; }
 function persistAi(){ try{ localStorage.setItem('edgepro_aichat',JSON.stringify(_aiChat.slice(-30))); }catch(e){} }
-function edgeAiToggle(){ const p=$('#edgeAiPanel'),f=$('#edgeAiFab'); if(!p)return; const open=!p.classList.contains('open'); p.classList.toggle('open',open); if(f)f.classList.toggle('hidden',open); if(open){ renderAiMsgs(); setTimeout(()=>{ const i=$('#aiInput'); if(i)i.focus(); },60); } }
+function proactiveInsight(){ if(typeof aiAllowed==='function'&&!aiAllowed())return null; try{ const ins=(typeof autoInsights==='function')?autoInsights(Store.trades()).filter(i=>i.tone==='bad'):[]; return ins.length?ins[0].text:null; }catch(e){ return null; } }
+function updateAiBadge(){ const fab=document.getElementById('edgeAiFab'); if(!fab)return; const has=!!proactiveInsight() && !sessionStorage.getItem('edgepro_ai_seen'); let b=fab.querySelector('.ai-badge'); if(has){ if(!b){ b=document.createElement('span'); b.className='ai-badge'; fab.appendChild(b); } } else if(b){ b.remove(); } }
+function edgeAiToggle(){ const p=$('#edgeAiPanel'),f=$('#edgeAiFab'); if(!p)return; const open=!p.classList.contains('open'); p.classList.toggle('open',open); if(f)f.classList.toggle('hidden',open); if(open){ try{ sessionStorage.setItem('edgepro_ai_seen','1'); }catch(e){} updateAiBadge(); renderAiMsgs(); setTimeout(()=>{ const i=$('#aiInput'); if(i)i.focus(); },60); } }
 function fmtAi(t){ return escHtml(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>'); }
 function renderAiMsgs(typing){ const box=$('#aiMsgs'); if(!box)return; let html='';
   if(!aiAllowed()){ box.innerHTML='<div style="text-align:center;padding:30px 14px"><div style="display:flex;justify-content:center;margin-bottom:12px">'+svgi('sparkle',36,'var(--violet-2)')+'</div><div class="card-title" style="font-size:18px">EDGE AI is a Pro feature</div><p class="hint" style="margin:10px 0 0;line-height:1.6">Upgrade to Pro to chat with your AI coach, generate Edge Reports, and import trades from screenshots.</p><a href="index.html#pricing" class="btn btn-primary" style="margin-top:16px;text-decoration:none">Upgrade to Pro</a></div>'; const ir=document.querySelector('.ai-input'); if(ir)ir.style.display='none'; return; }
   const ir=document.querySelector('.ai-input'); if(ir)ir.style.display='';
-  if(!_aiChat.length){ html+='<div class="ai-msg bot">Hey — I\'m <b>EDGE AI</b>. Ask me anything: a setup you\'re eyeing, why a trade went wrong, how your stats look, position sizing, prop-firm rules, or the psychology of a tilt day. I can see your journal too, so ask about <b>your own</b> trading.</div>';
+  if(!_aiChat.length){ const pro=(typeof proactiveInsight==='function')?proactiveInsight():null; if(pro){ html+='<div class="ai-msg bot" style="border-color:rgba(245,71,107,.35);background:rgba(245,71,107,.06)"><b>I spotted something in your journal 👀</b><br>'+escHtml(pro)+'<br><br>Want to dig into it?</div>'; } html+='<div class="ai-msg bot">Hey — I\'m <b>EDGE AI</b>. Ask me anything: a setup you\'re eyeing, why a trade went wrong, how your stats look, position sizing, prop-firm rules, or the psychology of a tilt day. I can see your journal too, so ask about <b>your own</b> trading.</div>';
     const sugg=['Analyse my recent trades','How do I stop revenge trading?','Is my risk:reward healthy?','Explain fair value gaps'];
     html+='<div class="ai-sugg">'+sugg.map(s=>'<button onclick="edgeAiAsk(\''+s.replace(/'/g,"\\'")+'\')">'+escHtml(s)+'</button>').join('')+'</div>';
   } else { html+=_aiChat.map(m=>'<div class="ai-msg '+(m.role==='user'?'user':'bot')+'">'+(m.role==='user'?escHtml(m.content):fmtAi(m.content))+'</div>').join(''); }
