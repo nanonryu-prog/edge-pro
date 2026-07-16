@@ -1,0 +1,15 @@
+{
+  "name": "EDGE Pro — Trading Journal",
+  "short_name": "EDGE Pro",
+  "description": "The trading journal that grades your discipline.",
+  "start_url": "/app.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0A16",
+  "theme_color": "#0A0A16",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

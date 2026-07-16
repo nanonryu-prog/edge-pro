@@ -4,6 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%237C5CFC'/%3E%3Cstop offset='1' stop-color='%23E15CC6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Crect x='7' y='17' width='4.4' height='8' rx='2' fill='white'/%3E%3Crect x='13.8' y='12' width='4.4' height='13' rx='2' fill='white'/%3E%3Crect x='20.6' y='7' width='4.4' height='18' rx='2' fill='white'/%3E%3C/svg%3E" />
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#0A0A16" />
+<link rel="apple-touch-icon" href="/icon.svg" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="EDGE Pro" />
 <title>EDGE Pro — Journal</title>
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1261,7 +1266,7 @@ function shareCard(){
   document.getElementById('detailInner').innerHTML=`<div class="row-sb"><div class="card-title">Your Edge Card</div><button class="modal-x" onclick="closeDetail()" aria-label="Close">✕</button></div>
     <div class="card-sub" style="margin-bottom:14px">Flex your verified stats. No account balance is ever shown — only your %.</div>
     <div style="max-width:400px;margin:0 auto;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px -20px rgba(124,92,252,.5)">${buildShareSVG()}</div>
-    <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap"><button class="btn btn-primary" onclick="downloadCard()">Download PNG</button><button class="btn btn-ghost" onclick="shareToX()"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="margin-right:6px"><path d="M18.9 1.8h3.3l-7.2 8.2 8.5 11.2h-6.6l-5.2-6.8-6 6.8H2.4l7.7-8.8L1.9 1.8h6.8l4.7 6.2 5.5-6.2Zm-1.2 18h1.8L7.1 3.6H5.2l12.5 16.2Z"/></svg>Share on X</button><button class="btn btn-ghost" onclick="copyShareLink()">Copy link</button><button class="btn btn-ghost" onclick="closeDetail()">Close</button></div>
+    <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap"><button class="btn btn-primary" onclick="downloadCard()">Download PNG</button><button class="btn btn-ghost" onclick="shareToX()"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="margin-right:6px"><path d="M18.9 1.8h3.3l-7.2 8.2 8.5 11.2h-6.6l-5.2-6.8-6 6.8H2.4l7.7-8.8L1.9 1.8h6.8l4.7 6.2 5.5-6.2Zm-1.2 18h1.8L7.1 3.6H5.2l12.5 16.2Z"/></svg>Share on X</button><button class="btn btn-ghost" onclick="copyPublicLink()">Copy public link</button><button class="btn btn-ghost" onclick="closeDetail()">Close</button></div>
     <div class="hint" style="margin-top:12px">Download the card, then Share on X — your followers can start their own free at edgeprojournal.com.</div>`;
   const svg=document.querySelector('#detailInner #shareSvg'); if(svg){ svg.style.width='100%'; svg.style.height='auto'; svg.style.display='block'; }
   document.getElementById('detailModal').classList.add('show');
@@ -1280,6 +1285,8 @@ function downloadCard(){
 function shareText(){ const s=stats(); const grade=((Store.get('coachReport',null)||{}).report||{}).grade; const parts=[]; if(grade)parts.push('Discipline grade: '+grade); parts.push(s.wr+'% win rate over '+s.tr.length+' logged trades'); return 'My trading, tracked with discipline on EDGE Pro 📊\n\n'+parts.join(' · ')+'\n\nJournal your edge free 👇'; }
 function shareToX(){ const url='https://edgeprojournal.com'; const intent='https://twitter.com/intent/tweet?text='+encodeURIComponent(shareText())+'&url='+encodeURIComponent(url); window.open(intent,'_blank','noopener'); toast('Attach your downloaded card to the post 📎'); }
 function copyShareLink(){ const t='https://edgeprojournal.com'; if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(()=>toast('Link copied','good'),()=>toast(t)); } else { toast(t); } }
+function publicLink(){ const s=stats(); const grade=((Store.get('coachReport',null)||{}).report||{}).grade||''; const tags=(typeof tagStat==='function'?tagStat(s.tr):[]).filter(t=>t.k!=='imported'&&t.k!=='open'&&t.net>0); let best=tags.length?tags[0].k:''; if(best.length>16)best=best.slice(0,15)+'…'; const data={n:s.tr.length,wr:s.wr,ret:Math.round((s.acct?s.net/s.acct*100:0)*10)/10,pf:s.pf===Infinity?'∞':(s.pf||0).toFixed(2),dis:s.dis,grade,best,name:((Store.settings().name||'A trader')+'').slice(0,24)}; const enc=btoa(unescape(encodeURIComponent(JSON.stringify(data)))); return 'https://edgeprojournal.com/t.html#'+enc; }
+function copyPublicLink(){ const url=publicLink(); if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(()=>toast('Public link copied — share it anywhere 🔗','good'),()=>toast(url)); } else { toast(url); } }
 VIEWS.weekly=function(){
   const s=stats(); const weeks=Store.get('weeks',[])||[];
   $('#view').innerHTML=`
@@ -1391,7 +1398,7 @@ function quickLog(){
   const rt=(Store.playbooks()[0]||{rules:[]}).rules.length;
   $('#logModalInner').innerHTML=`<div class="row-sb"><div class="card-title">Quick log</div><button class="modal-x" onclick="closeLog()" aria-label="Close">✕</button></div>
     <div class="card-sub" style="margin-bottom:14px">Log a trade in seconds. Add details later if you want.</div>
-    ${(function(){ const tr=Store.trades(); const l=tr[tr.length-1]; return l?`<button type="button" class="chip-tag" style="margin-bottom:16px" onclick="qRepeatLast()">↻ Repeat last · ${escHtml(l.symbol||'trade')}</button>`:''; })()}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">${(function(){ const tr=Store.trades(); const l=tr[tr.length-1]; return l?`<button type="button" class="chip-tag" onclick="qRepeatLast()">↻ Repeat last · ${escHtml(l.symbol||'trade')}</button>`:''; })()}${(window.SpeechRecognition||window.webkitSpeechRecognition)?`<button type="button" class="chip-tag" id="qVoiceBtn" onclick="startVoiceLog(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg>Speak your trade</button>`:''}</div>
     <form id="qForm" autocomplete="off">
       <div class="fgrp"><label class="flbl">Symbol</label><input class="finp" id="q-sym" placeholder="EURUSD" required style="font-size:18px" autofocus>${(function(){ const rs=recentSymbols(); return rs.length?'<div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:8px">'+rs.map(sy=>'<button type="button" class="chip-tag" onclick="qPick(\''+escHtml(sy).replace(/'/g,'')+'\')">'+escHtml(sy)+'</button>').join('')+'</div>':''; })()}</div>
       <div class="fgrp" style="margin-top:14px"><label class="flbl">Profit / loss ($)</label><input class="finp mono" type="number" step="any" id="q-pnl" placeholder="250   or   -80" required style="font-size:24px;font-weight:700"></div>
@@ -1407,6 +1414,21 @@ function quickLog(){
   $('#logModal').classList.add('show'); $('#qForm').onsubmit=saveQuick;
 }
 function qSel(g,btn){ btn.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); if(g==='side')window._qSide=btn.dataset.v; else window._qRules=btn.dataset.v; }
+function startVoiceLog(btn){ const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR){ toast('Voice input isn’t supported in this browser'); return; } const rec=new SR(); rec.lang='en-US'; rec.interimResults=false; rec.maxAlternatives=1; const orig=btn?btn.innerHTML:''; if(btn){ btn.innerHTML='● Listening…'; btn.disabled=true; }
+  toast('Listening… say e.g. “SOL long profit 227”');
+  rec.onresult=e=>{ const t=((e.results[0][0].transcript)||'').trim(); if(t){ parseVoiceTrade(t); toast('Heard: “'+t+'” — check &amp; save','good'); } };
+  rec.onerror=()=>{ toast('Didn’t catch that — try again'); };
+  rec.onend=()=>{ if(btn){ btn.innerHTML=orig; btn.disabled=false; } };
+  try{ rec.start(); }catch(e){ if(btn){ btn.innerHTML=orig; btn.disabled=false; } }
+}
+function parseVoiceTrade(t){ const low=t.toLowerCase();
+  const side=/\b(short|sell|sold)\b/.test(low)?'short':'long'; window._qSide=side; document.querySelectorAll('#qForm .seg-btn[data-v="long"],#qForm .seg-btn[data-v="short"]').forEach(b=>b.classList.toggle('on',b.dataset.v===side));
+  const m=low.replace(/,/g,'').match(/-?\d+(\.\d+)?/); let pnl=m?parseFloat(m[0]):null;
+  const neg=/\b(loss|lost|lose|losing|down|minus|negative|red)\b/.test(low), pos=/\b(profit|win|won|winning|up|plus|made|green|gain)\b/.test(low);
+  if(pnl!=null){ if(neg)pnl=-Math.abs(pnl); else if(pos)pnl=Math.abs(pnl); const p=$('#q-pnl'); if(p)p.value=pnl; }
+  const skip=/^(long|short|buy|bought|sell|sold|profit|loss|lost|lose|win|won|up|down|plus|minus|made|of|a|an|the|dollars?|bucks?|and|on|at|for|my|i|was|is)$/i;
+  const sym=t.split(/\s+/).find(w=>!skip.test(w)&&!/^-?\d/.test(w)); if(sym){ const el=$('#q-sym'); if(el)el.value=sym.toUpperCase().replace(/[^A-Z0-9]/g,''); }
+}
 function qRepeatLast(){ const tr=Store.trades(); const l=tr[tr.length-1]; if(!l)return; const sym=$('#q-sym'); if(sym)sym.value=l.symbol||''; window._qSide=l.side||'long'; document.querySelectorAll('#qForm .seg-btn[data-v="long"],#qForm .seg-btn[data-v="short"]').forEach(b=>b.classList.toggle('on',b.dataset.v===window._qSide)); window._qSetups=(l.tags||[]).filter(t=>t!=='imported'&&t!=='open'); document.querySelectorAll('#qSetups .chip-tag:not(.chip-add)').forEach(b=>b.classList.toggle('on',window._qSetups.includes(b.dataset.v))); const p=$('#q-pnl'); if(p)p.focus(); }
 function saveQuick(e){ e.preventDefault(); const _b=achCount(); const rt=(Store.playbooks()[0]||{rules:[]}).rules.length; const followed=window._qRules!=='no';
   const t={id:Date.now(),date:new Date().toISOString().slice(0,10),time:new Date().toTimeString().slice(0,5),symbol:($('#q-sym').value||'—').toUpperCase().trim(),side:window._qSide||'long',entry:null,exit:null,size:null,stop:null,target:null,pnl:parseFloat($('#q-pnl').value)||0,rr:null,emotion:'',tilt:null,rulesFollowed:(rt?(followed?rt:0):0),rulesTotal:rt,notes:'',shot:null,account:'',tags:(window._qSetups||[]).slice(),mistakes:(window._qMistakes||[]).slice()};
@@ -1758,6 +1780,9 @@ function goalCur(goal,s){ if(goal.type==='Profit target ($)')return s.net; if(go
 function checkGoalRewards(){ const g=Store.goals(); const s=stats(); let hit=null,changed=false; g.forEach(goal=>{ const prog=goal.target?goalCur(goal,s)/goal.target*100:0; if(prog>=100 && !goal.rewarded){ goal.rewarded=true; changed=true; if(!hit)hit=goal; } }); if(changed){ Store.saveGoals(g); if(hit){ addXP(50); showReward('Goal reached!', hit.type+' — target smashed.', 50); } } }
 function showReward(title,sub,xp){ confetti(); const el=document.getElementById('detailInner'); if(!el)return; el.innerHTML='<div style="text-align:center;padding:22px 12px"><div style="display:flex;justify-content:center;margin-bottom:16px">'+svgi('trophy',56,'var(--gold)')+'</div><div class="card-title" style="font-size:26px">'+title+'</div><div class="hint" style="margin:10px 0 2px;font-size:15px">'+sub+'</div><div class="kval violet" style="font-size:42px;margin:14px 0 20px">+'+xp+' XP</div><button class="btn btn-primary" onclick="closeDetail()">Let’s keep going</button></div>'; document.getElementById('detailModal').classList.add('show'); }
 function loadShot(input){ const f=input.files[0]; if(!f)return; const img=new Image(); img.onload=()=>{ const cv=document.createElement('canvas'); const sc=Math.min(1,720/img.width); cv.width=img.width*sc; cv.height=img.height*sc; cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height); window._pendingShot=cv.toDataURL('image/jpeg',0.6); const z=document.getElementById('shotZone'); if(z)z.innerHTML='<img src="'+window._pendingShot+'" style="max-width:100%;border-radius:8px;max-height:180px">'; }; img.src=URL.createObjectURL(f); }
+function askAiAboutTrade(id){ const t=Store.trades().find(x=>x.id===id); if(!t)return; if(!aiAllowed()){ toast('EDGE AI is a Pro feature — upgrade to unlock'); return; } closeDetail();
+  const q='Grade this trade and tell me what I could do better — be specific. '+t.symbol+' '+t.side+', P&L '+money(t.pnl)+(t.entry!=null?', entry '+t.entry:'')+(t.stop!=null?', stop '+t.stop:'')+(t.target!=null?', target '+t.target:'')+(t.rr!=null?', planned R:R '+t.rr:'')+(t.emotion?', felt '+t.emotion:'')+((t.mistakes&&t.mistakes.length)?', mistakes: '+t.mistakes.join(', '):'')+(((t.notes||'')+'').trim()?'. My notes: '+t.notes:'');
+  if(!$('#edgeAiPanel').classList.contains('open')) edgeAiToggle(); const inp=$('#aiInput'); if(inp)inp.value=q; setTimeout(edgeAiSend,120); }
 function openTradeDetail(id){ const t=Store.trades().find(x=>x.id===id); if(!t)return;
   document.getElementById('detailInner').innerHTML=`<div class="row-sb"><div class="card-title">${t.symbol} · <span class="tag ${t.side}">${t.side}</span></div><button class="modal-x" onclick="closeDetail()">✕</button></div>
     <div class="grid kpis" style="margin-top:16px">${kpi('P&L',money(t.pnl),t.pnl>=0?'win':'loss',fmtDate(t.date))}${kpi('R:R',t.rr?t.rr.toFixed(2):'—','','planned')}${kpi('Rules',t.rulesTotal?t.rulesFollowed+'/'+t.rulesTotal:'—',t.rulesTotal&&t.rulesFollowed===t.rulesTotal?'win':'','followed')}${kpi('Emotion',t.emotion||'—','','tilt '+(t.tilt||'—'))}</div>
@@ -1766,7 +1791,7 @@ function openTradeDetail(id){ const t=Store.trades().find(x=>x.id===id); if(!t)r
     ${(t.mistakes&&t.mistakes.length)?`<div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px"><span class="hint" style="width:100%;margin-bottom:2px">Mistakes</span>${t.mistakes.map(mk=>`<span class="chip-tag chip-miss on" style="cursor:default">${escHtml(mk)}</span>`).join('')}</div>`:''}
     ${t.notes?`<div class="card" style="background:var(--card);margin-top:14px"><div class="flbl">Notes</div><p style="margin-top:6px;color:var(--muted);line-height:1.55">${t.notes}</p></div>`:''}
     ${t.shot?`<img src="${t.shot}" style="width:100%;border-radius:12px;margin-top:14px">`:''}
-    <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap">${t.open?`<button class="btn btn-primary" onclick="closeTradePrompt(${t.id})">Close trade</button><button class="btn btn-ghost" onclick="editTrade(${t.id})">Edit</button>`:`<button class="btn btn-primary" onclick="editTrade(${t.id})">Edit</button>`}<button class="btn btn-danger" onclick="delTrade(${t.id});closeDetail()">Delete</button><button class="btn btn-ghost" onclick="closeDetail()">Close</button></div>`;
+    <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap">${t.open?`<button class="btn btn-primary" onclick="closeTradePrompt(${t.id})">Close trade</button><button class="btn btn-ghost" onclick="editTrade(${t.id})">Edit</button>`:`<button class="btn btn-primary" onclick="editTrade(${t.id})">Edit</button>`}<button class="btn btn-ghost" onclick="askAiAboutTrade(${t.id})">✦ Ask EDGE AI</button><button class="btn btn-danger" onclick="delTrade(${t.id});closeDetail()">Delete</button><button class="btn btn-ghost" onclick="closeDetail()">Close</button></div>`;
   document.getElementById('detailModal').classList.add('show'); }
 function closeDetail(){ document.getElementById('detailModal').classList.remove('show'); }
 function editTrade(id){ closeDetail(); openLog(id); }
@@ -2034,6 +2059,7 @@ function injectDemoBanner(){
   if(window.__DEMO){ seedDemo(); injectDemoBanner(); }
   await cloudPull();
   buildNav(); renderXP(); go('dash'); tickSession(); setInterval(tickSession,1000); applyPlan(); applySeasonal();
+  if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
   if(planState().locked){ renderPaywall(); }
   if(localStorage.getItem('edgepro_onboard')===session.email){ localStorage.removeItem('edgepro_onboard'); openOnboarding(); }
 })();

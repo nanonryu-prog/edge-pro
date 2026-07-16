@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="/icon.svg" />
+<meta name="theme-color" content="#0A0A16" />
+<title>Trading track record · EDGE Pro</title>
+<meta property="og:title" content="My trading track record · EDGE Pro" />
+<meta property="og:description" content="Verified with discipline on EDGE Pro." />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#0A0A16;--surface:#14142A;--text:#F4F4FB;--muted:rgba(244,244,251,.66);--faint:rgba(244,244,251,.45);--border:rgba(255,255,255,.1);--win:#24D19B;--loss:#F5476B;--gold:#FFC43D;--violet:#9D7BFF;--grad:linear-gradient(135deg,#7C5CFC,#E15CC6);}
+  *{box-sizing:border-box;margin:0;} body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .card{width:100%;max-width:460px;background:linear-gradient(180deg,var(--surface),#0F0F1C);border:1px solid var(--border);border-radius:24px;padding:30px 28px;box-shadow:0 40px 100px rgba(0,0,0,.5);position:relative;overflow:hidden;}
+  .card::before{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 100% 0,rgba(124,92,252,.22),transparent 55%);pointer-events:none;}
+  .brand{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk';font-weight:700;font-size:18px;}
+  .mark{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;}
+  .grade{margin-left:auto;width:48px;height:48px;border-radius:12px;background:var(--grad);display:grid;place-items:center;font-family:'Space Grotesk';font-weight:700;font-size:22px;}
+  .who{color:var(--faint);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin:16px 0 2px;}
+  .hero{text-align:center;margin:14px 0 6px;}
+  .hero .lbl{color:var(--faint);letter-spacing:6px;font-size:12px;}
+  .hero .big{font-family:'Space Grotesk';font-size:76px;font-weight:700;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.05;}
+  .hero .sub{color:var(--muted);font-size:13px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+  .stat{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:14px;}
+  .stat .k{color:var(--faint);font-size:11px;text-transform:uppercase;letter-spacing:1px;}
+  .stat .v{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:22px;margin-top:4px;}
+  .foot{text-align:center;color:var(--faint);font-size:12px;margin-top:18px;}
+  .cta{display:block;text-align:center;margin-top:20px;background:var(--grad);color:#fff;text-decoration:none;font-weight:700;padding:15px;border-radius:14px;font-size:15px;}
+  .cta:hover{filter:brightness(1.06);}
+  .pos{color:var(--win);} .neg{color:var(--loss);} .vi{color:var(--violet);} .go{color:var(--gold);}
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div style="display:flex;align-items:center;justify-content:center;padding:40px 0;color:var(--muted)">Loading track record…</div>
+</div>
+<script>
+(function(){
+  function esc(s){ return (s==null?'':String(s)).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
+  let d=null;
+  try{ const h=(location.hash||'').replace(/^#/,''); if(h){ d=JSON.parse(decodeURIComponent(escape(atob(h)))); } }catch(e){ d=null; }
+  const el=document.getElementById('card');
+  if(!d || typeof d!=='object'){
+    el.innerHTML='<div style="text-align:center;padding:30px 6px"><div class="brand" style="justify-content:center"><span class="mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="4" y="13" width="3.4" height="7" rx="1.4" fill="#fff"/><rect x="10.3" y="9" width="3.4" height="11" rx="1.4" fill="#fff"/><rect x="16.6" y="5" width="3.4" height="15" rx="1.4" fill="#fff"/></svg></span>EDGE Pro</div><p style="color:var(--muted);margin-top:16px;line-height:1.6">This track-record link looks empty or invalid.</p><a class="cta" href="/app.html?demo=1">Try EDGE Pro free →</a></div>';
+    return;
+  }
+  const g=(k,def)=>d[k]==null?def:d[k];
+  const ret=g('ret',0); const retTxt=(ret>=0?'+':'')+ret+'%';
+  el.innerHTML=
+    '<div class="brand"><span class="mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="4" y="13" width="3.4" height="7" rx="1.4" fill="#fff"/><rect x="10.3" y="9" width="3.4" height="11" rx="1.4" fill="#fff"/><rect x="16.6" y="5" width="3.4" height="15" rx="1.4" fill="#fff"/></svg></span>EDGE Pro'+(g('grade','')?'<span class="grade">'+esc(g('grade',''))+'</span>':'')+'</div>'+
+    '<div class="who">'+esc(g('name','A trader'))+' · '+esc(g('n',0))+' trades'+(g('period','')?' · '+esc(g('period','')):'')+'</div>'+
+    '<div class="hero"><div class="lbl">WIN RATE</div><div class="big">'+esc(g('wr',0))+'%</div><div class="sub">over '+esc(g('n',0))+' logged trades</div></div>'+
+    '<div class="grid">'+
+      '<div class="stat"><div class="k">Return</div><div class="v '+(ret>=0?'pos':'neg')+'">'+esc(retTxt)+'</div></div>'+
+      '<div class="stat"><div class="k">Profit factor</div><div class="v">'+esc(g('pf','—'))+'</div></div>'+
+      '<div class="stat"><div class="k">Discipline</div><div class="v vi">'+esc(g('dis',0))+'/100</div></div>'+
+      '<div class="stat"><div class="k">Best setup</div><div class="v go" style="font-size:18px">'+(esc(g('best',''))||'—')+'</div></div>'+
+    '</div>'+
+    '<div class="foot">Verified with discipline · edgeprojournal.com</div>'+
+    '<a class="cta" href="/app.html?demo=1">Start your own — free, no signup →</a>';
+})();
+</script>
+</body>
+</html>
