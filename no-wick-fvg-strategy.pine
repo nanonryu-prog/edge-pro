@@ -1,0 +1,52 @@
+//@version=5
+strategy("EDGE Pro — No-Wick + FVG Confluence", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=10, commission_type=strategy.commission.percent, commission_value=0.02)
+
+// ===== Inputs (tune these to your setup) =====
+maxWickPct  = input.float(15.0, "Wickless threshold (wick % of range)", minval=0, maxval=100) / 100
+fvgLookback = input.int(10,  "FVG stays valid for N bars", minval=1)
+rr          = input.float(2.0, "Reward : Risk", minval=0.1, step=0.1)
+slBuf       = input.float(0.1, "Stop buffer %", minval=0) / 100
+useLong     = input.bool(true, "Take longs")
+useShort    = input.bool(true, "Take shorts")
+
+// ===== Candle anatomy =====
+bodyTop = math.max(open, close)
+bodyBot = math.min(open, close)
+rng     = high - low
+loWick  = bodyBot - low
+upWick  = high - bodyTop
+wicklessBull = close > open and rng > 0 and loWick / rng <= maxWickPct
+wicklessBear = close < open and rng > 0 and upWick / rng <= maxWickPct
+
+// ===== FVG (3-bar imbalance) =====
+bullFVG = low  > high[2]
+bearFVG = high < low[2]
+var int sinceBull = na
+var int sinceBear = na
+sinceBull := bullFVG ? 0 : na(sinceBull) ? na : sinceBull + 1
+sinceBear := bearFVG ? 0 : na(sinceBear) ? na : sinceBear + 1
+bullFVGon = not na(sinceBull) and sinceBull <= fvgLookback
+bearFVGon = not na(sinceBear) and sinceBear <= fvgLookback
+
+// ===== Confluence signals =====
+longSig  = useLong  and wicklessBull and bullFVGon
+shortSig = useShort and wicklessBear and bearFVGon
+
+// ===== Entries + auto SL/TP =====
+if longSig and strategy.position_size <= 0
+    sl = low * (1 - slBuf)
+    strategy.entry("Long", strategy.long)
+    strategy.exit("L", "Long", stop=sl, limit=close + (close - sl) * rr)
+
+if shortSig and strategy.position_size >= 0
+    sl = high * (1 + slBuf)
+    strategy.entry("Short", strategy.short)
+    strategy.exit("S", "Short", stop=sl, limit=close - (sl - close) * rr)
+
+// ===== Signal markers =====
+plotshape(longSig,  style=shape.triangleup,   location=location.belowbar, color=color.new(color.green,0), size=size.tiny, title="Long")
+plotshape(shortSig, style=shape.triangledown, location=location.abovebar, color=color.new(color.red,0),   size=size.tiny, title="Short")
+
+// ===== Alerts (optional) =====
+alertcondition(longSig,  "No-Wick + FVG Long",  "Long confluence on {{ticker}}")
+alertcondition(shortSig, "No-Wick + FVG Short", "Short confluence on {{ticker}}")
