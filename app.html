@@ -2100,8 +2100,11 @@ applyTheme(); setInterval(applyTheme,60000);
 function seedDemo(){
   if(Store.trades().length) return;
   const now=Date.now(); const R=()=>Math.ceil(Math.random()*3);
-  const TG=[['breakout'],['reversal'],['news'],['breakout','London'],['pullback'],['reversal','NY session']];
-  const mk=(d,sym,side,pnl,rf,e,rr)=>({id:now+Math.random(),date:new Date(now-d*864e5).toISOString().slice(0,10),symbol:sym,side,entry:null,exit:null,size:null,stop:null,target:null,pnl,rr,emotion:e,tilt:R(),rulesFollowed:rf,rulesTotal:5,notes:'',tags:TG[Math.floor(Math.random()*TG.length)]});
+  const TG=[['No-Wick'],['FVG'],['Breakout'],['No-Wick','FVG'],['Pullback'],['Reversal']];
+  const TIMES=['08:05','09:30','10:15','07:50','13:45','14:20','15:10','19:30','11:20','16:40'];
+  const HOLDS=['Scalp (<5m)','Intraday','Swing (days)']; const MISS=['Revenge trade','Moved my stop','FOMO entry','Oversized','Chased price'];
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  const mk=(d,sym,side,pnl,rf,e,rr)=>({id:now+Math.random(),date:new Date(now-d*864e5).toISOString().slice(0,10),time:pick(TIMES),symbol:sym,side,entry:null,exit:null,size:null,stop:null,target:null,pnl,rr,emotion:e,tilt:R(),rulesFollowed:rf,rulesTotal:5,notes:'',tags:pick(TG),hold:pick(HOLDS),mfe:Math.round(Math.abs(pnl)*(1.05+Math.random()*.6)),mae:-Math.round(Math.abs(pnl)*(Math.random()*.5)),mistakes:rf<5?[pick(MISS)]:[]});
   Store.saveTrades([mk(1,'EURUSD','long',180,5,'Calm',2.1),mk(2,'US100','short',-90,3,'FOMO',1.4),mk(3,'BTCUSD','long',320,5,'Confident',3.0),mk(4,'EURUSD','long',-60,4,'Anxious',1.8),mk(5,'GBPUSD','short',140,5,'Focused',2.2),mk(6,'US30','long',260,5,'Calm',2.6),mk(8,'SOLUSD','long',95,4,'Greed',1.6),mk(9,'US100','long',410,5,'Confident',3.4),mk(10,'EURUSD','short',-120,2,'Revenge',1.2),mk(11,'BTCUSD','long',230,5,'Calm',2.4),mk(12,'GBPUSD','long',70,5,'Focused',1.9),mk(15,'US30','short',-80,3,'Fear',1.5),mk(16,'US100','long',300,5,'Confident',2.8),mk(17,'SOLUSD','short',150,5,'Calm',2.0),mk(18,'EURUSD','long',-45,4,'Anxious',1.7),mk(19,'BTCUSD','long',520,5,'Confident',4.0),mk(22,'GBPUSD','long',110,5,'Focused',2.1),mk(23,'US100','short',-70,3,'FOMO',1.3),mk(24,'US30','long',280,5,'Calm',2.5),mk(25,'SOLUSD','long',190,5,'Confident',2.3)]);
   Store.savePlaybooks([{name:'A+ Breakout',rules:['Setup matches my playbook','Stop loss set before entry','Risk under 1% of account','Not revenge trading','Within my session hours']}]);
   Store.saveProfile({xp:260});
