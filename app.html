@@ -897,6 +897,30 @@ VIEWS.calc=function(){
     </div>
   </div>`;
 };
+const FIRM_PRESETS={ 'FTMO':{targetPct:10,dailyPct:5,ddPct:10,split:80}, 'Apex':{targetPct:6,dailyPct:0,ddPct:6,split:90}, 'TopStep':{targetPct:6,dailyPct:0,ddPct:4,split:90}, 'MyFundedFX':{targetPct:8,dailyPct:5,ddPct:10,split:85}, 'The5ers':{targetPct:8,dailyPct:5,ddPct:10,split:80}, 'FundedNext':{targetPct:8,dailyPct:5,ddPct:10,split:90}, 'FundingPips':{targetPct:8,dailyPct:5,ddPct:10,split:90} };
+function applyFirmPreset(){ const name=$('#e-preset').value; const p=FIRM_PRESETS[name]; if(!p)return; const size=+$('#e-size').value||10000; if($('#e-firm'))$('#e-firm').value=name; if($('#e-target'))$('#e-target').value=Math.round(size*p.targetPct/100); if(p.dailyPct&&$('#e-daily'))$('#e-daily').value=Math.round(size*p.dailyPct/100); if($('#e-dd'))$('#e-dd').value=Math.round(size*p.ddPct/100); if($('#e-split'))$('#e-split').value=p.split; toast('Loaded '+name+' rules — tweak if your plan differs'); }
+function evalPortfolioCard(evals,allTr,firstId){
+  if(evals.length<2) return '';
+  let cap=0,net=0,passed=0; evals.forEach(c=>{ cap+=+c.size||0; const ct=allTr.filter(t=>(t.account||firstId)===c.id); const cp=ct.reduce((a,t)=>a+t.pnl,0); net+=cp; if(cp>=c.target)passed++; });
+  return '<div class="card section-gap"><div class="card-title">Your funded portfolio</div><div class="card-sub">Across all '+evals.length+' accounts you\'re running</div><div class="grid kpis" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:14px">'+kpi('Capital managed',money0(cap),'violet','')+kpi('Combined P&L',money(net),net>=0?'win':'loss','')+kpi('Accounts',evals.length+'','','running now')+kpi('Targets hit',passed+' / '+evals.length,passed?'win':'','')+'</div></div>';
+}
+function breachMonitor(e,tr){
+  const today=new Date().toISOString().slice(0,10); const todayPnl=tr.filter(t=>(t.date||'').slice(0,10)===today).reduce((a,t)=>a+t.pnl,0);
+  const dd=Math.min(0,...runningDD(tr,e.size));
+  const dailyUsed=Math.max(0,-todayPnl), dailyLeft=Math.max(0,e.dailyLoss-dailyUsed), dailyPct=e.dailyLoss?Math.min(100,Math.round(dailyUsed/e.dailyLoss*100)):0;
+  const ddUsed=Math.abs(dd), ddLeft=Math.max(0,e.maxDD-ddUsed), ddPct=e.maxDD?Math.min(100,Math.round(ddUsed/e.maxDD*100)):0;
+  const gauge=(label,used,left,pct,limit)=>{ const col=pct>=90?'var(--loss)':pct>=70?'var(--gold)':'var(--win)'; return '<div style="margin-bottom:16px"><div class="row-sb" style="margin-bottom:6px"><span style="font-weight:600">'+label+'</span><b class="mono" style="color:'+col+'">'+money0(left)+' left</b></div><div class="mtrack"><div class="mfill" style="width:'+Math.max(2,pct)+'%;background:'+col+'"></div></div><div class="hint" style="margin-top:5px">Used '+money0(used)+' of '+money0(limit)+' ('+pct+'%)</div></div>'; };
+  return '<div class="card section-gap"><div class="card-title">Breach monitor</div><div class="card-sub">How much cushion before you break a rule — watch this like a hawk.</div><div style="margin-top:16px">'+gauge('Today\'s loss limit',dailyUsed,dailyLeft,dailyPct,e.dailyLoss)+gauge('Max drawdown',ddUsed,ddLeft,ddPct,e.maxDD)+'</div>'+((dailyPct>=90||ddPct>=90)?'<div class="hint" style="color:var(--loss);font-weight:600">⚠ You\'re on the edge — one more loss could fail the account. Stand down.</div>':'')+'</div>';
+}
+function payoutCard(e,profit){
+  const split=e.split||80; const payouts=e.payouts||[]; const totalPaid=payouts.reduce((a,p)=>a+(+p.amount||0),0);
+  const takeHome=Math.max(0,profit)*split/100;
+  return '<div class="card section-gap"><div class="row-sb"><div><div class="card-title">Payouts &amp; take-home</div><div class="card-sub">Your profit split and what you\'ve actually withdrawn</div></div><span class="pct-pill">'+split+'% split</span></div>'+
+    '<div class="grid kpis" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:14px">'+kpi('Your take-home now',money0(takeHome),'win',split+'% of '+money0(Math.max(0,profit)))+kpi('Total withdrawn',money0(totalPaid),'violet',payouts.length+' payout'+(payouts.length===1?'':'s'))+kpi('Account profit',money(profit),profit>=0?'win':'loss','')+'</div>'+
+    (payouts.length?'<div style="margin-top:14px">'+payouts.slice().reverse().map(p=>'<div class="row-sb" style="padding:8px 0;border-top:1px solid var(--border)"><span class="hint">'+fmtDate(p.date)+'</span><b class="mono pos">'+money0(+p.amount||0)+'</b></div>').join('')+'</div>':'')+
+    '<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:flex-end"><div class="fgrp" style="margin:0"><label class="flbl">Log a payout ($)</label><input class="finp" type="number" id="pay-amt" placeholder="e.g. 1200" style="width:150px"></div><button class="btn btn-primary btn-sm" onclick="addPayout()">Add payout</button></div></div>';
+}
+function addPayout(){ const amt=+($('#pay-amt')?$('#pay-amt').value:0); if(!amt){ toast('Enter a payout amount'); return; } const a=Store.evals(); const act=Store.activeEval(); const i=a.findIndex(c=>c.id===act.id); if(i<0)return; a[i].payouts=(a[i].payouts||[]).concat([{date:new Date().toISOString().slice(0,10),amount:amt}]); Store.saveEvals(a); confetti(); toast('Payout logged — '+money0(amt)+' 🎉','good'); VIEWS.eval(); }
 VIEWS.eval=function(){
   const evals=Store.evals(); const firstId=evals[0].id; const e=Store.activeEval(); const allTr=Store.trades();
   const tr=allTr.filter(t=>(t.account||firstId)===e.id); const s=stats(tr);
@@ -908,6 +932,7 @@ VIEWS.eval=function(){
     <div class="card-sub">Track every funded account you're running — switch between them here</div>
     <div class="chip-list" style="margin-top:14px">${evals.map(c=>{const ct=allTr.filter(t=>(t.account||firstId)===c.id); const cp=ct.reduce((a,t)=>a+t.pnl,0); const done=cp>=c.target; return `<button class="rule-chip${c.id===e.id?' sel':''}" style="cursor:pointer${c.id===e.id?';background:var(--violet);color:#fff':''}" onclick="selectChallenge('${c.id}')">${done?'✓ ':''}${c.firm} · ${money0(c.size)}</button>`;}).join('')}</div>
   </div>
+  ${evalPortfolioCard(evals,allTr,firstId)}
   <div class="card section-gap"><div class="card-title">Road to funded — ${e.firm}</div>
     <div style="display:flex;align-items:center;margin-top:18px">${steps.map((st,i)=>`<div style="flex:0 0 auto;text-align:center;width:96px"><div style="width:36px;height:36px;border-radius:50%;margin:0 auto;display:grid;place-items:center;font-weight:700;${i<=active?'background:var(--grad);color:#fff':'background:var(--track);color:var(--faint)'}">${i<active?'✓':i+1}</div><div class="hint" style="margin-top:6px;${i===active?'color:var(--violet-2);font-weight:600':''}">${st}</div></div>${i<steps.length-1?`<div style="height:2px;flex:1;background:${i<active?'var(--violet)':'var(--track)'};margin-top:-18px"></div>`:''}`).join('')}</div>
   </div>
@@ -919,13 +944,17 @@ VIEWS.eval=function(){
     </div>
     <div class="card" style="text-align:center;display:flex;flex-direction:column;justify-content:center"><div class="card-title" style="font-size:15px">Target progress</div>${ring(tgtP)}<div class="hint">${profit>=e.target?'Target smashed — verification time!':money0(Math.max(0,e.target-profit))+' to go'}</div></div>
   </div>
+  ${breachMonitor(e,tr)}
+  ${payoutCard(e,profit)}
   <div class="card section-gap"><div class="row-sb"><div><div class="card-title">50-trade track record</div><div class="card-sub" style="margin-bottom:12px">Verified history for backers</div></div><button class="btn btn-ghost btn-sm" onclick="exportTrackRecord()">Export PDF</button></div>
     ${meter(tr.length+' of 50 trades logged',tr.length,50,'')}
     <div class="grid kpis" style="grid-template-columns:repeat(3,1fr)">${kpi('Win rate',s.wr+'%',s.wr>=50?'win':'loss','')}${kpi('Profit factor',s.pf===Infinity?'∞':s.pf.toFixed(2),'','')}${kpi('To funding proof',Math.max(0,50-tr.length)+'','violet','trades left')}</div>
   </div>
   <div class="card section-gap" style="max-width:820px"><div class="card-title" style="font-size:15px">Evaluation settings</div>
+    <div class="fgrp" style="margin-top:12px"><label class="flbl">Quick-load a firm's rules</label><select class="finp" id="e-preset" onchange="applyFirmPreset()" style="max-width:280px"><option value="">Choose a firm preset…</option>${Object.keys(FIRM_PRESETS).map(f=>`<option value="${f}">${f}</option>`).join('')}</select></div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
       <div class="fgrp"><label class="flbl">Firm / challenge</label><input class="finp" id="e-firm" value="${e.firm}"></div>
+      <div class="fgrp"><label class="flbl">Profit split (%)</label><input class="finp" type="number" id="e-split" value="${e.split||80}"></div>
       <div class="fgrp"><label class="flbl">Account ($)</label><input class="finp" type="number" id="e-size" value="${e.size}"></div>
       <div class="fgrp"><label class="flbl">Target ($)</label><input class="finp" type="number" id="e-target" value="${e.target}"></div>
       <div class="fgrp"><label class="flbl">Daily loss ($)</label><input class="finp" type="number" id="e-daily" value="${e.dailyLoss}"></div>
@@ -935,10 +964,10 @@ VIEWS.eval=function(){
     <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="saveEvalActive()">Save this challenge</button>${evals.length>1?`<button class="btn btn-ghost btn-sm" onclick="delChallenge('${e.id}')">Delete challenge</button>`:''}</div>
   </div>`;
 };
-function addChallenge(){ const a=Store.evals(); const id='ch'+Math.random().toString(36).slice(2,8); a.push({id,firm:'New Challenge',size:10000,phase:'Phase 1',target:1000,dailyLoss:500,maxDD:1000}); Store.saveEvals(a); Store.setActiveEval(id); toast('Challenge added','good'); VIEWS.eval(); }
+function addChallenge(){ const a=Store.evals(); const id='ch'+Math.random().toString(36).slice(2,8); a.push({id,firm:'New Challenge',size:10000,phase:'Phase 1',target:1000,dailyLoss:500,maxDD:1000,split:80,payouts:[]}); Store.saveEvals(a); Store.setActiveEval(id); toast('Challenge added','good'); VIEWS.eval(); }
 function selectChallenge(id){ Store.setActiveEval(id); VIEWS.eval(); }
 function delChallenge(id){ let a=Store.evals(); if(a.length<=1){ toast('Keep at least one challenge'); return; } a=a.filter(c=>c.id!==id); Store.saveEvals(a); Store.setActiveEval(a[0].id); toast('Challenge deleted'); VIEWS.eval(); }
-function saveEvalActive(){ const act=Store.activeEval(); const a=Store.evals(); const i=a.findIndex(c=>c.id===act.id); if(i<0)return; a[i]={id:act.id,firm:$('#e-firm').value||'Challenge',size:+$('#e-size').value||10000,phase:$('#e-phase').value,target:+$('#e-target').value||1000,dailyLoss:+$('#e-daily').value||500,maxDD:+$('#e-dd').value||1000}; Store.saveEvals(a); toast('Challenge saved','good'); VIEWS.eval(); }
+function saveEvalActive(){ const act=Store.activeEval(); const a=Store.evals(); const i=a.findIndex(c=>c.id===act.id); if(i<0)return; a[i]={id:act.id,firm:$('#e-firm').value||'Challenge',size:+$('#e-size').value||10000,phase:$('#e-phase').value,target:+$('#e-target').value||1000,dailyLoss:+$('#e-daily').value||500,maxDD:+$('#e-dd').value||1000,split:($('#e-split')?+$('#e-split').value||80:(act.split||80)),payouts:act.payouts||[]}; Store.saveEvals(a); toast('Challenge saved','good'); VIEWS.eval(); }
 function exportTrackRecord(){
   const e=Store.activeEval(); const firstId=Store.evals()[0].id; const tr=Store.trades().filter(t=>(t.account||firstId)===e.id); const s=stats(tr);
   const rows=tr.slice().reverse().map(t=>'<tr><td>'+fmtDate(t.date)+'</td><td>'+t.symbol+'</td><td>'+t.side+'</td><td>'+(t.rr?t.rr.toFixed(2):'-')+'</td><td>'+(t.rulesTotal?t.rulesFollowed+'/'+t.rulesTotal:'-')+'</td><td style="text-align:right;color:'+(t.pnl>=0?'#0a8060':'#c0344d')+'">'+money(t.pnl)+'</td></tr>').join('');
