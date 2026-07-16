@@ -1,5 +1,6 @@
 // EDGE Pro — AI trade extraction from a broker/prop-firm screenshot or chart.
 const guardAbuse = require('./_guard');
+const callAnthropic = require('./_anthropic');
 // Runs on Vercel. Needs env var ANTHROPIC_API_KEY (server-side only — never in client code).
 
 const PROMPT = `You extract a trader's REAL trades from a screenshot. The screenshot is either a trade-HISTORY TABLE or a price CHART (candlesticks). Your #1 job: count trades correctly. ONE trade must never be split into two or more.
@@ -90,17 +91,13 @@ module.exports = async function handler(req, res) {
     const media_type = (body && body.media_type) || 'image/png';
     if (!image) { res.status(400).json({ error: 'No image provided' }); return; }
 
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-5',
-        max_tokens: 3000,
-        messages: [{ role: 'user', content: [
-          { type: 'image', source: { type: 'base64', media_type, data: image } },
-          { type: 'text', text: PROMPT }
-        ] }]
-      })
+    const r = await callAnthropic(key, {
+      model: 'claude-sonnet-5',
+      max_tokens: 3000,
+      messages: [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type, data: image } },
+        { type: 'text', text: PROMPT }
+      ] }]
     });
     const data = await r.json();
     if (!r.ok) { res.status(502).json({ error: (data.error && data.error.message) || 'AI request failed' }); return; }

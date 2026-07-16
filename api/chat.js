@@ -1,5 +1,6 @@
 // EDGE Pro — EDGE AI chat assistant. A conversational trading coach that can
 const guardAbuse = require('./_guard');
+const callAnthropic = require('./_anthropic');
 // answer anything and is grounded in the trader's own journal.
 // Runs on Vercel. Needs env var ANTHROPIC_API_KEY (server-side only).
 
@@ -53,11 +54,7 @@ module.exports = async function handler(req, res) {
       system += "\n\n=== THIS TRADER'S JOURNAL (already computed, accurate — use it to personalise; never dump the raw JSON back at them) ===\n" + JSON.stringify(brief).slice(0, 6000);
     }
 
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-sonnet-5', max_tokens: 1200, system, messages })
-    });
+    const r = await callAnthropic(key, { model: 'claude-sonnet-5', max_tokens: 1200, system, messages });
     const data = await r.json();
     if (!r.ok) { res.status(502).json({ error: (data.error && data.error.message) || 'AI request failed' }); return; }
     const reply = (data.content || []).map(c => c.text || '').join('').trim();

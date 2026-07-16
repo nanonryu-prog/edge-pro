@@ -1,5 +1,6 @@
 // EDGE Pro — AI Trade Coach. Turns a trader's own aggregated journal into a
 const guardAbuse = require('./_guard');
+const callAnthropic = require('./_anthropic');
 // personal "Edge Report". Runs on Vercel. Needs env var ANTHROPIC_API_KEY.
 
 const SYSTEM = `You are EDGE Pro's AI trading coach — sharp, honest, and encouraging like a great mentor, never generic. You are given ONE trader's aggregated journal statistics (already computed and accurate — trust them, do not recalculate). Your job is to read the numbers like a coach and hand back a short, punchy, personal report.
@@ -57,15 +58,11 @@ module.exports = async function handler(req, res) {
     if (!brief || typeof brief !== 'object') { res.status(400).json({ error: 'No journal data provided' }); return; }
     if (!brief.range || !brief.range.trades) { res.status(400).json({ error: 'Not enough trades to coach yet' }); return; }
 
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-5',
-        max_tokens: 1400,
-        system: SYSTEM,
-        messages: [{ role: 'user', content: "Here is my aggregated trading journal. Give me my Edge Report.\n\n" + JSON.stringify(brief) }]
-      })
+    const r = await callAnthropic(key, {
+      model: 'claude-sonnet-5',
+      max_tokens: 1400,
+      system: SYSTEM,
+      messages: [{ role: 'user', content: "Here is my aggregated trading journal. Give me my Edge Report.\n\n" + JSON.stringify(brief) }]
     });
     const data = await r.json();
     if (!r.ok) { res.status(502).json({ error: (data.error && data.error.message) || 'AI request failed' }); return; }
