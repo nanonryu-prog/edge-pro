@@ -15,7 +15,7 @@
     color-scheme:dark;
     --bg:#0A0A16; --bg-2:#0E0E20; --surface:#12122A; --surface-2:#16162E; --card:rgba(255,255,255,0.02);
     --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.13);
-    --text:#F4F4FB; --muted:rgba(244,244,251,0.60); --faint:rgba(244,244,251,0.38);
+    --text:#F4F4FB; --muted:rgba(244,244,251,0.68); --faint:rgba(244,244,251,0.50);
     --violet:#7C5CFC; --violet-2:#9D7BFF; --pink:#E15CC6;
     --grad:linear-gradient(135deg,#7C5CFC 0%,#A45CFC 45%,#E15CC6 100%);
     --win:#24D19B; --loss:#F5476B; --gold:#FFC43D; --blue:#6AA9FF; --track:rgba(255,255,255,0.08);
@@ -125,7 +125,9 @@
   .tag{display:inline-flex;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:600;font-family:'JetBrains Mono';}
   .tag.long{background:rgba(36,209,155,0.14);color:var(--win);} .tag.short{background:rgba(245,71,107,0.14);color:var(--loss);}
   .pos{color:var(--win);} .neg{color:var(--loss);}
-  .del-x{background:transparent;border:none;color:var(--faint);cursor:pointer;padding:4px;border-radius:6px;} .del-x:hover{color:var(--loss);background:rgba(245,71,107,0.12);}
+  .del-x{background:transparent;border:none;color:var(--faint);cursor:pointer;padding:8px;min-width:34px;min-height:34px;border-radius:6px;} .del-x:hover{color:var(--loss);background:rgba(245,71,107,0.12);}
+  button,a,.tab,.chip-tag,.seg-btn,.rule,.del-x,.icon-btn{touch-action:manipulation;}
+  @media(max-width:560px){ .btn-sm{height:40px;} .chip-tag{padding:10px 14px;} .icon-btn{min-width:40px;min-height:40px;} }
 
   /* forms */
   .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;} @media(min-width:640px){ .form-grid{grid-template-columns:repeat(3,1fr);} }
@@ -217,7 +219,7 @@
 :root[data-theme="light"]{
   --bg:#F4F5FB; --bg-2:#FFFFFF; --surface:#FFFFFF; --surface-2:#EDEFF7; --card:rgba(18,20,45,0.025);
   --border:rgba(18,20,45,0.10); --border-2:rgba(18,20,45,0.16);
-  --text:#141428; --muted:rgba(20,22,45,0.64); --faint:rgba(20,22,45,0.46);
+  --text:#141428; --muted:rgba(20,22,45,0.70); --faint:rgba(20,22,45,0.56);
   --win:#0FA678; --loss:#E23860; --track:rgba(18,20,45,0.10);
 }
 [data-theme="light"] body{background:radial-gradient(1100px 600px at 50% -10%,rgba(124,92,252,.10),transparent 60%),var(--bg);}
@@ -1484,7 +1486,7 @@ function wipe(){ ['trades','playbooks','journal','goals','eval','profile','weeks
 function kpi(label,val,cls,sub,extra=''){ return `<div class="card kcard">${extra}<div class="klabel">${label}</div><div class="kval ${cls}">${val}</div><div class="ksub">${sub}</div></div>`; }
 function emptyInner(h,p,fn,btn){ return `<div class="empty"><div class="ei"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div><h3>${h}</h3><p style="max-width:36ch;margin:0 auto 16px">${p}</p><button class="btn btn-primary" onclick="${fn}">${btn}</button></div>`; }
 function tradeTable(tr,del){ if(!tr.length)return '<div class="hint">No trades.</div>';
-  return `<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Date</th><th>Symbol</th><th>Side</th><th>R:R</th><th>Rules</th><th style="text-align:right">P&L</th>${del?'<th></th>':''}</tr></thead><tbody>${tr.map(t=>`<tr onclick="openTradeDetail(${t.id})">${''}<td class="mono">${fmtDate(t.date)}</td><td style="font-weight:600">${t.symbol}${t.open?' <span class="tag" style="background:rgba(255,196,61,.16);color:var(--gold)">open</span>':''}</td><td><span class="tag ${t.side}">${t.side}</span></td><td class="mono">${t.rr?t.rr.toFixed(2):'–'}</td><td class="mono">${t.rulesTotal?t.rulesFollowed+'/'+t.rulesTotal:'–'}</td><td style="text-align:right;font-weight:700" class="${t.pnl>=0?'pos':'neg'}">${money(t.pnl)}${t.open?` <button class="btn btn-ghost btn-sm" style="padding:2px 9px;font-size:11px;margin-left:4px" onclick="event.stopPropagation();closeTradePrompt(${t.id})">Close</button>`:''}</td>${del?`<td style="text-align:right"><button class="del-x" onclick="event.stopPropagation();delTrade(${t.id})">✕</button></td>`:''}</tr>`).join('')}</tbody></table></div>`; }
+  return `<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Date</th><th>Symbol</th><th>Side</th><th>R:R</th><th>Rules</th><th style="text-align:right">P&L</th>${del?'<th></th>':''}</tr></thead><tbody>${tr.map(t=>`<tr onclick="openTradeDetail(${t.id})">${''}<td class="mono">${fmtDate(t.date)}</td><td style="font-weight:600">${t.symbol}${t.open?' <span class="tag" style="background:rgba(255,196,61,.16);color:var(--gold)">open</span>':''}</td><td><span class="tag ${t.side}">${t.side}</span></td><td class="mono">${t.rr?t.rr.toFixed(2):'–'}</td><td class="mono">${t.rulesTotal?t.rulesFollowed+'/'+t.rulesTotal:'–'}</td><td style="text-align:right;font-weight:700" class="${t.pnl>=0?'pos':'neg'}">${money(t.pnl)}${t.open?` <button class="btn btn-ghost btn-sm" style="height:30px;padding:0 12px;font-size:12px;margin-left:6px" onclick="event.stopPropagation();closeTradePrompt(${t.id})">Close</button>`:''}</td>${del?`<td style="text-align:right"><button class="del-x" onclick="event.stopPropagation();delTrade(${t.id})">✕</button></td>`:''}</tr>`).join('')}</tbody></table></div>`; }
 function equitySVG(tr,acct){ const pts=[acct]; let c=acct; tr.forEach(t=>{c+=t.pnl;pts.push(c);});
   if(pts.length<2||tr.length===0){ return `<div class="hint" style="padding:34px 0;text-align:center">Log trades to draw your equity curve.</div>`; }
   const min=Math.min(...pts),max=Math.max(...pts),range=(max-min)||1,W=500,H=150;
