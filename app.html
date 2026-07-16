@@ -1645,17 +1645,18 @@ function excursionCard(tr){
   return html;
 }
 function heatmapCard(tr){ const wt=tr.filter(t=>t.time&&t.date); if(wt.length<6) return '';
-  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; const cols=['Asia','London','New York','Evening'];
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; const cols=['Asia','London','NY','Eve'];
   const sc=t=>{ const h=hourOf(t); if(h==null)return null; return h<7?0:h<13?1:h<20?2:3; };
   const wd=t=>{ try{ return (new Date(t.date+'T00:00').getDay()+6)%7; }catch(e){ return null; } };
   const grid={}; wt.forEach(t=>{ const r=wd(t),c=sc(t); if(r==null||c==null)return; const k=r+'-'+c; (grid[k]=grid[k]||{net:0,n:0}); grid[k].net+=t.pnl; grid[k].n++; });
   const max=Math.max(1,...Object.values(grid).map(v=>Math.abs(v.net)));
   const rows=[0,1,2,3,4,5,6].filter(r=>cols.some((c,ci)=>grid[r+'-'+ci]));
-  let g='<div style="overflow-x:auto"><div style="display:grid;grid-template-columns:56px repeat(4,minmax(64px,1fr));gap:5px;margin-top:14px;min-width:340px">';
-  g+='<div></div>'+cols.map(c=>'<div class="hint" style="font-size:10px;text-align:center">'+c+'</div>').join('');
-  rows.forEach(r=>{ g+='<div class="hint" style="font-size:11px;display:flex;align-items:center">'+days[r]+'</div>'; cols.forEach((c,ci)=>{ const v=grid[r+'-'+ci]; if(!v){ g+='<div style="height:42px;border-radius:6px;background:rgba(255,255,255,.03)"></div>'; return; } const pos=v.net>=0, a=Math.min(.92,.16+Math.abs(v.net)/max*.76); g+='<div title="'+days[r]+' '+c+' · '+money(v.net)+' ('+v.n+' trade'+(v.n===1?'':'s')+')" style="height:42px;border-radius:6px;background:'+(pos?'rgba(36,209,155,':'rgba(245,71,107,')+a+');cursor:help"></div>'; }); });
-  g+='</div></div>';
-  return '<div class="card section-gap"><div class="card-title">Your money heatmap</div><div class="card-sub">Net P&L by weekday × session — spot exactly when you bleed money (hover a cell).</div>'+g+'</div>';
+  const cell=(r,ci)=>{ const v=grid[r+'-'+ci]; if(!v) return '<div style="height:30px;border-radius:6px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.04)"></div>'; const pos=v.net>=0, mag=Math.abs(v.net)/max, a=(0.22+mag*0.68).toFixed(2), strong=mag>0.4; return '<div title="'+days[r]+' '+cols[ci]+' · '+money(v.net)+' ('+v.n+' trade'+(v.n===1?'':'s')+')" style="height:30px;border-radius:6px;display:grid;place-items:center;font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;cursor:help;color:'+(strong?'#04120c':'rgba(255,255,255,.55)')+';background:'+(pos?'rgba(36,209,155,':'rgba(245,71,107,')+a+')">'+(mag>0.15?(v.net>=0?'+':'')+Math.round(v.net):'')+'</div>'; };
+  let g='<div style="max-width:480px"><div style="display:grid;grid-template-columns:34px repeat(4,1fr);gap:4px">';
+  g+='<div></div>'+cols.map(c=>'<div class="hint" style="font-size:9px;text-align:center;letter-spacing:.4px">'+c.toUpperCase()+'</div>').join('');
+  rows.forEach(r=>{ g+='<div class="hint" style="font-size:10px;display:flex;align-items:center">'+days[r]+'</div>'+cols.map((c,ci)=>cell(r,ci)).join(''); });
+  g+='</div><div style="display:flex;align-items:center;gap:6px;margin-top:11px"><span class="hint" style="font-size:10px">Loss</span><span style="width:16px;height:9px;border-radius:2px;background:rgba(245,71,107,.75)"></span><span style="width:16px;height:9px;border-radius:2px;background:rgba(255,255,255,.06)"></span><span style="width:16px;height:9px;border-radius:2px;background:rgba(36,209,155,.75)"></span><span class="hint" style="font-size:10px">Profit</span></div></div>';
+  return '<div class="card section-gap"><div class="card-title">Money heatmap</div><div class="card-sub">Net P&L by weekday × session — spot exactly when you bleed money.</div><div style="margin-top:14px">'+g+'</div></div>';
 }
 function holdTimeCard(tr){ const ht=tr.filter(t=>t.hold); if(ht.length<4) return ''; return '<div class="card section-gap">'+reportTable('By hold time',groupStat(ht,t=>t.hold))+'<div class="hint" style="margin-top:8px">If your Scalps lose but Swings win, you may be overtrading on impulse — trade the timeframe that actually pays you.</div></div>'; }
 function monteCarloCard(tr){
