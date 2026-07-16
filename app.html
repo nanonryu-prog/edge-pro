@@ -1312,7 +1312,15 @@ VIEWS.settings=function(){
     </div>
     <div class="card set-section"><h3>Appearance</h3><div class="card-sub" style="margin-bottom:12px">Auto follows the clock — light by day, dark at night.</div>
       <div class="menu-theme" style="padding:0;gap:8px"><button data-theme="auto" class="${pref==='auto'?'on':''}" onclick="setTheme('auto');VIEWS.settings()">Auto</button><button data-theme="light" class="${pref==='light'?'on':''}" onclick="setTheme('light');VIEWS.settings()">Light</button><button data-theme="dark" class="${pref==='dark'?'on':''}" onclick="setTheme('dark');VIEWS.settings()">Dark</button></div>
-      <div class="toggle" style="margin-top:14px"><div><b style="font-size:13.5px">Seasonal touches</b><div class="hint">Subtle festive flair on holidays (Halloween, Christmas…)</div></div><div class="sw ${st.seasonal!==false?'on':''}" onclick="this.classList.toggle('on');(function(x){const s=Store.settings();s.seasonal=x;Store.saveSettings(s);applySeasonal();})(this.classList.contains('on'))"></div></div>
+      <div class="toggle" style="margin-top:14px"><div><b style="font-size:13.5px">Seasonal theme</b><div class="hint">The whole app recolours on real holidays (Halloween, Christmas, New Year, Valentine's)</div></div><div class="sw ${st.seasonal!==false?'on':''}" onclick="this.classList.toggle('on');(function(x){const s=Store.settings();s.seasonal=x;Store.saveSettings(s);applySeasonal();})(this.classList.contains('on'))"></div></div>
+      <div class="hint" style="margin-top:12px">Preview a theme (only shows live on the real date):</div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:7px">
+        <button class="chip-tag" onclick="previewSeason('halloween')">🎃 Halloween</button>
+        <button class="chip-tag" onclick="previewSeason('christmas')">🎄 Christmas</button>
+        <button class="chip-tag" onclick="previewSeason('newyear')">🎆 New Year</button>
+        <button class="chip-tag" onclick="previewSeason('valentine')">💗 Valentine's</button>
+        <button class="chip-tag" onclick="previewSeason(undefined)">Off / current</button>
+      </div>
     </div>
     <div class="card set-section"><h3>Profile</h3>
       <div class="form-grid" style="margin-top:12px">
@@ -1759,28 +1767,47 @@ function applyTheme(){ const pref=getThemePref(), t=resolveTheme(pref); document
   document.querySelectorAll('.menu-theme button').forEach(x=>x.classList.toggle('on',x.dataset.theme===pref)); }
 function setTheme(p){ localStorage.setItem('edgepro_theme',p); applyTheme(); toast('Theme: '+p); }
 function cycleTheme(){ const o=['auto','light','dark']; setTheme(o[(o.indexOf(getThemePref())+1)%3]); }
-/* ---- seasonal touches ---- */
+/* ---- seasonal theming: recolours the whole app + themed effects, only on the real event ---- */
+const SEASONS={
+  halloween:{emoji:'🎃',name:'Halloween',grad:'linear-gradient(135deg,#FF7A1A 0%,#FF5C1A 42%,#7C3AED 100%)',v1:'#FF8A2A',v2:'#FFA75C',pink:'#B15CFF',mode:'spooky'},
+  christmas:{emoji:'🎄',name:'Christmas',grad:'linear-gradient(135deg,#E23B3B 0%,#D4462E 42%,#2FB86B 100%)',v1:'#2FB86B',v2:'#57D98A',pink:'#E23B3B',mode:'snow'},
+  newyear:{emoji:'🎆',name:'New Year',grad:'linear-gradient(135deg,#FFC43D 0%,#FF8A3D 45%,#E15CC6 100%)',v1:'#FFB01F',v2:'#FFD873',pink:'#FF8A3D',mode:'confetti'},
+  valentine:{emoji:'💗',name:"Valentine's",grad:'linear-gradient(135deg,#FF5C8A 0%,#FF3D6E 45%,#E15CC6 100%)',v1:'#FF5C8A',v2:'#FF87AB',pink:'#FF3D6E',mode:'hearts'}
+};
 function currentSeason(){ const d=new Date(),m=d.getMonth()+1,day=d.getDate();
-  if(m===10&&day>=24) return {id:'halloween',emoji:'🎃',label:'Happy Halloween',accent:'#FF7A1A'};
-  if(m===12&&day>=15&&day<=26) return {id:'christmas',emoji:'🎄',label:'Merry Christmas',snow:true,accent:'#2FB86B'};
-  if((m===12&&day>=29)||(m===1&&day<=2)) return {id:'newyear',emoji:'🎆',label:'Happy New Year',accent:'#FFC43D'};
-  if(m===2&&day>=12&&day<=15) return {id:'valentine',emoji:'💜',label:'',accent:'#E15CC6'};
+  if(m===10&&day>=20) return 'halloween';
+  if(m===12&&day>=15&&day<=26) return 'christmas';
+  if((m===12&&day>=29)||(m===1&&day<=2)) return 'newyear';
+  if(m===2&&day>=10&&day<=15) return 'valentine';
   return null;
 }
-function applySeasonal(){ const on=Store.settings().seasonal!==false; const s=on?currentSeason():null;
-  // header badge
+let _seasonPreview; // undefined = follow the calendar; null = force off; id = preview that season
+function activeSeasonId(){ if(_seasonPreview!==undefined) return _seasonPreview; if(Store.settings().seasonal===false) return null; return currentSeason(); }
+function applySeasonal(){ const root=document.documentElement; const id=activeSeasonId(); const s=id?SEASONS[id]:null;
+  if(window._seasonRAF){ cancelAnimationFrame(window._seasonRAF); window._seasonRAF=null; }
+  const oldCv=document.getElementById('seasonCv'); if(oldCv)oldCv.remove();
+  ['--grad','--violet','--violet-2','--pink'].forEach(v=>root.style.removeProperty(v));
   const brand=document.querySelector('.hdr .brand'); let b=document.getElementById('seasonBadge');
-  if(s){ if(!b&&brand){ b=document.createElement('span'); b.id='seasonBadge'; b.style.cssText='margin-left:8px;font-size:17px;cursor:default'; brand.appendChild(b); } if(b){ b.textContent=s.emoji; b.title=s.label||''; } }
-  else if(b){ b.remove(); }
-  // snow (christmas), respects reduced motion
-  const wantSnow=s&&s.snow&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let cv=document.getElementById('snowCv');
-  if(wantSnow){ if(!cv){ cv=document.createElement('canvas'); cv.id='snowCv'; cv.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:60'; document.body.appendChild(cv); startSnow(cv); } }
-  else if(cv){ if(window._snowRAF)cancelAnimationFrame(window._snowRAF); cv.remove(); }
+  if(!s){ if(b)b.remove(); return; }
+  root.style.setProperty('--grad',s.grad); root.style.setProperty('--violet',s.v1); root.style.setProperty('--violet-2',s.v2); root.style.setProperty('--pink',s.pink);
+  if(!b&&brand){ b=document.createElement('span'); b.id='seasonBadge'; b.style.cssText='margin-left:8px;font-size:17px;cursor:default'; brand.appendChild(b); } if(b){ b.textContent=s.emoji; b.title=s.name; }
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches) startSeasonParticles(s.mode);
 }
-function startSnow(cv){ const ctx=cv.getContext('2d'); function size(){ cv.width=innerWidth; cv.height=innerHeight; } size(); addEventListener('resize',size);
-  const N=44, F=Array.from({length:N},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:Math.random()*2.4+1,s:Math.random()*.6+.3,d:Math.random()*.6-.3}));
-  (function loop(){ ctx.clearRect(0,0,cv.width,cv.height); ctx.fillStyle='rgba(255,255,255,.75)'; F.forEach(f=>{ f.y+=f.s; f.x+=f.d; if(f.y>cv.height){f.y=-5;f.x=Math.random()*cv.width;} ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,7); ctx.fill(); }); window._snowRAF=requestAnimationFrame(loop); })();
+function previewSeason(id){ _seasonPreview=(id===undefined?undefined:id); applySeasonal(); if(id)toast('Previewing the '+(SEASONS[id]?SEASONS[id].name:'')+' theme'); else toast('Back to your normal theme'); }
+function startSeasonParticles(mode){
+  const cv=document.createElement('canvas'); cv.id='seasonCv'; cv.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:60'; document.body.appendChild(cv); const ctx=cv.getContext('2d');
+  function size(){ cv.width=innerWidth; cv.height=innerHeight; } size(); addEventListener('resize',size);
+  const conf=({ snow:{n:52,color:'rgba(255,255,255,.85)',minR:1,maxR:3,minS:.3,maxS:.9},
+    spooky:{n:15,emoji:['🦇','🎃','👻'],minR:16,maxR:28,minS:.25,maxS:.7},
+    hearts:{n:20,emoji:['💗','💜','❤️'],minR:14,maxR:26,minS:.4,maxS:.9},
+    confetti:{n:64,rect:true,minR:3,maxR:7,minS:1.1,maxS:2.8} })[mode]||{n:40,color:'rgba(255,255,255,.7)',minR:1,maxR:3,minS:.4,maxS:.9};
+  const cols=['#FFC43D','#FF5C8A','#7C5CFC','#24D19B','#6AA9FF'];
+  const P=Array.from({length:conf.n},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:conf.minR+Math.random()*(conf.maxR-conf.minR),s:conf.minS+Math.random()*(conf.maxS-conf.minS),d:Math.random()*.8-.4,rot:Math.random()*6,vr:Math.random()*.12-.06,e:conf.emoji?conf.emoji[Math.floor(Math.random()*conf.emoji.length)]:null,c:cols[Math.floor(Math.random()*cols.length)]}));
+  (function loop(){ ctx.clearRect(0,0,cv.width,cv.height); P.forEach(p=>{ p.y+=p.s; p.x+=p.d; p.rot+=p.vr; if(p.y>cv.height+34){ p.y=-34; p.x=Math.random()*cv.width; }
+    if(p.e){ ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*.12); ctx.font=p.r+'px serif'; ctx.globalAlpha=.85; ctx.fillText(p.e,0,0); ctx.restore(); }
+    else if(conf.rect){ ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.c; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*.5); ctx.restore(); }
+    else { ctx.beginPath(); ctx.fillStyle=conf.color; ctx.arc(p.x,p.y,p.r,0,7); ctx.fill(); } });
+    window._seasonRAF=requestAnimationFrame(loop); })();
 }
 
 /* ---- account menu ---- */
