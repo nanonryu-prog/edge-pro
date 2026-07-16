@@ -1416,18 +1416,23 @@ function quickLog(){
 function qSel(g,btn){ btn.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); if(g==='side')window._qSide=btn.dataset.v; else window._qRules=btn.dataset.v; }
 function startVoiceLog(btn){ const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR){ toast('Voice input isn’t supported in this browser'); return; } const rec=new SR(); rec.lang='en-US'; rec.interimResults=false; rec.maxAlternatives=1; const orig=btn?btn.innerHTML:''; if(btn){ btn.innerHTML='● Listening…'; btn.disabled=true; }
   toast('Listening… say e.g. “SOL long profit 227”');
-  rec.onresult=e=>{ const t=((e.results[0][0].transcript)||'').trim(); if(t){ parseVoiceTrade(t); toast('Heard: “'+t+'” — check &amp; save','good'); } };
+  rec.onresult=e=>{ const t=((e.results[0][0].transcript)||'').trim(); if(t){ const r=parseVoiceTrade(t); toast(r.matchedSymbol?('Got it — check the details & save'):('Heard “'+escHtml(t)+'” — tap your symbol above, then save'),'good'); } };
   rec.onerror=()=>{ toast('Didn’t catch that — try again'); };
   rec.onend=()=>{ if(btn){ btn.innerHTML=orig; btn.disabled=false; } };
   try{ rec.start(); }catch(e){ if(btn){ btn.innerHTML=orig; btn.disabled=false; } }
 }
 function parseVoiceTrade(t){ const low=t.toLowerCase();
-  const side=/\b(short|sell|sold)\b/.test(low)?'short':'long'; window._qSide=side; document.querySelectorAll('#qForm .seg-btn[data-v="long"],#qForm .seg-btn[data-v="short"]').forEach(b=>b.classList.toggle('on',b.dataset.v===side));
+  // Side + P&L transcribe reliably — fill those.
+  const side=/\b(short|sell|sold)\b/.test(low)?'short':(/\b(long|buy|bought)\b/.test(low)?'long':(window._qSide||'long')); window._qSide=side; document.querySelectorAll('#qForm .seg-btn[data-v="long"],#qForm .seg-btn[data-v="short"]').forEach(b=>b.classList.toggle('on',b.dataset.v===side));
   const m=low.replace(/,/g,'').match(/-?\d+(\.\d+)?/); let pnl=m?parseFloat(m[0]):null;
   const neg=/\b(loss|lost|lose|losing|down|minus|negative|red)\b/.test(low), pos=/\b(profit|win|won|winning|up|plus|made|green|gain)\b/.test(low);
   if(pnl!=null){ if(neg)pnl=-Math.abs(pnl); else if(pos)pnl=Math.abs(pnl); const p=$('#q-pnl'); if(p)p.value=pnl; }
-  const skip=/^(long|short|buy|bought|sell|sold|profit|loss|lost|lose|win|won|up|down|plus|minus|made|of|a|an|the|dollars?|bucks?|and|on|at|for|my|i|was|is)$/i;
-  const sym=t.split(/\s+/).find(w=>!skip.test(w)&&!/^-?\d/.test(w)); if(sym){ const el=$('#q-sym'); if(el)el.value=sym.toUpperCase().replace(/[^A-Z0-9]/g,''); }
+  // Symbol: ONLY set it if a spoken word matches one of your real recent tickers — never guess garbage.
+  const recents=(typeof recentSymbols==='function')?recentSymbols():[]; const norm=x=>(x+'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const words=t.replace(/[^a-zA-Z0-9 ]/g,' ').split(/\s+/).filter(Boolean); let sym=null;
+  for(const w of words){ const nw=norm(w); if(nw.length<2)continue; const hit=recents.find(r=>{ const nr=norm(r); return nr===nw||nr.startsWith(nw)||(nr.length>=3&&nw.startsWith(nr.slice(0,3))); }); if(hit){ sym=hit; break; } }
+  const el=$('#q-sym'); if(sym&&el){ el.value=sym; } else if(el&&!el.value){ el.placeholder='tap a symbol above ↑'; }
+  return {matchedSymbol:!!sym, pnl, side};
 }
 function qRepeatLast(){ const tr=Store.trades(); const l=tr[tr.length-1]; if(!l)return; const sym=$('#q-sym'); if(sym)sym.value=l.symbol||''; window._qSide=l.side||'long'; document.querySelectorAll('#qForm .seg-btn[data-v="long"],#qForm .seg-btn[data-v="short"]').forEach(b=>b.classList.toggle('on',b.dataset.v===window._qSide)); window._qSetups=(l.tags||[]).filter(t=>t!=='imported'&&t!=='open'); document.querySelectorAll('#qSetups .chip-tag:not(.chip-add)').forEach(b=>b.classList.toggle('on',window._qSetups.includes(b.dataset.v))); const p=$('#q-pnl'); if(p)p.focus(); }
 function saveQuick(e){ e.preventDefault(); const _b=achCount(); const rt=(Store.playbooks()[0]||{rules:[]}).rules.length; const followed=window._qRules!=='no';
