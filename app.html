@@ -535,7 +535,8 @@ function stats(trArg){
   const rMults=rTr.map(t=>{ const risk=Math.abs(t.entry-t.stop)*Math.abs(t.size); return risk?t.pnl/risk:0; });
   const avgR=rMults.length?rMults.reduce((a,b)=>a+b,0)/rMults.length:null;
   const rCount=rMults.length;
-  return {tr,acct,wins:wins.length,losses:losses.length,net,wr,pf,exp,avgRR,avgWin,avgLoss,tilt,dis,broken,rulesFollowed,slips,maxDD,maxDDpct,avgR,rCount};
+  const recovery=mdd>0?(net/mdd):(net>0?Infinity:0);
+  return {tr,acct,wins:wins.length,losses:losses.length,net,wr,pf,exp,avgRR,avgWin,avgLoss,tilt,dis,broken,rulesFollowed,slips,maxDD,maxDDpct,avgR,rCount,recovery};
 }
 function levelInfo(){ const xp=Store.profile().xp||0; return {xp,lvl:Math.floor(xp/100)+1,into:xp%100}; }
 function lossGuard(s){
@@ -635,7 +636,13 @@ function riskGuardBanner(){
   if(r.state==='warn') return '<div class="card section-gap" style="border-color:rgba(255,196,61,.5);background:radial-gradient(120% 100% at 0 0,rgba(255,196,61,.1),transparent 60%)"><div style="display:flex;gap:14px;align-items:center"><span style="flex:0 0 auto;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:var(--gold);background:rgba(255,196,61,.14)">'+svgi('warn',22,'currentColor')+'</span><div><b style="color:var(--gold)">Careful — close to your daily limit</b><div class="hint" style="margin-top:3px">You\'re at '+lossTxt+' · '+tradeTxt+'. One more loss could end your day — take only your A+ setup now.</div></div></div></div>';
   return '<div class="card section-gap" style="border-color:rgba(36,209,155,.3)"><div style="display:flex;gap:12px;align-items:center"><span style="flex:0 0 auto;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;color:var(--win);background:rgba(36,209,155,.14)">'+svgi('wave',20,'currentColor')+'</span><div><b>Within your daily limits</b> <span class="hint">· '+lossTxt+' · '+tradeTxt+'</span></div></div></div>';
 }
-function checkRiskGuard(){ const r=todayRisk(); if(r.state==='stop') riskStopModal(r); }
+function checkRiskGuard(){ const r=todayRisk(); if(r.state==='stop'){ riskStopModal(r); return true; } return false; }
+function maybeCoolDown(t){ if(t&&t.pnl<0 && ((t.tilt&&t.tilt>=4) || (t.rulesTotal>0&&t.rulesFollowed<t.rulesTotal))){ setTimeout(showCoolDown,450); return true; } return false; }
+function showCoolDown(){ let secs=300; const modal=document.getElementById('detailModal'); const el=document.getElementById('detailInner'); if(!el)return;
+  const render=()=>{ const m=Math.floor(secs/60), s=secs%60; const done=secs<=0; el.innerHTML='<div style="text-align:center;padding:20px 10px"><div style="display:flex;justify-content:center;margin-bottom:14px"><span class="coach-orb" style="width:56px;height:56px"></span></div><div class="card-title" style="font-size:22px">Take a breath</div><p class="hint" style="max-width:390px;margin:12px auto 0;line-height:1.65">That was a tough one. The trade right after a painful loss is where accounts get blown — revenge, oversizing, chasing. Step away from the screen. The setup will still be there.</p><div class="mono" style="font-size:46px;font-weight:700;margin:18px 0;color:'+(done?'var(--win)':'var(--gold)')+'">'+(done?'Ready':m+':'+String(s).padStart(2,'0'))+'</div><button class="btn btn-primary" onclick="clearInterval(window._cdTimer);closeDetail()">'+(done?'Back with a clear head':'I\'ll step away')+'</button></div>'; };
+  render(); modal.classList.add('show');
+  clearInterval(window._cdTimer); window._cdTimer=setInterval(()=>{ if(!modal.classList.contains('show')){ clearInterval(window._cdTimer); return; } secs--; render(); if(secs<=0)clearInterval(window._cdTimer); },1000);
+}
 function todayPlanKey(){ return new Date().toISOString().slice(0,10); }
 function todayPlan(){ const p=Store.get('plans',{})||{}; return p[todayPlanKey()]||null; }
 function openGamePlan(){ const p=todayPlan()||{bias:'Neutral',watchlist:'',levels:'',focus:''};
@@ -1095,10 +1102,14 @@ function personalRecordsCard(){
   const chron=tr.slice().sort((a,b)=>((a.date||'')+'').localeCompare((b.date||'')+'')); let ws=0,maxWs=0; chron.forEach(t=>{ if(t.pnl>0){ws++;maxWs=Math.max(maxWs,ws);}else if(t.pnl<0)ws=0; });
   const greenDays=days.filter(v=>v>0).length;
   const bigWin=Math.max(0,...tr.map(t=>t.pnl));
+  let ls=0,maxLs=0; chron.forEach(t=>{ if(t.pnl<0){ls++;maxLs=Math.max(maxLs,ls);}else if(t.pnl>0)ls=0; });
+  const rec=stats().recovery;
   const recs=[
     {i:'chartup',n:'Best day',v:money(bestDay),c:bestDay>=0?'win':'loss'},
     {i:'bolt',n:'Biggest win',v:money(bigWin),c:'win'},
+    {i:'diamond',n:'Recovery factor',v:rec===Infinity?'∞':(rec||0).toFixed(2),c:'violet'},
     {i:'flame',n:'Longest win streak',v:maxWs+' trade'+(maxWs===1?'':'s'),c:'violet'},
+    {i:'chartdown',n:'Longest losing streak',v:maxLs+' trade'+(maxLs===1?'':'s'),c:maxLs>=4?'loss':''},
     {i:'calendar',n:'Green days',v:greenDays+'',c:'win'},
     {i:'wave',n:'Busiest day',v:busiest+' trade'+(busiest===1?'':'s'),c:''},
     {i:'chartdown',n:'Worst day',v:money(worstDay),c:worstDay<0?'loss':''},
@@ -1364,7 +1375,7 @@ function qSel(g,btn){ btn.parentElement.querySelectorAll('.seg-btn').forEach(b=>
 function qRepeatLast(){ const tr=Store.trades(); const l=tr[tr.length-1]; if(!l)return; const sym=$('#q-sym'); if(sym)sym.value=l.symbol||''; window._qSide=l.side||'long'; document.querySelectorAll('#qForm .seg-btn[data-v="long"],#qForm .seg-btn[data-v="short"]').forEach(b=>b.classList.toggle('on',b.dataset.v===window._qSide)); window._qSetups=(l.tags||[]).filter(t=>t!=='imported'&&t!=='open'); document.querySelectorAll('#qSetups .chip-tag:not(.chip-add)').forEach(b=>b.classList.toggle('on',window._qSetups.includes(b.dataset.v))); const p=$('#q-pnl'); if(p)p.focus(); }
 function saveQuick(e){ e.preventDefault(); const _b=achCount(); const rt=(Store.playbooks()[0]||{rules:[]}).rules.length; const followed=window._qRules!=='no';
   const t={id:Date.now(),date:new Date().toISOString().slice(0,10),time:new Date().toTimeString().slice(0,5),symbol:($('#q-sym').value||'—').toUpperCase().trim(),side:window._qSide||'long',entry:null,exit:null,size:null,stop:null,target:null,pnl:parseFloat($('#q-pnl').value)||0,rr:null,emotion:'',tilt:null,rulesFollowed:(rt?(followed?rt:0):0),rulesTotal:rt,notes:'',shot:null,account:'',tags:(window._qSetups||[]).slice(),mistakes:(window._qMistakes||[]).slice()};
-  const a=Store.trades(); a.push(t); Store.saveTrades(a); const xp=10+(followed&&rt?5:0); addXP(xp); closeLog(); toast('Trade logged · +'+xp+' XP','good'); celebrateNewAch(_b); go(current); checkGoalRewards(); checkRiskGuard(); }
+  const a=Store.trades(); a.push(t); Store.saveTrades(a); const xp=10+(followed&&rt?5:0); addXP(xp); closeLog(); toast('Trade logged · +'+xp+' XP','good'); celebrateNewAch(_b); go(current); checkGoalRewards(); if(!checkRiskGuard()) maybeCoolDown(t); }
 function openLog(editId){ window._editId=editId||null;
   const rules=(Store.playbooks()[0]||{rules:[]}).rules;
   $('#logModalInner').innerHTML=`<div class="row-sb"><div class="card-title">${editId?'Edit trade':'Log a trade'}</div><button class="modal-x" onclick="closeLog()">✕</button></div>
@@ -1415,7 +1426,7 @@ function saveTradeModal(ev){ ev.preventDefault(); const _b=achCount();
     rulesFollowed:followed,rulesTotal:rules.length,notes:$('#m-notes').value.trim(),shot:window._pendingShot||null,account:($('#m-account')?$('#m-account').value:''),tags:($('#m-tags')?$('#m-tags').value.split(',').map(x=>x.trim()).filter(Boolean):[]),mistakes:[...document.querySelectorAll('#m-mistakes .chip-miss.on')].map(b=>b.dataset.v),open:($('#m-open')&&$('#m-open').checked)?true:undefined};
   if(window._editId){ const arr=Store.trades(); const i=arr.findIndex(x=>x.id===window._editId); t.id=window._editId; if(i>=0)arr[i]=t; Store.saveTrades(arr); window._editId=null; closeLog(); toast('Trade updated','good'); go(current); return; }
   const a=Store.trades(); a.push(t); Store.saveTrades(a); addXP(10+(followed===rules.length&&rules.length?5:0));
-  closeLog(); toast('Trade logged','good'); go(current==='trades'?'trades':'dash'); celebrateNewAch(_b); checkGoalRewards(); checkRiskGuard();
+  closeLog(); toast('Trade logged','good'); go(current==='trades'?'trades':'dash'); celebrateNewAch(_b); checkGoalRewards(); if(!checkRiskGuard()) maybeCoolDown(t);
 }
 
 /* ---- actions ---- */
@@ -1451,7 +1462,7 @@ function wipe(){ ['trades','playbooks','journal','goals','eval','profile','weeks
 function kpi(label,val,cls,sub,extra=''){ return `<div class="card kcard">${extra}<div class="klabel">${label}</div><div class="kval ${cls}">${val}</div><div class="ksub">${sub}</div></div>`; }
 function emptyInner(h,p,fn,btn){ return `<div class="empty"><div class="ei"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div><h3>${h}</h3><p style="max-width:36ch;margin:0 auto 16px">${p}</p><button class="btn btn-primary" onclick="${fn}">${btn}</button></div>`; }
 function tradeTable(tr,del){ if(!tr.length)return '<div class="hint">No trades.</div>';
-  return `<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Date</th><th>Symbol</th><th>Side</th><th>R:R</th><th>Rules</th><th style="text-align:right">P&L</th>${del?'<th></th>':''}</tr></thead><tbody>${tr.map(t=>`<tr onclick="openTradeDetail(${t.id})">${''}<td class="mono">${fmtDate(t.date)}</td><td style="font-weight:600">${t.symbol}${t.open?' <span class="tag" style="background:rgba(255,196,61,.16);color:var(--gold)">open</span>':''}</td><td><span class="tag ${t.side}">${t.side}</span></td><td class="mono">${t.rr?t.rr.toFixed(2):'–'}</td><td class="mono">${t.rulesTotal?t.rulesFollowed+'/'+t.rulesTotal:'–'}</td><td style="text-align:right;font-weight:700" class="${t.pnl>=0?'pos':'neg'}">${money(t.pnl)}</td>${del?`<td style="text-align:right"><button class="del-x" onclick="event.stopPropagation();delTrade(${t.id})">✕</button></td>`:''}</tr>`).join('')}</tbody></table></div>`; }
+  return `<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Date</th><th>Symbol</th><th>Side</th><th>R:R</th><th>Rules</th><th style="text-align:right">P&L</th>${del?'<th></th>':''}</tr></thead><tbody>${tr.map(t=>`<tr onclick="openTradeDetail(${t.id})">${''}<td class="mono">${fmtDate(t.date)}</td><td style="font-weight:600">${t.symbol}${t.open?' <span class="tag" style="background:rgba(255,196,61,.16);color:var(--gold)">open</span>':''}</td><td><span class="tag ${t.side}">${t.side}</span></td><td class="mono">${t.rr?t.rr.toFixed(2):'–'}</td><td class="mono">${t.rulesTotal?t.rulesFollowed+'/'+t.rulesTotal:'–'}</td><td style="text-align:right;font-weight:700" class="${t.pnl>=0?'pos':'neg'}">${money(t.pnl)}${t.open?` <button class="btn btn-ghost btn-sm" style="padding:2px 9px;font-size:11px;margin-left:4px" onclick="event.stopPropagation();closeTradePrompt(${t.id})">Close</button>`:''}</td>${del?`<td style="text-align:right"><button class="del-x" onclick="event.stopPropagation();delTrade(${t.id})">✕</button></td>`:''}</tr>`).join('')}</tbody></table></div>`; }
 function equitySVG(tr,acct){ const pts=[acct]; let c=acct; tr.forEach(t=>{c+=t.pnl;pts.push(c);});
   if(pts.length<2||tr.length===0){ return `<div class="hint" style="padding:34px 0;text-align:center">Log trades to draw your equity curve.</div>`; }
   const min=Math.min(...pts),max=Math.max(...pts),range=(max-min)||1,W=500,H=150;
@@ -1698,10 +1709,12 @@ function openTradeDetail(id){ const t=Store.trades().find(x=>x.id===id); if(!t)r
     ${(t.mistakes&&t.mistakes.length)?`<div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px"><span class="hint" style="width:100%;margin-bottom:2px">Mistakes</span>${t.mistakes.map(mk=>`<span class="chip-tag chip-miss on" style="cursor:default">${escHtml(mk)}</span>`).join('')}</div>`:''}
     ${t.notes?`<div class="card" style="background:var(--card);margin-top:14px"><div class="flbl">Notes</div><p style="margin-top:6px;color:var(--muted);line-height:1.55">${t.notes}</p></div>`:''}
     ${t.shot?`<img src="${t.shot}" style="width:100%;border-radius:12px;margin-top:14px">`:''}
-    <div style="display:flex;gap:12px;margin-top:18px"><button class="btn btn-primary" onclick="editTrade(${t.id})">Edit</button><button class="btn btn-danger" onclick="delTrade(${t.id});closeDetail()">Delete</button><button class="btn btn-ghost" onclick="closeDetail()">Close</button></div>`;
+    <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap">${t.open?`<button class="btn btn-primary" onclick="closeTradePrompt(${t.id})">Close trade</button><button class="btn btn-ghost" onclick="editTrade(${t.id})">Edit</button>`:`<button class="btn btn-primary" onclick="editTrade(${t.id})">Edit</button>`}<button class="btn btn-danger" onclick="delTrade(${t.id});closeDetail()">Delete</button><button class="btn btn-ghost" onclick="closeDetail()">Close</button></div>`;
   document.getElementById('detailModal').classList.add('show'); }
 function closeDetail(){ document.getElementById('detailModal').classList.remove('show'); }
 function editTrade(id){ closeDetail(); openLog(id); }
+function closeTradePrompt(id){ const t=Store.trades().find(x=>x.id===id); if(!t)return; document.getElementById('detailInner').innerHTML='<div class="row-sb"><div class="card-title">Close '+escHtml(t.symbol||'trade')+'</div><button class="modal-x" onclick="closeDetail()" aria-label="Close">✕</button></div><div class="card-sub" style="margin-bottom:14px">Enter the P&L this trade actually closed at. It\'ll start counting toward your stats.</div><div class="fgrp"><label class="flbl">Final P&L ($)</label><input class="finp mono" type="number" step="any" id="close-pnl" value="'+(t.pnl||'')+'" style="font-size:22px;font-weight:700" placeholder="e.g. 227 or -85"></div><div style="display:flex;gap:12px;margin-top:16px"><button class="btn btn-primary" onclick="saveCloseTrade('+id+')">Mark closed</button><button class="btn btn-ghost" onclick="closeDetail()">Cancel</button></div>'; document.getElementById('detailModal').classList.add('show'); setTimeout(()=>{ const e=document.getElementById('close-pnl'); if(e)e.focus(); },60); }
+function saveCloseTrade(id){ const arr=Store.trades(); const t=arr.find(x=>x.id===id); if(!t)return; const v=parseFloat(document.getElementById('close-pnl').value); if(isNaN(v)){ toast('Enter the final P&L'); return; } t.pnl=v; t.open=undefined; t.tags=(t.tags||[]).filter(x=>x!=='open'); Store.saveTrades(arr); closeDetail(); confetti(); toast('Trade closed — now counting toward your stats','good'); go(current); checkGoalRewards(); }
 
 /* ---- theme ---- */
 const SUN='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
