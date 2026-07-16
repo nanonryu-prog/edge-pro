@@ -14,6 +14,15 @@ window.EDGE_CONFIG = {
     funded:  ""
   },
 
+  // ---- Stripe ANNUAL payment links (2 months free: $90 / $150 / $250 per year) ----
+  // Create these as yearly prices in Stripe, then paste the Payment Link URLs.
+  // Leave blank and the Annual toggle still shows prices; buttons fall back to signup.
+  stripeLinksAnnual: {
+    starter: "",
+    pro:     "",
+    funded:  ""
+  },
+
   // ---- Supabase (real accounts + cloud sync) ----
   supabase: {
     url:     "https://tcttcjxsbmbknqrqhhek.supabase.co",
