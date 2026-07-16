@@ -574,6 +574,7 @@ const SHORT={dash:'Dashboard',coach:'AI Coach',trades:'Trades',playbooks:'Playbo
 const TIER={coach:2,reports:2,goals:2,weekly:2,eval:3};
 const TIERLBL={2:'PRO',3:'FUNDED'};
 function planRank(){ const p=window._plan; return p==='funded'?3:p==='pro'?2:p==='starter'?1:0; }
+function aiAllowed(){ const st=(typeof planState==='function')?planState():{hasPaid:false}; return !(st.hasPaid && planRank()<2); }
 const LOCKSVG='<svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.4" style="margin-right:2px;vertical-align:-1px"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
 function buildNav(){
   const rank=planRank();
@@ -1855,7 +1856,7 @@ function reviewCSV(){ const rows=window._csvRows; const head=rows[0].map(h=>((h|
 function confirmCSVImport(){ const rows=window._csvRows; const m=readCsvMap(); if(m.symbol<0&&m.pnl<0){ toast('Map at least the Symbol or P&L column'); return; } const arr=Store.trades(); let n=0; rows.slice(1).forEach(c=>{ if(!c.join('').trim())return; const t=csvTrade(c,m); t.id=Date.now()+Math.random(); t.emotion=''; t.tilt=null; t.rulesFollowed=0; t.rulesTotal=0; t.shot=null; t.account=''; t.tags=['imported']; arr.push(t); n++; }); Store.saveTrades(arr); closeDetail(); toast('Imported '+n+' trade'+(n===1?'':'s'),'good'); go('dash'); checkGoalRewards(); }
 function filterTrades(){ const q=($('#tf-q').value||'').toLowerCase().trim(); const side=$('#tf-side').value; const out=$('#tf-out').value; let tr=Store.trades().slice().reverse(); if(q)tr=tr.filter(t=>(t.symbol||'').toLowerCase().includes(q)); if(side)tr=tr.filter(t=>t.side===side); if(out==='win')tr=tr.filter(t=>t.pnl>0); else if(out==='loss')tr=tr.filter(t=>t.pnl<0); $('#tradeTableWrap').innerHTML=tradeTable(tr,true)+(tr.length?'':'<div class="hint" style="padding:14px 2px">No trades match those filters.</div>'); }
 function importShot(input){ const f=input.files[0]; if(!f)return; input.value=''; runShotImport(f); }
-function runShotImport(f){ if(!f)return; if(!/^image\//.test(f.type||'')){ toast('That’s not an image'); return; } if(f.size>4.4*1024*1024){ toast('Image too large — crop or screenshot a smaller area'); return; }
+function runShotImport(f){ if(!f)return; if(!aiAllowed()){ toast('AI screenshot import is a Pro feature — upgrade to unlock'); return; } if(!/^image\//.test(f.type||'')){ toast('That’s not an image'); return; } if(f.size>4.4*1024*1024){ toast('Image too large — crop or screenshot a smaller area'); return; }
   const r=new FileReader(); r.onload=async ()=>{ const b64=(r.result+'').split(',')[1]; const mt=f.type||'image/png';
     const t=$('#toast'); t.textContent='Reading your screenshot with AI…'; t.className='show';
     try{ const resp=await fetch('/api/parse-trades',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({image:b64,media_type:mt})});
@@ -1875,6 +1876,8 @@ function persistAi(){ try{ localStorage.setItem('edgepro_aichat',JSON.stringify(
 function edgeAiToggle(){ const p=$('#edgeAiPanel'),f=$('#edgeAiFab'); if(!p)return; const open=!p.classList.contains('open'); p.classList.toggle('open',open); if(f)f.classList.toggle('hidden',open); if(open){ renderAiMsgs(); setTimeout(()=>{ const i=$('#aiInput'); if(i)i.focus(); },60); } }
 function fmtAi(t){ return escHtml(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>'); }
 function renderAiMsgs(typing){ const box=$('#aiMsgs'); if(!box)return; let html='';
+  if(!aiAllowed()){ box.innerHTML='<div style="text-align:center;padding:30px 14px"><div style="display:flex;justify-content:center;margin-bottom:12px">'+svgi('sparkle',36,'var(--violet-2)')+'</div><div class="card-title" style="font-size:18px">EDGE AI is a Pro feature</div><p class="hint" style="margin:10px 0 0;line-height:1.6">Upgrade to Pro to chat with your AI coach, generate Edge Reports, and import trades from screenshots.</p><a href="index.html#pricing" class="btn btn-primary" style="margin-top:16px;text-decoration:none">Upgrade to Pro</a></div>'; const ir=document.querySelector('.ai-input'); if(ir)ir.style.display='none'; return; }
+  const ir=document.querySelector('.ai-input'); if(ir)ir.style.display='';
   if(!_aiChat.length){ html+='<div class="ai-msg bot">Hey — I\'m <b>EDGE AI</b>. Ask me anything: a setup you\'re eyeing, why a trade went wrong, how your stats look, position sizing, prop-firm rules, or the psychology of a tilt day. I can see your journal too, so ask about <b>your own</b> trading.</div>';
     const sugg=['Analyse my recent trades','How do I stop revenge trading?','Is my risk:reward healthy?','Explain fair value gaps'];
     html+='<div class="ai-sugg">'+sugg.map(s=>'<button onclick="edgeAiAsk(\''+s.replace(/'/g,"\\'")+'\')">'+escHtml(s)+'</button>').join('')+'</div>';
@@ -1885,7 +1888,7 @@ function renderAiMsgs(typing){ const box=$('#aiMsgs'); if(!box)return; let html=
 function edgeAiAsk(q){ const i=$('#aiInput'); if(i)i.value=q; edgeAiSend(); }
 function edgeAiGrow(el){ el.style.height='auto'; el.style.height=Math.min(120,el.scrollHeight)+'px'; }
 function edgeAiKey(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); edgeAiSend(); } }
-async function edgeAiSend(){ const inp=$('#aiInput'); const text=(inp?inp.value:'').trim(); if(!text)return; if(inp){ inp.value=''; inp.style.height='auto'; }
+async function edgeAiSend(){ if(!aiAllowed()){ renderAiMsgs(); return; } const inp=$('#aiInput'); const text=(inp?inp.value:'').trim(); if(!text)return; if(inp){ inp.value=''; inp.style.height='auto'; }
   _aiChat.push({role:'user',content:text}); renderAiMsgs(true); persistAi();
   try{ const resp=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({ messages:_aiChat.slice(-16), brief:(typeof coachBrief==='function'&&Store.trades().length?coachBrief():null) })});
     let data={}; try{ data=await resp.json(); }catch(e){}
