@@ -1250,8 +1250,8 @@ function shareCard(){
   document.getElementById('detailInner').innerHTML=`<div class="row-sb"><div class="card-title">Your Edge Card</div><button class="modal-x" onclick="closeDetail()" aria-label="Close">✕</button></div>
     <div class="card-sub" style="margin-bottom:14px">Flex your verified stats. No account balance is ever shown — only your %.</div>
     <div style="max-width:400px;margin:0 auto;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px -20px rgba(124,92,252,.5)">${buildShareSVG()}</div>
-    <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap"><button class="btn btn-primary" onclick="downloadCard()">Download PNG</button><button class="btn btn-ghost" onclick="closeDetail()">Close</button></div>
-    <div class="hint" style="margin-top:12px">Post it on X, Discord or your story — your followers can start their own free at edgeprojournal.com.</div>`;
+    <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap"><button class="btn btn-primary" onclick="downloadCard()">Download PNG</button><button class="btn btn-ghost" onclick="shareToX()"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="margin-right:6px"><path d="M18.9 1.8h3.3l-7.2 8.2 8.5 11.2h-6.6l-5.2-6.8-6 6.8H2.4l7.7-8.8L1.9 1.8h6.8l4.7 6.2 5.5-6.2Zm-1.2 18h1.8L7.1 3.6H5.2l12.5 16.2Z"/></svg>Share on X</button><button class="btn btn-ghost" onclick="copyShareLink()">Copy link</button><button class="btn btn-ghost" onclick="closeDetail()">Close</button></div>
+    <div class="hint" style="margin-top:12px">Download the card, then Share on X — your followers can start their own free at edgeprojournal.com.</div>`;
   const svg=document.querySelector('#detailInner #shareSvg'); if(svg){ svg.style.width='100%'; svg.style.height='auto'; svg.style.display='block'; }
   document.getElementById('detailModal').classList.add('show');
 }
@@ -1266,6 +1266,9 @@ function downloadCard(){
   img.onerror=()=>{ URL.revokeObjectURL(url); toast('Could not render — screenshot the card instead'); };
   img.src=url;
 }
+function shareText(){ const s=stats(); const grade=((Store.get('coachReport',null)||{}).report||{}).grade; const parts=[]; if(grade)parts.push('Discipline grade: '+grade); parts.push(s.wr+'% win rate over '+s.tr.length+' logged trades'); return 'My trading, tracked with discipline on EDGE Pro 📊\n\n'+parts.join(' · ')+'\n\nJournal your edge free 👇'; }
+function shareToX(){ const url='https://edgeprojournal.com'; const intent='https://twitter.com/intent/tweet?text='+encodeURIComponent(shareText())+'&url='+encodeURIComponent(url); window.open(intent,'_blank','noopener'); toast('Attach your downloaded card to the post 📎'); }
+function copyShareLink(){ const t='https://edgeprojournal.com'; if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(()=>toast('Link copied','good'),()=>toast(t)); } else { toast(t); } }
 VIEWS.weekly=function(){
   const s=stats(); const weeks=Store.get('weeks',[])||[];
   $('#view').innerHTML=`
