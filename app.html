@@ -818,7 +818,10 @@ VIEWS.reports=function(){
     ${improvementCard(tr)}
     ${sessionSection(tr)}
     ${whatIfCard(tr)}
+    ${excursionCard(tr)}
+    ${holdTimeCard(tr)}
     ${consistencyCard(tr)}
+    ${monteCarloCard(tr)}
     ${mistakeReport(tr)}
     ${(()=>{const tg=tagStat(tr);return tg.length?`<div class="card section-gap">${reportTable('By tag',tg)}<div class="hint" style="margin-top:10px">Tag your setups when logging trades to see which ones actually make you money.</div></div>`:`<div class="card section-gap"><div class="card-title">By tag</div><div class="hint" style="margin-top:10px">Add tags like “breakout” or “news” when you log a trade — then see which setups win here.</div></div>`;})()}`;
 };
@@ -868,15 +871,22 @@ VIEWS.checklist=function(){
     <div class="card"><div class="card-title">Pre-trade checklist</div><div class="card-sub" style="margin-bottom:14px">From “${pb[0]?pb[0].name:'your playbook'}”. Confirm every rule before you take the trade.</div>
       <div id="cl">${rules.map((r,i)=>`<div class="rule" data-i="${i}"><span class="box"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>${r}</span></div>`).join('')||'<div class="hint">Add rules in Playbooks first.</div>'}</div>
       <div class="meter"><div class="mrow"><span id="clTxt">0 of ${rules.length} confirmed</span><b id="clPct">0%</b></div><div class="mtrack"><div class="mfill" id="clFill" style="width:0%"></div></div></div>
-      <button class="btn btn-primary btn-full" id="clGo" disabled style="opacity:.5" onclick="openLog()">Checklist clear — log this trade →</button>
+      <div class="fgrp" style="margin-top:14px"><label class="flbl">Planned R:R for this trade <span class="hint" style="font-weight:400">· your minimum is ${(Store.settings().rrTarget||2)}:1</span></label><input class="finp mono" type="number" step="0.1" id="cl-rr" placeholder="e.g. 2.0" oninput="clEval()"></div>
+      <div id="cl-rr-warn" class="hint" style="display:none;color:var(--loss);margin-bottom:10px;line-height:1.5"></div>
+      <button class="btn btn-primary btn-full" id="clGo" disabled style="opacity:.5" onclick="openLog()">Confirm every rule first</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:16px">
       <div class="card" style="text-align:center"><div style="display:flex;justify-content:center">${svgi('bolt',40,'var(--gold)')}</div><div class="kval violet" style="font-size:40px">${streak}</div><div class="hint">clean-trade streak</div></div>
       <div class="card"><div class="card-title" style="font-size:15px">The stand-down rule</div><p class="hint" style="margin-top:8px;color:var(--muted);line-height:1.6">If you can’t tick every box, the setup isn’t there. Standing down IS the trade — and your Discipline Score rewards it.</p></div>
     </div>
   </div>`;
-  document.querySelectorAll('#cl .rule').forEach(r=>r.onclick=()=>{ r.classList.toggle('on'); const n=document.querySelectorAll('#cl .rule.on').length,tot=rules.length,p=tot?Math.round(n/tot*100):0; $('#clTxt').textContent=`${n} of ${tot} confirmed`; $('#clPct').textContent=p+'%'; $('#clFill').style.width=p+'%'; const go=$('#clGo'); const ok=n===tot&&tot>0; go.disabled=!ok; go.style.opacity=ok?1:.5; go.textContent='Checklist clear — log this trade →'; });
+  document.querySelectorAll('#cl .rule').forEach(r=>r.onclick=()=>{ r.classList.toggle('on'); clEval(); });
 };
+function clEval(){ const tot=document.querySelectorAll('#cl .rule').length; const n=document.querySelectorAll('#cl .rule.on').length; const p=tot?Math.round(n/tot*100):0; if($('#clTxt'))$('#clTxt').textContent=n+' of '+tot+' confirmed'; if($('#clPct'))$('#clPct').textContent=p+'%'; if($('#clFill'))$('#clFill').style.width=p+'%';
+  const rrMin=+(Store.settings().rrTarget||2); const rrEl=$('#cl-rr'); const rr=(rrEl&&rrEl.value!=='')?+rrEl.value:null; const warn=$('#cl-rr-warn'); let rrBad=false;
+  if(rr!=null&&rr<rrMin){ rrBad=true; if(warn){ warn.style.display='block'; warn.textContent='⚠ '+rr.toFixed(1)+':1 is below your '+rrMin+':1 minimum — this setup doesn\'t pay enough. Skip it or find a better entry.'; } if(rrEl)rrEl.style.borderColor='var(--loss)'; }
+  else { if(warn)warn.style.display='none'; if(rrEl)rrEl.style.borderColor=''; }
+  const go=$('#clGo'); if(go){ const rulesOk=tot>0&&n===tot; const ok=rulesOk&&!rrBad; go.disabled=!ok; go.style.opacity=ok?1:.5; go.textContent=rrBad?'R:R too low — stand down':(rulesOk?'Checklist clear — log this trade →':'Confirm every rule first'); } }
 VIEWS.goals=function(){
   const g=Store.goals(); const s=stats();
   function cur(goal){ if(goal.type==='Profit target ($)')return s.net; if(goal.type==='Win rate (%)')return s.wr; if(goal.type==='Trades logged')return s.tr.length; return s.dis; }
@@ -1302,6 +1312,7 @@ VIEWS.settings=function(){
     </div>
     <div class="card set-section"><h3>Appearance</h3><div class="card-sub" style="margin-bottom:12px">Auto follows the clock — light by day, dark at night.</div>
       <div class="menu-theme" style="padding:0;gap:8px"><button data-theme="auto" class="${pref==='auto'?'on':''}" onclick="setTheme('auto');VIEWS.settings()">Auto</button><button data-theme="light" class="${pref==='light'?'on':''}" onclick="setTheme('light');VIEWS.settings()">Light</button><button data-theme="dark" class="${pref==='dark'?'on':''}" onclick="setTheme('dark');VIEWS.settings()">Dark</button></div>
+      <div class="toggle" style="margin-top:14px"><div><b style="font-size:13.5px">Seasonal touches</b><div class="hint">Subtle festive flair on holidays (Halloween, Christmas…)</div></div><div class="sw ${st.seasonal!==false?'on':''}" onclick="this.classList.toggle('on');(function(x){const s=Store.settings();s.seasonal=x;Store.saveSettings(s);applySeasonal();})(this.classList.contains('on'))"></div></div>
     </div>
     <div class="card set-section"><h3>Profile</h3>
       <div class="form-grid" style="margin-top:12px">
@@ -1395,6 +1406,9 @@ function openLog(editId){ window._editId=editId||null;
       <div class="fgrp"><label class="flbl">P&L ($)</label><input class="finp mono" type="number" step="any" id="m-pnl" placeholder="auto"></div>
       <div class="fgrp"><label class="flbl">R:R</label><input class="finp mono" id="m-rr" placeholder="auto" readonly></div>
       <div class="fgrp"><label class="flbl">Tilt (1–5)</label><input class="finp" type="number" min="1" max="5" id="m-tilt" placeholder="1"></div>
+      <div class="fgrp"><label class="flbl">MAE ($) <span class="hint" style="font-weight:400">worst heat</span></label><input class="finp mono" type="number" step="any" id="m-mae" placeholder="max loss reached"></div>
+      <div class="fgrp"><label class="flbl">MFE ($) <span class="hint" style="font-weight:400">best profit</span></label><input class="finp mono" type="number" step="any" id="m-mfe" placeholder="max profit reached"></div>
+      <div class="fgrp"><label class="flbl">Hold time</label><select class="finp" id="m-hold"><option value="">—</option><option>Scalp (&lt;5m)</option><option>Intraday</option><option>Swing (days)</option><option>Position (weeks+)</option></select></div>
       <div class="fgrp full"><label class="flbl">Account / challenge</label><select class="finp" id="m-account"><option value="">Personal / none</option>${Store.evals().map(c=>`<option value="${c.id}">${c.firm} · ${money0(c.size)}</option>`).join('')}</select></div>
       <div class="fgrp full"><label class="flbl" style="display:flex;align-items:center;gap:9px;cursor:pointer"><input type="checkbox" id="m-open" style="width:16px;height:16px;accent-color:var(--violet)"> This trade is still open <span class="hint" style="font-weight:400">— floating P&amp;L, won't count toward your stats until you close it</span></label></div>
       <div class="fgrp full"><label class="flbl">Tags (comma-separated — e.g. breakout, reversal, news)</label><input class="finp" id="m-tags" placeholder="breakout, London session"></div>
@@ -1409,7 +1423,7 @@ function openLog(editId){ window._editId=editId||null;
   document.querySelectorAll('#mcl .rule').forEach(r=>r.onclick=()=>{ r.classList.toggle('on'); $('#mlProg').textContent=`${document.querySelectorAll('#mcl .rule.on').length} / ${rules.length}`; });
   $('#mForm').onsubmit=saveTradeModal;
   if(editId){ const t=Store.trades().find(x=>x.id===editId); if(t){ const S=(id,v)=>{const el=$('#'+id); if(el&&v!=null&&v!=='')el.value=v;};
-    S('m-date',t.date);S('m-time',t.time);S('m-sym',t.symbol);S('m-side',t.side);S('m-entry',t.entry);S('m-exit',t.exit);S('m-size',t.size);S('m-stop',t.stop);S('m-target',t.target);S('m-emotion',t.emotion);S('m-pnl',t.pnl);S('m-rr',t.rr);S('m-tilt',t.tilt);S('m-notes',t.notes);S('m-account',t.account);S('m-tags',(t.tags||[]).join(', ')); if($('#m-open'))$('#m-open').checked=!!t.open;
+    S('m-date',t.date);S('m-time',t.time);S('m-sym',t.symbol);S('m-side',t.side);S('m-entry',t.entry);S('m-exit',t.exit);S('m-size',t.size);S('m-stop',t.stop);S('m-target',t.target);S('m-emotion',t.emotion);S('m-pnl',t.pnl);S('m-rr',t.rr);S('m-tilt',t.tilt);S('m-notes',t.notes);S('m-account',t.account);S('m-tags',(t.tags||[]).join(', ')); if($('#m-open'))$('#m-open').checked=!!t.open; S('m-mae',t.mae);S('m-mfe',t.mfe);S('m-hold',t.hold);
     const kids=document.querySelectorAll('#mcl .rule'); for(let i=0;i<(t.rulesFollowed||0)&&i<kids.length;i++)kids[i].classList.add('on'); if($('#mlProg'))$('#mlProg').textContent=(t.rulesFollowed||0)+' / '+rules.length;
     (t.mistakes||[]).forEach(m=>{ const b=[...document.querySelectorAll('#m-mistakes .chip-miss')].find(x=>x.dataset.v===m); if(b)b.classList.add('on'); });
     if(t.shot){ window._pendingShot=t.shot; const z=$('#shotZone'); if(z)z.innerHTML='<img src="'+t.shot+'" style="max-width:100%;border-radius:8px;max-height:180px">'; } } }
@@ -1423,7 +1437,7 @@ function saveTradeModal(ev){ ev.preventDefault(); const _b=achCount();
   const t={id:Date.now(),date:$('#m-date').value||new Date().toISOString().slice(0,10),time:($('#m-time')?$('#m-time').value:'')||null,symbol:($('#m-sym').value||'—').toUpperCase(),side:$('#m-side').value,
     entry:+$('#m-entry').value||null,exit:+$('#m-exit').value||null,size:+$('#m-size').value||null,stop:+$('#m-stop').value||null,target:+$('#m-target').value||null,
     pnl:parseFloat($('#m-pnl').value)||0,rr:$('#m-rr').value?+$('#m-rr').value:null,emotion:$('#m-emotion').value,tilt:+$('#m-tilt').value||null,
-    rulesFollowed:followed,rulesTotal:rules.length,notes:$('#m-notes').value.trim(),shot:window._pendingShot||null,account:($('#m-account')?$('#m-account').value:''),tags:($('#m-tags')?$('#m-tags').value.split(',').map(x=>x.trim()).filter(Boolean):[]),mistakes:[...document.querySelectorAll('#m-mistakes .chip-miss.on')].map(b=>b.dataset.v),open:($('#m-open')&&$('#m-open').checked)?true:undefined};
+    rulesFollowed:followed,rulesTotal:rules.length,notes:$('#m-notes').value.trim(),shot:window._pendingShot||null,account:($('#m-account')?$('#m-account').value:''),tags:($('#m-tags')?$('#m-tags').value.split(',').map(x=>x.trim()).filter(Boolean):[]),mistakes:[...document.querySelectorAll('#m-mistakes .chip-miss.on')].map(b=>b.dataset.v),open:($('#m-open')&&$('#m-open').checked)?true:undefined,mae:($('#m-mae')&&$('#m-mae').value!=='')?+$('#m-mae').value:null,mfe:($('#m-mfe')&&$('#m-mfe').value!=='')?+$('#m-mfe').value:null,hold:($('#m-hold')?$('#m-hold').value:'')};
   if(window._editId){ const arr=Store.trades(); const i=arr.findIndex(x=>x.id===window._editId); t.id=window._editId; if(i>=0)arr[i]=t; Store.saveTrades(arr); window._editId=null; closeLog(); toast('Trade updated','good'); go(current); return; }
   const a=Store.trades(); a.push(t); Store.saveTrades(a); addXP(10+(followed===rules.length&&rules.length?5:0));
   closeLog(); toast('Trade logged','good'); go(current==='trades'?'trades':'dash'); celebrateNewAch(_b); checkGoalRewards(); if(!checkRiskGuard()) maybeCoolDown(t);
@@ -1549,6 +1563,25 @@ function autoInsights(tr){
 }
 function insightsCard(tr){ const ins=autoInsights(tr); if(!ins.length) return ''; return '<div class="card section-gap"><div class="card-title">Key insights</div><div class="card-sub">Patterns EDGE spotted in your trading — updated automatically, always accurate.</div><div style="margin-top:14px;display:flex;flex-direction:column;gap:13px">'+ins.map(i=>{ const col=i.tone==='good'?'var(--win)':i.tone==='bad'?'var(--loss)':'var(--violet-2)'; return '<div style="display:flex;gap:11px;align-items:flex-start"><span style="flex:0 0 auto;color:'+col+'">'+svgi(i.icon,18,'currentColor')+'</span><span style="line-height:1.5">'+escHtml(i.text)+'</span></div>'; }).join('')+'</div></div>'; }
 function consistencyCard(tr){ const dm={}; tr.forEach(t=>{ const d=(t.date||'').slice(0,10); dm[d]=(dm[d]||0)+t.pnl; }); const days=Object.values(dm); if(days.length<3)return ''; const profit=days.filter(v=>v>0).reduce((a,v)=>a+v,0); const bestDay=Math.max(0,...days); if(profit<=0)return ''; const pct=Math.round(bestDay/profit*100); const ok=pct<=40; return '<div class="card section-gap"><div class="row-sb"><div class="card-title">Consistency</div><span class="pct-pill '+(ok?'':'neg')+'">'+pct+'% from one day</span></div><div class="card-sub">Most prop firms fail you if a single day is more than ~30–50% of your total profit.</div><div class="mtrack" style="margin-top:14px"><div class="mfill" style="width:'+Math.min(100,pct)+'%;background:'+(ok?'var(--grad)':'var(--loss)')+'"></div></div><div class="hint" style="margin-top:10px;line-height:1.5">Your biggest day ('+money0(bestDay)+') is <b style="color:'+(ok?'var(--win)':'var(--loss)')+'">'+pct+'%</b> of your '+money0(profit)+' in profits. '+(ok?'That\'s consistent — prop-firm friendly.':'That\'s top-heavy — spread your gains across more days to pass consistency rules.')+'</div></div>'; }
+function excursionCard(tr){
+  const mfeT=tr.filter(t=>t.mfe!=null), maeT=tr.filter(t=>t.mae!=null);
+  if(mfeT.length<3&&maeT.length<3) return '';
+  const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+  let html='<div class="card section-gap"><div class="card-title">Trade excursion — MAE / MFE</div><div class="card-sub">How much heat you took, and how much profit you left on the table.</div><div class="grid kpis" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:14px">';
+  if(mfeT.length>=3){ const leftOnTable=mfeT.reduce((a,t)=>a+Math.max(0,(t.mfe||0)-t.pnl),0); const avgMfe=avg(mfeT.map(t=>t.mfe||0)); const winsWithMfe=mfeT.filter(t=>t.pnl>0&&t.mfe>0); const eff=winsWithMfe.length?Math.round(avg(winsWithMfe.map(t=>Math.max(0,Math.min(1,t.pnl/t.mfe))))*100):0; html+=kpi('Avg peak profit (MFE)',money0(avgMfe),'win','')+kpi('Left on the table',money0(leftOnTable),'loss','over '+mfeT.length+' trades')+kpi('Exit efficiency',eff+'%','','of peak profit captured'); }
+  if(maeT.length>=3){ html+=kpi('Avg heat (MAE)',money0(avg(maeT.map(t=>Math.abs(t.mae||0)))),'loss','max drawdown in-trade'); }
+  html+='</div><div class="hint" style="margin-top:10px">Low exit efficiency = you cut winners early. Lots of heat on winners = your stops may be wider than they need to be.</div></div>';
+  return html;
+}
+function holdTimeCard(tr){ const ht=tr.filter(t=>t.hold); if(ht.length<4) return ''; return '<div class="card section-gap">'+reportTable('By hold time',groupStat(ht,t=>t.hold))+'<div class="hint" style="margin-top:8px">If your Scalps lose but Swings win, you may be overtrading on impulse — trade the timeframe that actually pays you.</div></div>'; }
+function monteCarloCard(tr){
+  const pnls=tr.map(t=>t.pnl); if(pnls.length<15) return '';
+  const acct=Store.settings().account||10000, SIMS=1000; const finals=[],maxDDs=[];
+  for(let s=0;s<SIMS;s++){ const a=pnls.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i];a[i]=a[j];a[j]=t; } let eq=acct,peak=acct,mdd=0; a.forEach(p=>{ eq+=p; if(eq>peak)peak=eq; const d=peak-eq; if(d>mdd)mdd=d; }); finals.push(eq-acct); maxDDs.push(mdd); }
+  const srt=a=>a.slice().sort((x,y)=>x-y); const pct=(a,p)=>srt(a)[Math.min(a.length-1,Math.floor(p/100*a.length))];
+  const ddMed=Math.round(pct(maxDDs,50)), dd95=Math.round(pct(maxDDs,95)), profitable=Math.round(finals.filter(v=>v>0).length/SIMS*100), worst=Math.round(pct(finals,5));
+  return '<div class="card section-gap"><div class="card-title">Monte Carlo — 1,000 futures</div><div class="card-sub">Your real trades reshuffled 1,000 times, to see the range of outcomes luck could deal you.</div><div class="grid kpis" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:14px">'+kpi('Typical max drawdown',money0(ddMed),'','median run')+kpi('Bad-luck drawdown',money0(dd95),'loss','95th percentile')+kpi('Runs that profit',profitable+'%','',profitable>=80?'robust edge':'fragile')+kpi('Worst-case P&L',money(worst),worst>=0?'win':'loss','5th percentile')+'</div><div class="hint" style="margin-top:10px">Even a winning system hits unlucky streaks — size so you survive the <b>95th-percentile drawdown ('+money0(dd95)+')</b>, not the average one.</div></div>';
+}
 function rrDistribution(tr){ const b=[['< 1:1',t=>t.rr!=null&&t.rr<1],['1:1 – 2:1',t=>t.rr!=null&&t.rr>=1&&t.rr<2],['2:1 – 3:1',t=>t.rr!=null&&t.rr>=2&&t.rr<3],['3:1 +',t=>t.rr!=null&&t.rr>=3]];
   const rows=b.map(([label,f])=>{const set=tr.filter(f); const w=set.filter(t=>t.pnl>0).length; return {label,n:set.length,wr:set.length?Math.round(w/set.length*100):0,net:set.reduce((a,t)=>a+t.pnl,0)};}); const max=Math.max(1,...rows.map(r=>r.n));
   return `<div class="card-title">R:R distribution</div><div class="card-sub">Where your trades land, and how each band performs</div><div style="margin-top:16px;display:flex;flex-direction:column;gap:14px">${rows.map(r=>`<div><div class="pbar-top"><span>${r.label} · <span class="mono">${r.n}</span> trades · ${r.wr}% win</span><b class="mono ${r.net>=0?'pos':'neg'}">${money(r.net)}</b></div><div class="pbar-tr"><div class="pbar-fl" style="width:${Math.max(2,Math.round(r.n/max*100))}%;background:linear-gradient(90deg,${r.net>=0?'var(--win)':'var(--loss)'},var(--violet-2))"></div></div></div>`).join('')}</div>`; }
@@ -1726,6 +1759,29 @@ function applyTheme(){ const pref=getThemePref(), t=resolveTheme(pref); document
   document.querySelectorAll('.menu-theme button').forEach(x=>x.classList.toggle('on',x.dataset.theme===pref)); }
 function setTheme(p){ localStorage.setItem('edgepro_theme',p); applyTheme(); toast('Theme: '+p); }
 function cycleTheme(){ const o=['auto','light','dark']; setTheme(o[(o.indexOf(getThemePref())+1)%3]); }
+/* ---- seasonal touches ---- */
+function currentSeason(){ const d=new Date(),m=d.getMonth()+1,day=d.getDate();
+  if(m===10&&day>=24) return {id:'halloween',emoji:'🎃',label:'Happy Halloween',accent:'#FF7A1A'};
+  if(m===12&&day>=15&&day<=26) return {id:'christmas',emoji:'🎄',label:'Merry Christmas',snow:true,accent:'#2FB86B'};
+  if((m===12&&day>=29)||(m===1&&day<=2)) return {id:'newyear',emoji:'🎆',label:'Happy New Year',accent:'#FFC43D'};
+  if(m===2&&day>=12&&day<=15) return {id:'valentine',emoji:'💜',label:'',accent:'#E15CC6'};
+  return null;
+}
+function applySeasonal(){ const on=Store.settings().seasonal!==false; const s=on?currentSeason():null;
+  // header badge
+  const brand=document.querySelector('.hdr .brand'); let b=document.getElementById('seasonBadge');
+  if(s){ if(!b&&brand){ b=document.createElement('span'); b.id='seasonBadge'; b.style.cssText='margin-left:8px;font-size:17px;cursor:default'; brand.appendChild(b); } if(b){ b.textContent=s.emoji; b.title=s.label||''; } }
+  else if(b){ b.remove(); }
+  // snow (christmas), respects reduced motion
+  const wantSnow=s&&s.snow&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let cv=document.getElementById('snowCv');
+  if(wantSnow){ if(!cv){ cv=document.createElement('canvas'); cv.id='snowCv'; cv.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:60'; document.body.appendChild(cv); startSnow(cv); } }
+  else if(cv){ if(window._snowRAF)cancelAnimationFrame(window._snowRAF); cv.remove(); }
+}
+function startSnow(cv){ const ctx=cv.getContext('2d'); function size(){ cv.width=innerWidth; cv.height=innerHeight; } size(); addEventListener('resize',size);
+  const N=44, F=Array.from({length:N},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:Math.random()*2.4+1,s:Math.random()*.6+.3,d:Math.random()*.6-.3}));
+  (function loop(){ ctx.clearRect(0,0,cv.width,cv.height); ctx.fillStyle='rgba(255,255,255,.75)'; F.forEach(f=>{ f.y+=f.s; f.x+=f.d; if(f.y>cv.height){f.y=-5;f.x=Math.random()*cv.width;} ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,7); ctx.fill(); }); window._snowRAF=requestAnimationFrame(loop); })();
+}
 
 /* ---- account menu ---- */
 function toggleMenu(force){ const m=$('#userMenu'); const open=force===undefined?!m.classList.contains('open'):force; m.classList.toggle('open',open); }
@@ -1932,7 +1988,7 @@ function injectDemoBanner(){
 (async function boot(){
   if(window.__DEMO){ seedDemo(); injectDemoBanner(); }
   await cloudPull();
-  buildNav(); renderXP(); go('dash'); tickSession(); setInterval(tickSession,1000); applyPlan();
+  buildNav(); renderXP(); go('dash'); tickSession(); setInterval(tickSession,1000); applyPlan(); applySeasonal();
   if(planState().locked){ renderPaywall(); }
   if(localStorage.getItem('edgepro_onboard')===session.email){ localStorage.removeItem('edgepro_onboard'); openOnboarding(); }
 })();
