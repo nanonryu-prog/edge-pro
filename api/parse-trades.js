@@ -44,6 +44,19 @@ If it is a trade-HISTORY TABLE, each data ROW (with date/time, symbol, side, ope
 === CHART WITH A LIVE POSITION ===
 A chart usually shows at MOST ONE real position (sometimes zero, occasionally a couple if genuinely pyramiding the same symbol). If you see a real position (currency P&L, quantity, close "X"), output exactly ONE trade for it. If the position is still running, set "status":"open" and use the floating P&L. If nothing but candles, indicators and signal arrows are present with no real position, return "trades":[].
 
+=== PLATFORMS YOU MUST HANDLE ===
+Screenshots come from anywhere — read them all: MetaTrader 4/5 (History tab), cTrader, TradingView (paper-trading History or the account/positions panel), prop-firm dashboards (FTMO, MyFundedFX, FundingPips, Apex, TopStep, etc.), broker web/apps (OANDA, IC Markets, Pepperstone), crypto exchanges (Binance, Bybit, Bitget, OKX — spot or futures), stock/options brokers (Robinhood, Webull, Thinkorswim, IBKR), and small cramped MOBILE-app screenshots. Layouts differ; the rule never changes: one CLOSED position = one trade.
+
+=== READING NUMBERS CORRECTLY (never get the sign or value wrong) ===
+- A loss can be written "-90", "(90.00)" (accounting parentheses = NEGATIVE), or as a red number — all mean a LOSS, so output a negative "pnl".
+- Use the NET / realized profit for each trade — the final profit that already includes commission and swap. If there are separate Commission / Swap / Fee columns or rows, do NOT turn them into their own trades and do not double-count them.
+- A running BALANCE or EQUITY column is NOT the trade's P&L. Never put an account balance in "pnl" — use the profit/P&L column only.
+- Numbers may use commas as thousands separators ("1,234.50"); read the real value and output a plain number.
+- Side mapping: buy / long / "B" = long; sell / short / "S" = short. On a chart, entry below the take-profit is usually a long; entry above it is usually a short.
+- Dates: keep what the platform shows; if the format is ambiguous (DD/MM vs MM/DD) keep the digits as shown and use the current year only when the year is missing. Never invent a date.
+- Combine PARTIAL fills / partial closes of the SAME position (same symbol, adjacent time) into ONE trade with the total net P&L.
+- If it's clearly a P&L SUMMARY / stats card (totals, win rate, averages) and not a per-trade list, that is NOT trades — return "trades":[].
+
 All numeric fields must be plain JSON numbers — no quotes, no currency symbols, no thousands separators (write 1234.5, not "1,234.50 USD"). If a mark could be a drawn plan/projection rather than a really-executed fill, leave it out. Before you answer, RECOUNT: the number of items in "trades" MUST equal "positions" — if they differ you double-counted; fix it.
 If you truly cannot read any real trade, return {"source":"other","positions":0,"notes":"...","trades":[]}.
 Example: {"source":"chart","positions":1,"notes":"one open SOL short with SL trailed to profit and a TP line","trades":[{"date":"2026-07-14","symbol":"SOLUSD","side":"short","pnl":337.09,"entry":75.09,"exit":null,"stop":74.99,"target":74.88,"rr":2.0,"status":"open"}]}`;
@@ -92,7 +105,7 @@ module.exports = async function handler(req, res) {
     const text = (data.content || []).map(c => c.text || '').join('');
     let trades = extractTrades(text);
     // normalize + coerce string numbers (models sometimes return "1,234.50 USD")
-    const num = v => { if (v == null || v === '') return null; const n = parseFloat(String(v).replace(/[^0-9.\-]/g, '')); return isNaN(n) ? null : n; };
+    const num = v => { if (v == null || v === '') return null; let s = String(v).trim(); const neg = /^\(.*\)$/.test(s); let n = parseFloat(s.replace(/[^0-9.\-]/g, '')); if (isNaN(n)) return null; if (neg) n = -Math.abs(n); return n; };
     const norm = t => {
       if (!t || typeof t !== 'object') return null;
       const pnl = num(t.pnl);
