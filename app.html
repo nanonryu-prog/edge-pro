@@ -184,6 +184,31 @@
   .cmd-row.sel .cmd-ic{background:rgba(255,255,255,.2);color:#fff;}
   .cmd-empty{padding:22px;text-align:center;color:var(--muted);font-size:14px;}
   .cmd-foot{display:flex;gap:16px;padding:10px 16px;border-top:1px solid var(--border);color:var(--faint);font-size:11.5px;}
+  #edgeAiFab{position:fixed;bottom:22px;right:22px;z-index:110;display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border:none;border-radius:999px;background:var(--grad);color:#fff;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 12px 34px -8px rgba(124,92,252,.7);transition:transform .2s var(--ease);}
+  #edgeAiFab:hover{transform:translateY(-2px);}
+  #edgeAiFab.hidden{display:none;}
+  #edgeAiPanel{position:fixed;bottom:22px;right:22px;z-index:111;width:390px;max-width:calc(100vw - 32px);height:600px;max-height:calc(100vh - 44px);background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--border-2);border-radius:18px;box-shadow:0 40px 100px rgba(0,0,0,.6);display:none;flex-direction:column;overflow:hidden;}
+  #edgeAiPanel.open{display:flex;animation:popIn .18s var(--ease);}
+  .ai-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);}
+  .ai-head-l{display:flex;align-items:center;gap:10px;}
+  .ai-orb{width:34px;height:34px;border-radius:50%;background:var(--grad);flex:0 0 auto;box-shadow:0 0 0 3px rgba(124,92,252,.18);}
+  .ai-status{font-size:11px;color:var(--muted);display:block;}
+  .ai-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
+  .ai-msg{max-width:88%;padding:11px 14px;border-radius:14px;font-size:14px;line-height:1.55;word-wrap:break-word;}
+  .ai-msg.user{align-self:flex-end;background:var(--violet);color:#fff;border-bottom-right-radius:5px;}
+  .ai-msg.bot{align-self:flex-start;background:var(--surface-2,rgba(255,255,255,.05));border:1px solid var(--border);border-bottom-left-radius:5px;}
+  .ai-sugg{display:flex;flex-wrap:wrap;gap:7px;}
+  .ai-sugg button{border:1px solid var(--border);background:transparent;color:var(--violet-2);font-size:12.5px;padding:7px 11px;border-radius:999px;cursor:pointer;text-align:left;}
+  .ai-sugg button:hover{border-color:var(--violet);}
+  .ai-input{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border);align-items:flex-end;}
+  #aiInput{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);padding:10px 12px;font-family:inherit;font-size:14px;resize:none;max-height:120px;outline:none;}
+  .ai-send{flex:0 0 auto;width:38px;height:38px;border-radius:11px;border:none;background:var(--grad);color:#fff;cursor:pointer;display:grid;place-items:center;}
+  .ai-disc{font-size:10.5px;color:var(--faint);text-align:center;padding:0 12px 10px;}
+  .ai-typing{display:inline-flex;gap:4px;align-items:center;}
+  .ai-typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:aiblink 1.2s infinite;}
+  .ai-typing i:nth-child(2){animation-delay:.2s;} .ai-typing i:nth-child(3){animation-delay:.4s;}
+  @keyframes aiblink{0%,60%,100%{opacity:.25}30%{opacity:1}}
+  @media(max-width:560px){ #edgeAiPanel{bottom:0;right:0;left:0;width:100%;max-width:100%;height:100%;max-height:100%;border-radius:0;} #edgeAiFab{bottom:16px;right:16px;} }
 
   #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-2);border:1px solid var(--border-2);color:var(--text);padding:13px 20px;border-radius:12px;font-size:14px;font-weight:500;box-shadow:0 16px 40px rgba(0,0,0,0.5);opacity:0;pointer-events:none;transition:.3s var(--ease);z-index:100;}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0);} #toast.good{border-color:rgba(36,209,155,0.4);}
@@ -445,6 +470,13 @@ tr{transition:background .15s}
 <div class="modal-bg" id="detailModal" onclick="if(event.target===this)closeDetail()"><div class="modal" id="detailInner"></div></div>
 <div class="cmdk-bg" id="cmdk" onclick="if(event.target===this)closeCmd()"><div class="cmdk"><input id="cmdInput" placeholder="Search actions — log a trade, jump anywhere…" oninput="renderCmd(this.value)" autocomplete="off" spellcheck="false"><div id="cmdList" class="cmd-list"></div><div class="cmd-foot"><span>↑↓ move</span><span>↵ select</span><span>esc close</span></div></div></div>
 <div id="toast"></div>
+<button id="edgeAiFab" onclick="edgeAiToggle()" aria-label="Ask EDGE AI"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10z"/><path d="M18.5 15.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></svg><span>Ask EDGE</span></button>
+<div id="edgeAiPanel" role="dialog" aria-label="EDGE AI chat">
+  <div class="ai-head"><div class="ai-head-l"><span class="ai-orb"></span><div><b style="font-size:15px">EDGE AI</b><span class="ai-status">Your trading coach · always on</span></div></div><button class="modal-x" onclick="edgeAiToggle()" aria-label="Close">✕</button></div>
+  <div id="aiMsgs" class="ai-msgs"></div>
+  <div class="ai-input"><textarea id="aiInput" rows="1" placeholder="Ask anything — a setup, your stats, psychology…" oninput="edgeAiGrow(this)" onkeydown="edgeAiKey(event)"></textarea><button class="ai-send" onclick="edgeAiSend()" aria-label="Send"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>
+  <div class="ai-disc">EDGE AI is a coach for learning — not financial advice or trade signals.</div>
+</div>
 
 <script>
 /* ============ in-browser backend (localStorage). Swap for real API/Supabase later. ============ */
@@ -1733,10 +1765,36 @@ document.addEventListener('paste',e=>{ const items=(e.clipboardData||{}).items||
 document.addEventListener('keydown',e=>{ if(e.key!=='n'&&e.key!=='N')return; if(e.metaKey||e.ctrlKey||e.altKey)return; const a=document.activeElement; if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))return; if(document.querySelector('.modal-bg.show')||document.querySelector('.cmdk-bg.show'))return; if(typeof quickLog==='function'){ e.preventDefault(); quickLog(); } });
 function shortcutsHelp(){ document.getElementById('detailInner').innerHTML='<div class="row-sb"><div class="card-title">Keyboard shortcuts</div><button class="modal-x" onclick="closeDetail()" aria-label="Close">✕</button></div><div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">'+[['N','Log a trade'],['⌘ / Ctrl + K','Command palette'],['⌘ / Ctrl + V','Paste a screenshot → AI logs it'],['?','Show this help']].map(s=>'<div class="row-sb" style="padding:9px 0;border-top:1px solid var(--border)"><span>'+s[1]+'</span><kbd style="background:var(--surface-2,rgba(255,255,255,.06));border:1px solid var(--border);border-radius:6px;padding:3px 9px;font-family:monospace;font-size:12px">'+s[0]+'</kbd></div>').join('')+'</div>'; document.getElementById('detailModal').classList.add('show'); }
 document.addEventListener('keydown',e=>{ if(e.key!=='?'||e.metaKey||e.ctrlKey||e.altKey)return; const a=document.activeElement; if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))return; if(document.querySelector('.modal-bg.show')||document.querySelector('.cmdk-bg.show'))return; e.preventDefault(); shortcutsHelp(); });
+/* ---- EDGE AI chat ---- */
+let _aiChat=[]; try{ _aiChat=JSON.parse(localStorage.getItem('edgepro_aichat')||'[]')||[]; }catch(e){ _aiChat=[]; }
+function persistAi(){ try{ localStorage.setItem('edgepro_aichat',JSON.stringify(_aiChat.slice(-30))); }catch(e){} }
+function edgeAiToggle(){ const p=$('#edgeAiPanel'),f=$('#edgeAiFab'); if(!p)return; const open=!p.classList.contains('open'); p.classList.toggle('open',open); if(f)f.classList.toggle('hidden',open); if(open){ renderAiMsgs(); setTimeout(()=>{ const i=$('#aiInput'); if(i)i.focus(); },60); } }
+function fmtAi(t){ return escHtml(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>'); }
+function renderAiMsgs(typing){ const box=$('#aiMsgs'); if(!box)return; let html='';
+  if(!_aiChat.length){ html+='<div class="ai-msg bot">Hey — I\'m <b>EDGE AI</b>. Ask me anything: a setup you\'re eyeing, why a trade went wrong, how your stats look, position sizing, prop-firm rules, or the psychology of a tilt day. I can see your journal too, so ask about <b>your own</b> trading.</div>';
+    const sugg=['Analyse my recent trades','How do I stop revenge trading?','Is my risk:reward healthy?','Explain fair value gaps'];
+    html+='<div class="ai-sugg">'+sugg.map(s=>'<button onclick="edgeAiAsk(\''+s.replace(/'/g,"\\'")+'\')">'+escHtml(s)+'</button>').join('')+'</div>';
+  } else { html+=_aiChat.map(m=>'<div class="ai-msg '+(m.role==='user'?'user':'bot')+'">'+(m.role==='user'?escHtml(m.content):fmtAi(m.content))+'</div>').join(''); }
+  if(typing) html+='<div class="ai-msg bot"><span class="ai-typing"><i></i><i></i><i></i></span></div>';
+  box.innerHTML=html; box.scrollTop=box.scrollHeight;
+}
+function edgeAiAsk(q){ const i=$('#aiInput'); if(i)i.value=q; edgeAiSend(); }
+function edgeAiGrow(el){ el.style.height='auto'; el.style.height=Math.min(120,el.scrollHeight)+'px'; }
+function edgeAiKey(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); edgeAiSend(); } }
+async function edgeAiSend(){ const inp=$('#aiInput'); const text=(inp?inp.value:'').trim(); if(!text)return; if(inp){ inp.value=''; inp.style.height='auto'; }
+  _aiChat.push({role:'user',content:text}); renderAiMsgs(true); persistAi();
+  try{ const resp=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({ messages:_aiChat.slice(-16), brief:(typeof coachBrief==='function'&&Store.trades().length?coachBrief():null) })});
+    let data={}; try{ data=await resp.json(); }catch(e){}
+    if(!resp.ok||!data.reply){ _aiChat.push({role:'assistant',content:data.error||'I hit a snag — try again in a moment.'}); }
+    else _aiChat.push({role:'assistant',content:data.reply});
+  }catch(e){ _aiChat.push({role:'assistant',content:'EDGE AI runs on the live site once the API key is set.'}); }
+  renderAiMsgs(); persistAi();
+}
 /* command palette (⌘/Ctrl+K) */
 function cmdActions(){ const acts=[
   {label:'Log a trade',icon:'+',run:()=>quickLog(),kw:'log trade new add quick record'},
   {label:'Set today\'s game plan',icon:'◎',run:()=>openGamePlan(),kw:'game plan bias watchlist prepare pre-market'},
+  {label:'Ask EDGE AI',icon:'✦',run:()=>edgeAiToggle(),kw:'ask ai chat bot assistant question help'},
   {label:'AI Coach — Edge Report',icon:'✦',run:()=>go('coach'),kw:'coach ai report advice'},
   {label:'Share Edge Card',icon:'↗',run:()=>shareCard(),kw:'share card export flex stats'},
   {label:'Import history (CSV)',icon:'⬇',run:()=>{ const i=document.createElement('input'); i.type='file'; i.accept='.csv,text/csv'; i.onchange=()=>importCSV(i); i.click(); },kw:'import csv broker history upload'},
