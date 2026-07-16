@@ -773,9 +773,11 @@ VIEWS.reports=function(){
     </div>
     <div class="two-col section-gap"><div class="card">${reportTable('By symbol',bySym)}</div><div class="card">${reportTable('By emotion',byEmo)}</div></div>
     <div class="two-col section-gap"><div class="card">${reportTable('By weekday',byDay)}</div><div class="card">${rrDistribution(tr)}</div></div>
+    ${insightsCard(tr)}
     ${improvementCard(tr)}
     ${sessionSection(tr)}
     ${whatIfCard(tr)}
+    ${consistencyCard(tr)}
     ${mistakeReport(tr)}
     ${(()=>{const tg=tagStat(tr);return tg.length?`<div class="card section-gap">${reportTable('By tag',tg)}<div class="hint" style="margin-top:10px">Tag your setups when logging trades to see which ones actually make you money.</div></div>`:`<div class="card section-gap"><div class="card-title">By tag</div><div class="hint" style="margin-top:10px">Add tags like “breakout” or “news” when you log a trade — then see which setups win here.</div></div>`;})()}`;
 };
@@ -1455,6 +1457,23 @@ function improvementCard(tr){
     row('Discipline',e.dis,r.dis,v=>v==null?'—':v+'')+
     '</div></div>';
 }
+function autoInsights(tr){
+  if(tr.length<8) return [];
+  const out=[]; const s=stats(tr);
+  const graded=tr.filter(t=>t.rulesTotal>0); const clean=graded.filter(t=>t.rulesFollowed>=t.rulesTotal), broke=graded.filter(t=>t.rulesFollowed<t.rulesTotal);
+  if(clean.length>=3&&broke.length>=3){ const cwr=Math.round(clean.filter(t=>t.pnl>0).length/clean.length*100), bwr=Math.round(broke.filter(t=>t.pnl>0).length/broke.length*100); if(cwr-bwr>=15)out.push({tone:'good',score:(cwr-bwr)+40,icon:'target',text:'You win '+cwr+'% following your rules vs '+bwr+'% when you break them — discipline IS your edge.'}); }
+  const wt=tr.filter(t=>t.time); if(wt.length>=6){ const bs=groupStat(wt,sessionOf).filter(r=>r.n>=3); const best=bs.slice().sort((a,b)=>b.net-a.net)[0], worst=bs.slice().sort((a,b)=>a.net-b.net)[0]; if(best&&best.net>0)out.push({tone:'good',score:Math.abs(best.net),icon:'wave',text:(best.k.split(' · ')[0])+' is your best session: '+money(best.net)+' at '+best.wr+'% win rate.'}); if(worst&&worst.net<0&&worst!==best)out.push({tone:'bad',score:Math.abs(worst.net),icon:'warn',text:'You lose money in the '+(worst.k.split(' · ')[0])+' session ('+money(worst.net)+') — consider sitting it out.'}); }
+  const tg=tagStat(tr).filter(t=>t.n>=3); const bestTag=tg[0], worstTag=tg[tg.length-1];
+  if(bestTag&&bestTag.net>0)out.push({tone:'good',score:Math.abs(bestTag.net),icon:'trophy',text:'“'+bestTag.k+'” is your money-maker: '+money(bestTag.net)+' across '+bestTag.n+' trades ('+bestTag.wr+'%).'});
+  if(worstTag&&worstTag.net<0&&worstTag!==bestTag)out.push({tone:'bad',score:Math.abs(worstTag.net),icon:'chartdown',text:'“'+worstTag.k+'” is bleeding money: '+money(worstTag.net)+' — fix the entry or drop it.'});
+  const ms=(typeof mistakeStat==='function')?mistakeStat(tr):[]; const topM=ms[0]; if(topM&&topM.net<0)out.push({tone:'bad',score:Math.abs(topM.net)+20,icon:'warn',text:topM.k+' has cost you '+money(topM.net)+' across '+topM.n+' trades — your #1 fix.'});
+  if(s.avgLoss>s.avgWin&&s.losses>=3&&s.wins>=3)out.push({tone:'bad',score:Math.abs(s.avgLoss-s.avgWin),icon:'chartdown',text:'Your avg loss ('+money0(s.avgLoss)+') is bigger than your avg win ('+money0(s.avgWin)+') — one bad loss erases several wins.'});
+  const chron=tr.slice().sort((a,b)=>((a.date||'')+'').localeCompare((b.date||'')+'')); const al=[]; for(let i=1;i<chron.length;i++){ if(chron[i-1].pnl<0)al.push(chron[i]); } if(al.length>=4){ const alwr=Math.round(al.filter(t=>t.pnl>0).length/al.length*100); if(s.wr-alwr>=15)out.push({tone:'bad',score:(s.wr-alwr),icon:'warn',text:'You trade worse after a loss ('+alwr+'% vs '+s.wr+'% overall) — that\'s revenge risk. Step away after red.'}); }
+  const bd=groupStat(tr,t=>{try{return new Date(t.date).toLocaleDateString(undefined,{weekday:'long'});}catch(e){return '—';}}).filter(r=>r.n>=3); const bday=bd.slice().sort((a,b)=>b.net-a.net)[0]; if(bday&&bday.net>0)out.push({tone:'good',score:Math.abs(bday.net)*0.5,icon:'calendar',text:bday.k+' is your strongest day: '+money(bday.net)+'.'});
+  return out.sort((a,b)=>b.score-a.score).slice(0,5);
+}
+function insightsCard(tr){ const ins=autoInsights(tr); if(!ins.length) return ''; return '<div class="card section-gap"><div class="card-title">Key insights</div><div class="card-sub">Patterns EDGE spotted in your trading — updated automatically, always accurate.</div><div style="margin-top:14px;display:flex;flex-direction:column;gap:13px">'+ins.map(i=>{ const col=i.tone==='good'?'var(--win)':i.tone==='bad'?'var(--loss)':'var(--violet-2)'; return '<div style="display:flex;gap:11px;align-items:flex-start"><span style="flex:0 0 auto;color:'+col+'">'+svgi(i.icon,18,'currentColor')+'</span><span style="line-height:1.5">'+escHtml(i.text)+'</span></div>'; }).join('')+'</div></div>'; }
+function consistencyCard(tr){ const dm={}; tr.forEach(t=>{ const d=(t.date||'').slice(0,10); dm[d]=(dm[d]||0)+t.pnl; }); const days=Object.values(dm); if(days.length<3)return ''; const profit=days.filter(v=>v>0).reduce((a,v)=>a+v,0); const bestDay=Math.max(0,...days); if(profit<=0)return ''; const pct=Math.round(bestDay/profit*100); const ok=pct<=40; return '<div class="card section-gap"><div class="row-sb"><div class="card-title">Consistency</div><span class="pct-pill '+(ok?'':'neg')+'">'+pct+'% from one day</span></div><div class="card-sub">Most prop firms fail you if a single day is more than ~30–50% of your total profit.</div><div class="mtrack" style="margin-top:14px"><div class="mfill" style="width:'+Math.min(100,pct)+'%;background:'+(ok?'var(--grad)':'var(--loss)')+'"></div></div><div class="hint" style="margin-top:10px;line-height:1.5">Your biggest day ('+money0(bestDay)+') is <b style="color:'+(ok?'var(--win)':'var(--loss)')+'">'+pct+'%</b> of your '+money0(profit)+' in profits. '+(ok?'That\'s consistent — prop-firm friendly.':'That\'s top-heavy — spread your gains across more days to pass consistency rules.')+'</div></div>'; }
 function rrDistribution(tr){ const b=[['< 1:1',t=>t.rr!=null&&t.rr<1],['1:1 – 2:1',t=>t.rr!=null&&t.rr>=1&&t.rr<2],['2:1 – 3:1',t=>t.rr!=null&&t.rr>=2&&t.rr<3],['3:1 +',t=>t.rr!=null&&t.rr>=3]];
   const rows=b.map(([label,f])=>{const set=tr.filter(f); const w=set.filter(t=>t.pnl>0).length; return {label,n:set.length,wr:set.length?Math.round(w/set.length*100):0,net:set.reduce((a,t)=>a+t.pnl,0)};}); const max=Math.max(1,...rows.map(r=>r.n));
   return `<div class="card-title">R:R distribution</div><div class="card-sub">Where your trades land, and how each band performs</div><div style="margin-top:16px;display:flex;flex-direction:column;gap:14px">${rows.map(r=>`<div><div class="pbar-top"><span>${r.label} · <span class="mono">${r.n}</span> trades · ${r.wr}% win</span><b class="mono ${r.net>=0?'pos':'neg'}">${money(r.net)}</b></div><div class="pbar-tr"><div class="pbar-fl" style="width:${Math.max(2,Math.round(r.n/max*100))}%;background:linear-gradient(90deg,${r.net>=0?'var(--win)':'var(--loss)'},var(--violet-2))"></div></div></div>`).join('')}</div>`; }
@@ -1683,6 +1702,8 @@ function runShotImport(f){ if(!f)return; if(!/^image\//.test(f.type||'')){ toast
 /* paste a chart image anywhere → AI logs it; press N → quick log */
 document.addEventListener('paste',e=>{ const items=(e.clipboardData||{}).items||[]; for(const it of items){ if(it.type&&it.type.indexOf('image')===0){ const f=it.getAsFile(); if(f){ e.preventDefault(); toast('Screenshot pasted — reading it with AI…'); runShotImport(f); } return; } } });
 document.addEventListener('keydown',e=>{ if(e.key!=='n'&&e.key!=='N')return; if(e.metaKey||e.ctrlKey||e.altKey)return; const a=document.activeElement; if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))return; if(document.querySelector('.modal-bg.show')||document.querySelector('.cmdk-bg.show'))return; if(typeof quickLog==='function'){ e.preventDefault(); quickLog(); } });
+function shortcutsHelp(){ document.getElementById('detailInner').innerHTML='<div class="row-sb"><div class="card-title">Keyboard shortcuts</div><button class="modal-x" onclick="closeDetail()" aria-label="Close">✕</button></div><div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">'+[['N','Log a trade'],['⌘ / Ctrl + K','Command palette'],['⌘ / Ctrl + V','Paste a screenshot → AI logs it'],['?','Show this help']].map(s=>'<div class="row-sb" style="padding:9px 0;border-top:1px solid var(--border)"><span>'+s[1]+'</span><kbd style="background:var(--surface-2,rgba(255,255,255,.06));border:1px solid var(--border);border-radius:6px;padding:3px 9px;font-family:monospace;font-size:12px">'+s[0]+'</kbd></div>').join('')+'</div>'; document.getElementById('detailModal').classList.add('show'); }
+document.addEventListener('keydown',e=>{ if(e.key!=='?'||e.metaKey||e.ctrlKey||e.altKey)return; const a=document.activeElement; if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))return; if(document.querySelector('.modal-bg.show')||document.querySelector('.cmdk-bg.show'))return; e.preventDefault(); shortcutsHelp(); });
 /* command palette (⌘/Ctrl+K) */
 function cmdActions(){ const acts=[
   {label:'Log a trade',icon:'+',run:()=>quickLog(),kw:'log trade new add quick record'},
@@ -1690,7 +1711,8 @@ function cmdActions(){ const acts=[
   {label:'AI Coach — Edge Report',icon:'✦',run:()=>go('coach'),kw:'coach ai report advice'},
   {label:'Share Edge Card',icon:'↗',run:()=>shareCard(),kw:'share card export flex stats'},
   {label:'Import history (CSV)',icon:'⬇',run:()=>{ const i=document.createElement('input'); i.type='file'; i.accept='.csv,text/csv'; i.onchange=()=>importCSV(i); i.click(); },kw:'import csv broker history upload'},
-  {label:'Toggle theme',icon:'◐',run:()=>cycleTheme(),kw:'theme dark light mode'}
+  {label:'Toggle theme',icon:'◐',run:()=>cycleTheme(),kw:'theme dark light mode'},
+  {label:'Keyboard shortcuts',icon:'⌘',run:()=>shortcutsHelp(),kw:'shortcuts keys help hotkeys'}
 ]; NAV.forEach(([id,l])=>acts.push({label:'Go to '+l,icon:'→',run:()=>go(id),kw:('go '+l+' '+id).toLowerCase()})); return acts; }
 let _cmdSel=0,_cmdFiltered=[];
 function openCmd(){ const el=$('#cmdk'); if(!el)return; el.classList.add('show'); const inp=$('#cmdInput'); inp.value=''; _cmdSel=0; renderCmd(''); setTimeout(()=>inp.focus(),20); }
