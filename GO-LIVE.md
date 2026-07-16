@@ -32,6 +32,7 @@ The app is fully wired; it just needs your links. Nothing charges until these ar
   }
   ```
 - [ ] Commit + push. The moment these are set, the pricing buttons on the landing page point to Stripe **and** the in-app 7-day trial paywall activates automatically.
+- [ ] **Annual plans** — also create 3 *yearly* prices ($90 / $150 / $250 = 2 months free) and paste their Payment Links into `stripeLinksAnnual` in `config.js`. The Annual toggle already shows the prices; the buttons need these links to charge.
 - [ ] (Optional) turn on Stripe's free-trial on each price if you want the trial enforced by Stripe too.
 
 ---
