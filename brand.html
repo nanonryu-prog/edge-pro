@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EDGE Pro — Brand Assets</title>
+<style>
+  :root{--bg:#0A0A16;--text:#ECEAF6;--muted:#A6A1C2;--violet:#9D7BFF;}
+  *{box-sizing:border-box}
+  body{margin:0;background:#0A0A16;background-image:radial-gradient(680px 380px at 50% -8%,rgba(124,92,252,.20),transparent 60%);
+    color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.6;min-height:100vh}
+  .wrap{max-width:460px;margin:0 auto;padding:48px 20px 72px;text-align:center}
+  .eyebrow{font-family:ui-monospace,'JetBrains Mono',Menlo,monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--violet)}
+  h1{font-size:27px;font-weight:800;letter-spacing:-.02em;margin:12px 0 6px}
+  p{color:var(--muted);font-size:15px;margin:0 auto;max-width:36ch}
+  .tile{width:240px;height:240px;margin:36px auto 10px;border-radius:26%;display:grid;place-items:center;position:relative;
+    background:linear-gradient(135deg,#7C5CFC,#E15CC6);box-shadow:0 24px 60px -20px rgba(124,92,252,.7)}
+  .tile svg{width:62%;height:62%;filter:drop-shadow(0 8px 14px rgba(40,10,80,.28))}
+  .circle{position:absolute;inset:0;border-radius:50%;border:2px dashed rgba(255,255,255,.30)}
+  .cap{font-family:ui-monospace,monospace;font-size:11px;color:var(--muted);margin-top:12px}
+  .btn{margin-top:24px;display:inline-flex;align-items:center;gap:9px;font-size:16px;font-weight:700;color:#fff;
+    background:linear-gradient(135deg,#7C5CFC,#E15CC6);border:none;border-radius:14px;padding:15px 28px;cursor:pointer;box-shadow:0 14px 34px -10px rgba(124,92,252,.8)}
+  .btn:active{transform:translateY(1px)}
+  .hint{margin-top:16px;font-size:13px;color:var(--muted)}
+  .hint b{color:var(--text)}
+  .wordmark{margin-top:40px;font-weight:800;font-size:30px;letter-spacing:-.03em}
+  .wordmark .pro{background:linear-gradient(100deg,#9D7BFF,#E15CC6);-webkit-background-clip:text;background-clip:text;color:transparent;margin-left:7px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">EDGE Pro · brand kit</div>
+  <h1>Your logo &amp; profile picture</h1>
+  <p>The Breakout mark. Use this as your profile picture on YouTube, Instagram, TikTok &amp; X.</p>
+  <div class="tile" id="tile">
+    <svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 22 L13 15 L18 19 L25.5 10"/>
+      <path d="M25.5 10 L19.5 10 M25.5 10 L25.5 16"/>
+    </svg>
+    <div class="circle"></div>
+  </div>
+  <div class="cap">dashed circle = how it crops on social</div>
+  <button class="btn" id="dl" type="button">↓ Download PNG (1024px)</button>
+  <div class="hint"><b>On your phone:</b> tap Download. If nothing happens, screenshot this screen and crop to the square.</div>
+  <div class="wordmark">EDGE<span class="pro">Pro</span></div>
+</div>
+<script>
+  document.getElementById('dl').addEventListener('click', function(){
+    try{
+      var c=document.createElement('canvas'); c.width=1024; c.height=1024; var x=c.getContext('2d');
+      var g=x.createLinearGradient(120,0,1024,1024); g.addColorStop(0,'#7C5CFC'); g.addColorStop(1,'#E15CC6');
+      x.fillStyle=g; x.fillRect(0,0,1024,1024);
+      var hg=x.createRadialGradient(300,260,60,300,260,760); hg.addColorStop(0,'rgba(255,255,255,.16)'); hg.addColorStop(1,'rgba(255,255,255,0)');
+      x.fillStyle=hg; x.fillRect(0,0,1024,1024);
+      x.strokeStyle='#fff'; x.lineWidth=60; x.lineCap='round'; x.lineJoin='round';
+      x.beginPath(); x.moveTo(258,668); x.lineTo(440,486); x.lineTo(570,590); x.lineTo(766,356); x.stroke();
+      x.beginPath(); x.moveTo(610,356); x.lineTo(766,356); x.lineTo(766,512); x.stroke();
+      var a=document.createElement('a'); a.href=c.toDataURL('image/png'); a.download='edgepro-profile-1024.png';
+      document.body.appendChild(a); a.click(); a.remove();
+    }catch(e){ alert('Screenshot this screen and crop the square logo — works everywhere.'); }
+  });
+</script>
+</body>
+</html>
