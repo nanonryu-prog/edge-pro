@@ -772,7 +772,9 @@ function gamePlanCard(){ const p=todayPlan();
 function riskStopModal(r){ const el=document.getElementById('detailInner'); if(!el)return; const reason=(r.maxT&&r.count>=r.maxT)?('You\'ve taken '+r.count+' trades — your daily max.'):('You\'re down '+money(r.pnl)+', past your -'+money0(r.loss)+' daily limit.'); el.innerHTML='<div style="text-align:center;padding:14px 8px"><div style="display:flex;justify-content:center;margin-bottom:14px"><span style="width:64px;height:64px;border-radius:16px;display:grid;place-items:center;color:var(--loss);background:rgba(245,71,107,.14)">'+svgi('warn',34,'currentColor')+'</span></div><div class="card-title" style="font-size:23px;color:var(--loss)">Stand down for today</div><p class="hint" style="max-width:400px;margin:12px auto 0;line-height:1.6">'+reason+' The market will be here tomorrow — your account and your challenge won\'t be if you keep pushing. Protecting the day IS the edge.</p><button class="btn btn-primary" style="margin-top:20px" onclick="closeDetail()">I\'m done for today</button></div>'; document.getElementById('detailModal').classList.add('show'); }
 VIEWS.dash=function(){
   const s=stats(); const li=levelInfo(); const eq=s.acct+s.net; const pct=s.net/s.acct*100;
-  const disBadge = s.dis>=90?'GREAT':s.dis>=70?'GOOD':s.dis>=50?'OK':'WORK';
+  const hasDis = s.tr.some(t=>t.rulesTotal>0);
+  const disBadge = !hasDis?'NEW':s.dis>=90?'GREAT':s.dis>=70?'GOOD':s.dis>=50?'OK':'WORK';
+  const disVal = hasDis?s.dis:'—';
   $('#view').innerHTML=`
     ${riskGuardBanner()}
     ${newsGuardBanner()}
@@ -784,7 +786,7 @@ VIEWS.dash=function(){
       ${kpi('Win rate',s.wr+'%',s.wr>=50?'win':(s.tr.length?'loss':'win'),s.wins+'W · '+s.losses+'L')}
       ${kpi('Profit factor',s.pf===Infinity?'∞':s.pf.toFixed(2),'','Gross wins ÷ losses')}
       ${kpi('Net P&L',money(s.net),s.net>=0?'win':'loss',(pct>=0?'+':'')+pct.toFixed(1)+'% on '+money0(s.acct))}
-      ${kpi('Discipline',s.dis,'violet',s.broken+' broken · '+s.slips+' slips','<span class="badge good">'+disBadge+'</span>')}
+      ${kpi('Discipline',disVal,'violet',hasDis?(s.broken+' broken · '+s.slips+' slips'):'Log a checklist trade to start','<span class="badge '+(hasDis?'good':'')+'">'+disBadge+'</span>')}
     </div>
     <div class="grid kpis section-gap">
       ${kpi('Expectancy',money(s.exp),s.exp>=0?'win':'loss','Expected $ per trade — your real edge')}
@@ -802,7 +804,7 @@ VIEWS.dash=function(){
       <div class="card">
         <div class="card-title">Discipline Score</div><div class="card-sub">How well you followed your plan</div>
         <div style="display:flex;gap:18px;align-items:center;margin-top:14px;flex-wrap:wrap;">
-          ${ring(s.dis)}
+          ${ring(hasDis?s.dis:0)}
           <div style="flex:1;min-width:150px;">
             <div class="dbrk"><span><span class="dot" style="background:var(--win)"></span>Rules followed</span><b class="mono">${s.rulesFollowed}</b></div>
             <div class="dbrk"><span><span class="dot" style="background:var(--violet-2)"></span>Partial slips</span><b class="mono">${s.slips}</b></div>
@@ -864,6 +866,7 @@ VIEWS.trades=function(){
           <input class="finp" id="tf-q" placeholder="Search symbol…" style="width:150px;height:38px" oninput="filterTrades()">
           <select class="finp" id="tf-side" style="width:auto;height:38px" onchange="filterTrades()"><option value="">All sides</option><option value="long">Long</option><option value="short">Short</option></select>
           <select class="finp" id="tf-out" style="width:auto;height:38px" onchange="filterTrades()"><option value="">Win &amp; loss</option><option value="win">Wins only</option><option value="loss">Losses only</option></select>
+          ${(()=>{ const tags=[...new Set(Store.trades().flatMap(t=>t.tags||[]))].filter(x=>x&&x!=='imported'&&x!=='open').sort(); return tags.length?'<select class="finp" id="tf-tag" style="width:auto;height:38px" onchange="filterTrades()"><option value="">All setups</option>'+tags.map(t=>'<option value="'+escHtml(t)+'">'+escHtml(t)+'</option>').join('')+'</select>':''; })()}
           <button class="btn btn-ghost btn-sm" onclick="exportCSV()">Export CSV</button>
           <label class="btn btn-ghost btn-sm" style="cursor:pointer">Import CSV<input type="file" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)"></label>
           <label class="btn btn-ghost btn-sm" style="cursor:pointer;border-color:rgba(124,92,252,.4);color:var(--violet-2)">${svgi('image',15,'currentColor')}<span style="margin-left:6px">AI screenshot</span><input type="file" accept="image/*" style="display:none" onchange="importShot(this)"></label>
@@ -2049,7 +2052,7 @@ function reviewCSV(){ const rows=window._csvRows; const head=rows[0].map(h=>((h|
     '<div style="display:flex;gap:12px;margin-top:16px"><button class="btn btn-primary" onclick="confirmCSVImport()">Import '+(rows.length-1)+' trade'+(rows.length-1===1?'':'s')+'</button><button class="btn btn-ghost" onclick="closeDetail()">Cancel</button></div>';
   document.getElementById('detailModal').classList.add('show'); csvPreview(); }
 function confirmCSVImport(){ const rows=window._csvRows; const m=readCsvMap(); if(m.symbol<0&&m.pnl<0){ toast('Map at least the Symbol or P&L column'); return; } const arr=Store.trades(); let n=0; rows.slice(1).forEach(c=>{ if(!c.join('').trim())return; const t=csvTrade(c,m); t.id=Date.now()+Math.random(); t.emotion=''; t.tilt=null; t.rulesFollowed=0; t.rulesTotal=0; t.shot=null; t.account=''; t.tags=['imported']; arr.push(t); n++; }); Store.saveTrades(arr); closeDetail(); toast('Imported '+n+' trade'+(n===1?'':'s'),'good'); go('dash'); checkGoalRewards(); }
-function filterTrades(){ const q=($('#tf-q').value||'').toLowerCase().trim(); const side=$('#tf-side').value; const out=$('#tf-out').value; let tr=Store.trades().slice().reverse(); if(q)tr=tr.filter(t=>(t.symbol||'').toLowerCase().includes(q)); if(side)tr=tr.filter(t=>t.side===side); if(out==='win')tr=tr.filter(t=>t.pnl>0); else if(out==='loss')tr=tr.filter(t=>t.pnl<0); $('#tradeTableWrap').innerHTML=tradeTable(tr,true)+(tr.length?'':'<div class="hint" style="padding:14px 2px">No trades match those filters.</div>'); }
+function filterTrades(){ const q=($('#tf-q').value||'').toLowerCase().trim(); const side=$('#tf-side').value; const out=$('#tf-out').value; const tag=$('#tf-tag')?$('#tf-tag').value:''; let tr=Store.trades().slice().reverse(); if(q)tr=tr.filter(t=>(t.symbol||'').toLowerCase().includes(q)); if(side)tr=tr.filter(t=>t.side===side); if(out==='win')tr=tr.filter(t=>t.pnl>0); else if(out==='loss')tr=tr.filter(t=>t.pnl<0); if(tag)tr=tr.filter(t=>(t.tags||[]).includes(tag)); $('#tradeTableWrap').innerHTML=tradeTable(tr,true)+(tr.length?'':'<div class="hint" style="padding:14px 2px">No trades match those filters.</div>'); }
 function importShot(input){ const f=input.files[0]; if(!f)return; input.value=''; runShotImport(f); }
 /* ---- broker auto-import (connect flow; live sync rolling out) ---- */
 const BROKERS=[
