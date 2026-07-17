@@ -1503,7 +1503,7 @@ VIEWS.settings=function(){
     <button class="btn btn-primary" onclick="saveSettings()">Save settings</button>
     <div class="card set-section" style="margin-top:16px"><h3>Your data</h3><div class="card-sub" style="margin-bottom:12px">Your journal lives in this browser. Back it up or move it anytime.</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="exportData()">Export data (JSON)</button><label class="btn btn-ghost btn-sm" style="cursor:pointer">Import JSON<input type="file" accept="application/json" style="display:none" onchange="importData(this)"></label><label class="btn btn-ghost btn-sm" style="cursor:pointer">Import CSV<input type="file" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)"></label><button class="btn btn-ghost btn-sm" onclick="sampleCSV()">Sample CSV</button><button class="btn btn-ghost btn-sm" onclick="openOnboarding()">Re-run setup</button><button class="btn btn-ghost btn-sm" onclick="if(confirm('Reset all trades and data?')){wipe()}">Reset data</button></div>
-      <div style="margin-top:16px;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:var(--card)"><div style="display:flex;gap:9px;align-items:flex-start"><span style="color:var(--win);flex:0 0 auto">${svgi('wave',17,'var(--win)')}</span><div><b style="font-size:13.5px">Your data is yours.</b><div class="hint" style="margin-top:3px;line-height:1.55">Export it as JSON or CSV anytime, and delete your account whenever you want. We never sell your data or connect to your broker to move money. AI features only run when you use them — <a href="privacy.html" target="_blank" style="color:var(--violet-2)">how AI data is handled</a>.</div></div></div></div>
+      <div style="margin-top:16px;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:var(--card)"><div style="display:flex;gap:9px;align-items:flex-start"><span style="color:var(--win);flex:0 0 auto">${svgi('wave',17,'var(--win)')}</span><div><b style="font-size:13.5px">Your data is yours.</b><div class="hint" style="margin-top:3px;line-height:1.55">Export it as JSON or CSV anytime, and delete your account whenever you want. We never sell your data or connect to your broker to move money. AI features only run when you use them — <a href="privacy.html" target="_blank" style="color:var(--violet-2)">how AI data is handled</a>.</div><div id="syncStatus" style="margin-top:8px;font-size:12.5px">${syncStatusHtml()}</div></div></div></div>
       <div class="hint" style="margin-top:12px;display:flex;gap:14px;flex-wrap:wrap"><a href="privacy.html" target="_blank" style="color:var(--muted)">Privacy Policy</a><a href="terms.html" target="_blank" style="color:var(--muted)">Terms</a><a href="mailto:support@edgeprojournal.com" style="color:var(--muted)">Contact support</a></div>
     </div>
     <div class="card set-section" style="border-color:rgba(245,71,107,0.3)"><h3 style="color:var(--loss)">Danger zone</h3><p class="hint" style="margin:6px 0 12px">Signed in as ${session.email}.</p><button class="btn btn-danger btn-sm" onclick="deleteAccount()">Delete my account</button></div>
@@ -2209,10 +2209,36 @@ async function cloudPull(){
     if(data){ if(data.data){ DATA_KEYS.forEach(k=>{ if(data.data[k]!==undefined) localStorage.setItem(Store.k(k),JSON.stringify(data.data[k])); }); } window._plan=data.plan||null; }
   }catch(e){}
 }
+let _syncState='idle'; // idle | saving | ok | error
+let _syncWarned=false;
+function setSyncState(s){ _syncState=s; const el=document.getElementById('syncStatus'); if(el)el.innerHTML=syncStatusHtml();
+  if(s==='error'&&!_syncWarned){ _syncWarned=true; toast('Couldn’t back up to the cloud — your data is saved on this device. Check your connection.','bad'); }
+  if(s==='ok')_syncWarned=false;
+}
+function syncStatusHtml(){ if(!window.SB) return '<span class="hint">Cloud sync off — data stays on this device.</span>';
+  if(_syncState==='unauth') return '<span style="color:var(--loss);font-weight:600">⚠ Your session expired — <a href="login.html" style="color:var(--violet-2)">sign in again</a> to keep syncing</span>';
+  if(_syncState==='error') return '<span style="color:var(--loss);font-weight:600">⚠ Not backed up — check your connection</span>';
+  if(_syncState==='saving') return '<span class="hint">Saving to the cloud…</span>';
+  if(_syncState==='ok') return '<span style="color:var(--win);font-weight:600">✓ Backed up to the cloud</span>';
+  return '<span class="hint">Your journal syncs to the cloud automatically.</span>';
+}
 function cloudPush(){
   if(!window.SB || !window._uid) return;
   clearTimeout(_syncTimer);
-  _syncTimer=setTimeout(async ()=>{ try{ const d={}; DATA_KEYS.forEach(k=>{ d[k]=Store.get(k,null); }); await window.SB.from('journals').upsert({ user_id:window._uid, data:d, updated_at:new Date().toISOString() }); }catch(e){} },800);
+  _syncTimer=setTimeout(()=>doCloudPush(0),800);
+}
+async function doCloudPush(attempt){
+  if(!window.SB || !window._uid) return;
+  setSyncState('saving');
+  try{
+    const d={}; DATA_KEYS.forEach(k=>{ d[k]=Store.get(k,null); });
+    const { error } = await window.SB.from('journals').upsert({ user_id:window._uid, data:d, updated_at:new Date().toISOString() });
+    if(error) throw error;
+    setSyncState('ok');
+  }catch(e){
+    if(attempt<2){ setTimeout(()=>doCloudPush(attempt+1),1500*(attempt+1)); }
+    else { setSyncState('error'); }
+  }
 }
 const TRIAL_DAYS=7;
 function trialStart(){ const k='edgepro_trial_'+(session.email||'x'); let t=localStorage.getItem(k); if(!t){ t=String(Date.now()); localStorage.setItem(k,t); } return +t; }
@@ -2285,6 +2311,7 @@ function injectDemoBanner(){
 (async function boot(){
   if(window.__DEMO){ seedDemo(); injectDemoBanner(); }
   await cloudPull();
+  if(window.SB && !window.__DEMO && !window._uid) setSyncState('unauth');
   buildNav(); renderXP(); go('dash'); tickSession(); setInterval(tickSession,1000); applyPlan(); applySeasonal();
   loadNews(); startReminders();
   if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
