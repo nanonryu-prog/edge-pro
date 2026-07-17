@@ -832,7 +832,7 @@ VIEWS.dash=function(){
 };
 VIEWS.trades=function(){
   const tr=Store.trades().slice().reverse();
-  if(!tr.length){ $('#view').innerHTML=`<div class="card">${emptyInner('No trades yet','Log your first trade to build your track record.','openLog()','Log a trade')}</div>`; return; }
+  if(!tr.length){ $('#view').innerHTML=`<div class="card">${tradesEmptyState()}</div>`; return; }
   const s=stats();
   const longs=s.tr.filter(t=>t.side==='long'), shorts=s.tr.filter(t=>t.side==='short');
   const lNet=longs.reduce((a,t)=>a+t.pnl,0), sNet=shorts.reduce((a,t)=>a+t.pnl,0);
@@ -874,7 +874,7 @@ VIEWS.trades=function(){
           <button class="btn btn-primary btn-sm" onclick="quickLog()">+ Log trade</button>
         </div>
       </div>
-      <div id="tradeTableWrap">${tr.length?tradeTable(tr,true):tradesEmptyState()}</div>
+      <div id="tradeTableWrap">${tradeTable(tr,true)}</div>
     </div>`;
 };
 function tradesEmptyState(){ return '<div style="text-align:center;padding:38px 16px 30px"><div style="display:flex;justify-content:center;margin-bottom:14px">'+svgi('book',40,'var(--violet-2)')+'</div><div class="card-title" style="font-size:18px">No trades yet</div><p class="hint" style="max-width:420px;margin:9px auto 0;line-height:1.6">Bring your history in seconds — snap a broker screenshot and AI reads it, import a CSV, or log your first trade by hand.</p><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px"><button class="btn btn-primary btn-sm" onclick="quickLog()">+ Log your first trade</button><label class="btn btn-ghost btn-sm" style="cursor:pointer;border-color:rgba(124,92,252,.4);color:var(--violet-2)">'+svgi('image',15,'currentColor')+'<span style="margin-left:6px">AI screenshot</span><input type="file" accept="image/*" style="display:none" onchange="importShot(this)"></label><label class="btn btn-ghost btn-sm" style="cursor:pointer">Import CSV<input type="file" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)"></label></div></div>'; }
