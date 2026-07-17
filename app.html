@@ -672,6 +672,44 @@ function riskGuardBanner(){
   return '<div class="card section-gap" style="border-color:rgba(36,209,155,.3)"><div style="display:flex;gap:12px;align-items:center"><span style="flex:0 0 auto;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;color:var(--win);background:rgba(36,209,155,.14)">'+svgi('wave',20,'currentColor')+'</span><div><b>Within your daily limits</b> <span class="hint">· '+lossTxt+' · '+tradeTxt+'</span></div></div></div>';
 }
 function checkRiskGuard(){ const r=todayRisk(); if(r.state==='stop'){ riskStopModal(r); return true; } return false; }
+/* ---- economic-calendar news guard ---- */
+let NEWS={events:[],at:0}; try{ const c=JSON.parse(localStorage.getItem('edgepro_news')||'null'); if(c&&c.events)NEWS=c; }catch(e){}
+function newsEnabled(){ return Store.settings().newsGuard!==false; }
+async function loadNews(force){ if(!newsEnabled())return; if(!force && NEWS.events.length && Date.now()-NEWS.at<20*60*1000)return; try{ const r=await fetch('/api/news'); const d=await r.json(); if(d&&Array.isArray(d.events)){ NEWS={events:d.events,at:Date.now()}; try{ localStorage.setItem('edgepro_news',JSON.stringify(NEWS)); }catch(e){} if(current==='dash')VIEWS.dash(); } }catch(e){} }
+function upcomingHigh(withinMs){ const now=Date.now(); return NEWS.events.filter(e=>e.impact>=3 && Date.parse(e.time)-now>=-15*60*1000 && Date.parse(e.time)-now<=withinMs); }
+function fmtCountdown(ms){ if(ms<0)return 'now'; const m=Math.round(ms/60000); if(m<60)return 'in '+m+' min'; const h=Math.floor(m/60); return 'in '+h+'h '+(m%60)+'m'; }
+function newsGuardBanner(){ if(!newsEnabled()||!NEWS.events.length)return '';
+  const now=Date.now();
+  // active window: a high-impact event within the next 30 min or up to 15 min ago
+  const active=NEWS.events.filter(e=>e.impact>=3).map(e=>({e,dt:Date.parse(e.time)-now})).filter(o=>o.dt<=30*60*1000 && o.dt>=-15*60*1000).sort((a,b)=>a.dt-b.dt)[0];
+  if(active){ const e=active.e; return '<div class="card section-gap" style="border-color:rgba(245,71,107,.6);background:radial-gradient(120% 100% at 0 0,rgba(245,71,107,.14),transparent 60%)"><div style="display:flex;gap:14px;align-items:center"><span style="flex:0 0 auto;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:var(--loss);background:rgba(245,71,107,.16)">'+svgi('warn',22,'currentColor')+'</span><div><b style="color:var(--loss);font-size:16px">Red-folder news '+fmtCountdown(active.dt)+' — stand down</b><div class="hint" style="margin-top:3px"><b>'+escHtml(e.country)+' · '+escHtml(e.title)+'</b> at '+new Date(e.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'. Spreads widen and stops get hunted around high-impact news — wait for it to settle before taking a new trade.</div></div></div></div>'; }
+  // otherwise: next high-impact event today (informational)
+  const next=NEWS.events.filter(e=>e.impact>=3 && Date.parse(e.time)>now && Date.parse(e.time)-now<=12*3600*1000).sort((a,b)=>Date.parse(a.time)-Date.parse(b.time))[0];
+  if(!next)return '';
+  return '<div class="card section-gap" style="border-color:rgba(255,196,61,.35)"><div style="display:flex;gap:12px;align-items:center"><span style="flex:0 0 auto;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;color:var(--gold);background:rgba(255,196,61,.14)">'+svgi('calendar',20,'currentColor')+'</span><div><b>Next high-impact news '+fmtCountdown(Date.parse(next.time)-now)+'</b> <span class="hint">· '+escHtml(next.country)+' '+escHtml(next.title)+' at '+new Date(next.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</span></div></div></div>'; }
+/* ---- smart reminders (fire even when EDGE isn't the active tab, while it's open) ---- */
+function askNotifPermission(){ if(!('Notification' in window)){ toast('Your browser doesn’t support notifications'); return; } Notification.requestPermission().then(p=>{ if(p==='granted'){ toast('Notifications enabled','good'); notify('welcome','EDGE Pro','You’ll get a heads-up before red-folder news and near your daily limit.'); startReminders(); } else toast('Notifications blocked — enable them in your browser'); if(current==='settings')VIEWS.settings(); }); }
+function notify(tag,title,body){ try{ if(!('Notification' in window)||Notification.permission!=='granted')return; const key='edgepro_notif_'+tag; if(sessionStorage.getItem(key))return; sessionStorage.setItem(key,'1'); const n=new Notification(title,{body,tag,icon:'icon.svg',badge:'icon.svg'}); n.onclick=()=>{ window.focus(); n.close(); }; }catch(e){} }
+function alertsOn(){ const n=Store.settings().notif||{}; return n.alerts!==false; }
+function remindersTick(){
+  try{
+    if(newsEnabled()) loadNews();
+    if(('Notification' in window)&&Notification.permission==='granted'){
+      const now=Date.now();
+      if(alertsOn()){
+        // red-folder news entering the 30-min window
+        const soon=NEWS.events.filter(e=>e.impact>=3).map(e=>({e,dt:Date.parse(e.time)-now})).filter(o=>o.dt<=30*60*1000&&o.dt>3*60*1000).sort((a,b)=>a.dt-b.dt)[0];
+        if(soon)notify('news_'+soon.e.time,'🔴 High-impact news '+fmtCountdown(soon.dt),soon.e.country+' · '+soon.e.title+' — stand down until it settles.');
+        // nearing the daily loss limit
+        const r=todayRisk(); if(r.enabled&&r.state==='warn'&&r.loss)notify('risk_'+new Date().toISOString().slice(0,10),'⚠ Near your daily loss limit','You’re at '+money(r.pnl)+' of -'+money0(r.loss)+'. Protect the day.');
+        if(r.enabled&&r.state==='stop')notify('stop_'+new Date().toISOString().slice(0,10),'🛑 Daily limit hit — stand down','Close the platform. Tomorrow is a fresh start.');
+      }
+      // end-of-day journal nudge
+      const n=Store.settings().notif||{}; if(n.journal){ const d=new Date(); if(d.getHours()>=20){ const today=d.toISOString().slice(0,10); const j=Store.get('journal',[])||[]; const trToday=Store.trades().some(t=>((t.date||'')+'').slice(0,10)===today); if(trToday&&!j.some(e=>e.date===today))notify('journal_'+today,'📝 Journal today’s trades','A ten-minute review is where the edge compounds. Log how today went.'); } }
+    }
+  }catch(e){}
+}
+let _remTimer=null; function startReminders(){ if(_remTimer)return; remindersTick(); _remTimer=setInterval(remindersTick,60*1000); }
 function maybeCoolDown(t){ if(t&&t.pnl<0 && ((t.tilt&&t.tilt>=4) || (t.rulesTotal>0&&t.rulesFollowed<t.rulesTotal))){ setTimeout(showCoolDown,450); return true; } return false; }
 function showCoolDown(){ let secs=300; const modal=document.getElementById('detailModal'); const el=document.getElementById('detailInner'); if(!el)return;
   const render=()=>{ const m=Math.floor(secs/60), s=secs%60; const done=secs<=0; el.innerHTML='<div style="text-align:center;padding:20px 10px"><div style="display:flex;justify-content:center;margin-bottom:14px"><span class="coach-orb" style="width:56px;height:56px"></span></div><div class="card-title" style="font-size:22px">Take a breath</div><p class="hint" style="max-width:390px;margin:12px auto 0;line-height:1.65">That was a tough one. The trade right after a painful loss is where accounts get blown — revenge, oversizing, chasing. Step away from the screen. The setup will still be there.</p><div class="mono" style="font-size:46px;font-weight:700;margin:18px 0;color:'+(done?'var(--win)':'var(--gold)')+'">'+(done?'Ready':m+':'+String(s).padStart(2,'0'))+'</div><button class="btn btn-primary" onclick="clearInterval(window._cdTimer);closeDetail()">'+(done?'Back with a clear head':'I\'ll step away')+'</button></div>'; };
@@ -706,6 +744,7 @@ VIEWS.dash=function(){
   const disBadge = s.dis>=90?'GREAT':s.dis>=70?'GOOD':s.dis>=50?'OK':'WORK';
   $('#view').innerHTML=`
     ${riskGuardBanner()}
+    ${newsGuardBanner()}
     ${openPosNudge()}
     ${gamePlanCard()}
     ${reviewNudge()}
@@ -797,6 +836,7 @@ VIEWS.trades=function(){
           <button class="btn btn-ghost btn-sm" onclick="exportCSV()">Export CSV</button>
           <label class="btn btn-ghost btn-sm" style="cursor:pointer">Import CSV<input type="file" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)"></label>
           <label class="btn btn-ghost btn-sm" style="cursor:pointer;border-color:rgba(124,92,252,.4);color:var(--violet-2)">${svgi('image',15,'currentColor')}<span style="margin-left:6px">AI screenshot</span><input type="file" accept="image/*" style="display:none" onchange="importShot(this)"></label>
+          <button class="btn btn-ghost btn-sm" onclick="brokerConnect()">${svgi('link',15,'currentColor')}<span style="margin-left:6px">Connect broker</span></button>
           <button class="btn btn-primary btn-sm" onclick="quickLog()">+ Log trade</button>
         </div>
       </div>
@@ -1001,7 +1041,18 @@ function breachMonitor(e,tr){
   const dailyUsed=Math.max(0,-todayPnl), dailyLeft=Math.max(0,e.dailyLoss-dailyUsed), dailyPct=e.dailyLoss?Math.min(100,Math.round(dailyUsed/e.dailyLoss*100)):0;
   const ddUsed=Math.abs(dd), ddLeft=Math.max(0,e.maxDD-ddUsed), ddPct=e.maxDD?Math.min(100,Math.round(ddUsed/e.maxDD*100)):0;
   const gauge=(label,used,left,pct,limit)=>{ const col=pct>=90?'var(--loss)':pct>=70?'var(--gold)':'var(--win)'; return '<div style="margin-bottom:16px"><div class="row-sb" style="margin-bottom:6px"><span style="font-weight:600">'+label+'</span><b class="mono" style="color:'+col+'">'+money0(left)+' left</b></div><div class="mtrack"><div class="mfill" style="width:'+Math.max(2,pct)+'%;background:'+col+'"></div></div><div class="hint" style="margin-top:5px">Used '+money0(used)+' of '+money0(limit)+' ('+pct+'%)</div></div>'; };
-  return '<div class="card section-gap"><div class="card-title">Breach monitor</div><div class="card-sub">How much cushion before you break a rule — watch this like a hawk.</div><div style="margin-top:16px">'+gauge('Today\'s loss limit',dailyUsed,dailyLeft,dailyPct,e.dailyLoss)+gauge('Max drawdown',ddUsed,ddLeft,ddPct,e.maxDD)+'</div>'+((dailyPct>=90||ddPct>=90)?'<div class="hint" style="color:var(--loss);font-weight:600">⚠ You\'re on the edge — one more loss could fail the account. Stand down.</div>':'')+'</div>';
+  // consistency rule: your best single day must stay under X% of total profit, or payout is blocked
+  const nets=dayNets(tr); const profit=tr.reduce((a,t)=>a+t.pnl,0); let consHtml='';
+  if(e.consistency>0){ const bestDay=Math.max(0,...nets); const consPct=profit>0?Math.round(bestDay/profit*100):0; const over=consPct>e.consistency; const col=over?'var(--loss)':consPct>=e.consistency*0.8?'var(--gold)':'var(--win)'; const barPct=e.consistency?Math.min(100,Math.round(consPct/e.consistency*100)):0;
+    consHtml='<div style="margin-bottom:16px"><div class="row-sb" style="margin-bottom:6px"><span style="font-weight:600">Consistency rule</span><b class="mono" style="color:'+col+'">'+consPct+'% / '+e.consistency+'% max</b></div><div class="mtrack"><div class="mfill" style="width:'+Math.max(2,barPct)+'%;background:'+col+'"></div></div><div class="hint" style="margin-top:5px">Your best day ('+money0(Math.max(0,...nets))+') is '+consPct+'% of total profit'+(over?' — over the '+e.consistency+'% cap, payout blocked until you spread gains out':profit>0?' — keep it under '+e.consistency+'%':'')+'</div></div>'; }
+  // minimum trading days
+  const tdays=new Set(tr.map(t=>(t.date||'').slice(0,10)).filter(Boolean)).size; let minHtml='';
+  if(e.minDays>0){ const dpct=Math.min(100,Math.round(tdays/e.minDays*100)); const done=tdays>=e.minDays; minHtml='<div style="margin-bottom:4px"><div class="row-sb" style="margin-bottom:6px"><span style="font-weight:600">Minimum trading days</span><b class="mono" style="color:'+(done?'var(--win)':'var(--gold)')+'">'+tdays+' / '+e.minDays+(done?' ✓':'')+'</b></div><div class="mtrack"><div class="mfill" style="width:'+Math.max(2,dpct)+'%;background:'+(done?'var(--win)':'var(--violet)')+'"></div></div>'+(done?'':'<div class="hint" style="margin-top:5px">'+(e.minDays-tdays)+' more day'+(e.minDays-tdays===1?'':'s')+' with at least one trade before you can pass</div>')+'</div>'; }
+  // days-to-target projection at current pace
+  const remain=Math.max(0,e.target-profit); const avgDay=tdays?profit/tdays:0; let projHtml='';
+  if(tdays>=2){ if(remain<=0) projHtml='<div class="hint" style="margin-top:2px;color:var(--win);font-weight:600">✓ Profit target reached — '+(e.minDays>0&&tdays<e.minDays?'just clear your minimum trading days':'move to the next phase')+'.</div>'; else if(avgDay>0){ const pj=Math.ceil(remain/avgDay); projHtml='<div class="hint" style="margin-top:2px">At your pace (~'+money0(avgDay)+'/trading day over '+tdays+' days), about <b style="color:var(--violet-2)">'+pj+' more trading day'+(pj===1?'':'s')+'</b> to hit target.</div>'; } else projHtml='<div class="hint" style="margin-top:2px">You\'re net negative so far — no target ETA until you\'re green.</div>'; }
+  const edge=(dailyPct>=90||ddPct>=90);
+  return '<div class="card section-gap"><div class="card-title">Breach monitor</div><div class="card-sub">How much cushion before you break a rule — watch this like a hawk.</div><div style="margin-top:16px">'+gauge('Today\'s loss limit',dailyUsed,dailyLeft,dailyPct,e.dailyLoss)+gauge('Max drawdown',ddUsed,ddLeft,ddPct,e.maxDD)+consHtml+minHtml+'</div>'+projHtml+(edge?'<div class="hint" style="color:var(--loss);font-weight:600;margin-top:8px">⚠ You\'re on the edge — one more loss could fail the account. Stand down.</div>':'')+'</div>';
 }
 function payoutCard(e,profit){
   const split=e.split||80; const payouts=e.payouts||[]; const totalPaid=payouts.reduce((a,p)=>a+(+p.amount||0),0);
@@ -1050,15 +1101,18 @@ VIEWS.eval=function(){
       <div class="fgrp"><label class="flbl">Target ($)</label><input class="finp" type="number" id="e-target" value="${e.target}"></div>
       <div class="fgrp"><label class="flbl">Daily loss ($)</label><input class="finp" type="number" id="e-daily" value="${e.dailyLoss}"></div>
       <div class="fgrp"><label class="flbl">Max DD ($)</label><input class="finp" type="number" id="e-dd" value="${e.maxDD}"></div>
+      <div class="fgrp"><label class="flbl">Consistency (%)</label><input class="finp" type="number" id="e-cons" value="${e.consistency||''}" placeholder="off"></div>
+      <div class="fgrp"><label class="flbl">Min trading days</label><input class="finp" type="number" id="e-mindays" value="${e.minDays||''}" placeholder="off"></div>
       <div class="fgrp"><label class="flbl">Phase</label><select class="finp" id="e-phase"><option ${active===0?'selected':''}>Phase 1</option><option ${active===1?'selected':''}>Verification</option><option ${active===2?'selected':''}>Funded</option></select></div>
     </div>
+    <div class="hint" style="margin-top:8px">Consistency & min-days are optional — set them to match your firm's rules and the breach monitor will track them. Leave blank to turn off.</div>
     <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="saveEvalActive()">Save this challenge</button>${evals.length>1?`<button class="btn btn-ghost btn-sm" onclick="delChallenge('${e.id}')">Delete challenge</button>`:''}</div>
   </div>`;
 };
 function addChallenge(){ const a=Store.evals(); const id='ch'+Math.random().toString(36).slice(2,8); a.push({id,firm:'New Challenge',size:10000,phase:'Phase 1',target:1000,dailyLoss:500,maxDD:1000,split:80,payouts:[]}); Store.saveEvals(a); Store.setActiveEval(id); toast('Challenge added','good'); VIEWS.eval(); }
 function selectChallenge(id){ Store.setActiveEval(id); VIEWS.eval(); }
 function delChallenge(id){ let a=Store.evals(); if(a.length<=1){ toast('Keep at least one challenge'); return; } a=a.filter(c=>c.id!==id); Store.saveEvals(a); Store.setActiveEval(a[0].id); toast('Challenge deleted'); VIEWS.eval(); }
-function saveEvalActive(){ const act=Store.activeEval(); const a=Store.evals(); const i=a.findIndex(c=>c.id===act.id); if(i<0)return; a[i]={id:act.id,firm:$('#e-firm').value||'Challenge',size:+$('#e-size').value||10000,phase:$('#e-phase').value,target:+$('#e-target').value||1000,dailyLoss:+$('#e-daily').value||500,maxDD:+$('#e-dd').value||1000,split:($('#e-split')?+$('#e-split').value||80:(act.split||80)),payouts:act.payouts||[]}; Store.saveEvals(a); toast('Challenge saved','good'); VIEWS.eval(); }
+function saveEvalActive(){ const act=Store.activeEval(); const a=Store.evals(); const i=a.findIndex(c=>c.id===act.id); if(i<0)return; a[i]={id:act.id,firm:$('#e-firm').value||'Challenge',size:+$('#e-size').value||10000,phase:$('#e-phase').value,target:+$('#e-target').value||1000,dailyLoss:+$('#e-daily').value||500,maxDD:+$('#e-dd').value||1000,consistency:+($('#e-cons')?$('#e-cons').value:0)||0,minDays:+($('#e-mindays')?$('#e-mindays').value:0)||0,split:($('#e-split')?+$('#e-split').value||80:(act.split||80)),payouts:act.payouts||[]}; Store.saveEvals(a); toast('Challenge saved','good'); VIEWS.eval(); }
 function exportTrackRecord(){
   const e=Store.activeEval(); const firstId=Store.evals()[0].id; const tr=Store.trades().filter(t=>(t.account||firstId)===e.id); const s=stats(tr);
   const rows=tr.slice().reverse().map(t=>'<tr><td>'+fmtDate(t.date)+'</td><td>'+t.symbol+'</td><td>'+t.side+'</td><td>'+(t.rr?t.rr.toFixed(2):'-')+'</td><td>'+(t.rulesTotal?t.rulesFollowed+'/'+t.rulesTotal:'-')+'</td><td style="text-align:right;color:'+(t.pnl>=0?'#0a8060':'#c0344d')+'">'+money(t.pnl)+'</td></tr>').join('');
@@ -1401,9 +1455,14 @@ VIEWS.settings=function(){
       </div>
       <div class="hint" style="margin-top:8px">Prop traders: set this to your challenge's daily loss limit and never fail on a tilt day again.</div>
     </div>
+    <div class="card set-section"><h3>News guard</h3><div class="card-sub" style="margin-bottom:12px">EDGE watches the economic calendar and warns you to stand down before red-folder news (NFP, FOMC, CPI) — when spreads widen and stops get hunted.</div>
+      <div class="toggle"><div><b style="font-size:13.5px">Warn me before high-impact news</b><div class="hint">Shows a stand-down banner on your dashboard as news approaches</div></div><div class="sw ${st.newsGuard!==false?'on':''}" onclick="this.classList.toggle('on');(function(x){const s=Store.settings();s.newsGuard=x;Store.saveSettings(s);if(x)loadNews(true);if(current==='dash')VIEWS.dash();})(this.classList.contains('on'))"></div></div>
+    </div>
     <div class="card set-section"><h3>Notifications</h3>
+      <div class="card-sub" style="margin-bottom:12px">Get nudged even when EDGE isn't the active tab. ${('Notification' in window)?(Notification.permission==='granted'?'<span style="color:var(--win)">Browser notifications are on.</span>':Notification.permission==='denied'?'<span style="color:var(--loss)">Blocked in your browser settings.</span>':'<button class="btn btn-ghost btn-sm" onclick="askNotifPermission()">Enable browser notifications</button>'):'Your browser doesn’t support notifications.'}</div>
       <div class="toggle"><div><b style="font-size:13.5px">Session start reminder</b><div class="hint">Ping me when my session opens</div></div><div class="sw ${n.session?'on':''}" id="nt-session" onclick="this.classList.toggle('on')"></div></div>
-      <div class="toggle"><div><b style="font-size:13.5px">Daily journal reminder</b><div class="hint">Nudge me to journal each day</div></div><div class="sw ${n.journal?'on':''}" id="nt-journal" onclick="this.classList.toggle('on')"></div></div>
+      <div class="toggle"><div><b style="font-size:13.5px">Daily journal reminder</b><div class="hint">Nudge me to journal at the end of the day</div></div><div class="sw ${n.journal?'on':''}" id="nt-journal" onclick="this.classList.toggle('on')"></div></div>
+      <div class="toggle"><div><b style="font-size:13.5px">News &amp; risk alerts</b><div class="hint">Alert me before red-folder news and when I near my daily loss limit</div></div><div class="sw ${n.alerts!==false?'on':''}" id="nt-alerts" onclick="this.classList.toggle('on')"></div></div>
       <div class="toggle"><div><b style="font-size:13.5px">Goal milestones</b><div class="hint">Celebrate when I hit a target</div></div><div class="sw ${n.goals?'on':''}" id="nt-goals" onclick="this.classList.toggle('on')"></div></div>
     </div>
     <button class="btn btn-primary" onclick="saveSettings()">Save settings</button>
@@ -1552,7 +1611,7 @@ function saveSettings(){ const st=Store.settings();
   st.style=$('#st-style').value; st.timezone=$('#st-tz').value; st.currency=$('#st-cur').value;
   st.risk=+$('#st-risk').value||1; st.rrTarget=+$('#st-rr').value||2; st.commission=+$('#st-comm').value||0;
   if($('#st-dll'))st.dailyLossLimit=+$('#st-dll').value||0; if($('#st-mtd'))st.maxTradesPerDay=+$('#st-mtd').value||0;
-  st.notif={session:$('#nt-session').classList.contains('on'),journal:$('#nt-journal').classList.contains('on'),goals:$('#nt-goals').classList.contains('on')};
+  st.notif={session:$('#nt-session').classList.contains('on'),journal:$('#nt-journal').classList.contains('on'),alerts:$('#nt-alerts')?$('#nt-alerts').classList.contains('on'):true,goals:$('#nt-goals').classList.contains('on')};
   if($('#st-session'))st.sessionStart=$('#st-session').value;
   Store.saveSettings(st);
   $('#avatar').textContent=(st.name||'T')[0].toUpperCase(); $('#mName').textContent=st.name||'Trader';
@@ -1714,6 +1773,7 @@ function svgi(n,size,color){ size=size||24; color=color||'var(--violet-2)'; cons
   flame:'<path d="M12 3c2.2 2.9 4.4 4.4 4.4 7.9a4.4 4.4 0 11-8.8 0c0-1.3.5-2.4 1.2-3 .1 2.2 3.2 2 3.2-.4 0-1.5-.5-2.9 0-4.5z"/>',
   diamond:'<path d="M6.5 4h11l3 5-8.5 11L3.5 9z"/><path d="M3.5 9h17M9 4l-2.5 5L12 20M15 4l2.5 5L12 20"/>',
   image:'<rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M4 17l4.5-4.5 3.5 3.5 3-3L20 17"/>',
+  link:'<path d="M9.5 14.5l5-5"/><path d="M8 11l-2 2a3.2 3.2 0 004.5 4.5l2-2"/><path d="M16 13l2-2a3.2 3.2 0 00-4.5-4.5l-2 2"/>',
   pencil:'<path d="M4 20l1-4L16 5l3 3L8 19z"/><path d="M14 7l3 3"/>',
   sparkle:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M18.5 15.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>',
   calendar:'<rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/>',
@@ -1960,6 +2020,22 @@ function reviewCSV(){ const rows=window._csvRows; const head=rows[0].map(h=>((h|
 function confirmCSVImport(){ const rows=window._csvRows; const m=readCsvMap(); if(m.symbol<0&&m.pnl<0){ toast('Map at least the Symbol or P&L column'); return; } const arr=Store.trades(); let n=0; rows.slice(1).forEach(c=>{ if(!c.join('').trim())return; const t=csvTrade(c,m); t.id=Date.now()+Math.random(); t.emotion=''; t.tilt=null; t.rulesFollowed=0; t.rulesTotal=0; t.shot=null; t.account=''; t.tags=['imported']; arr.push(t); n++; }); Store.saveTrades(arr); closeDetail(); toast('Imported '+n+' trade'+(n===1?'':'s'),'good'); go('dash'); checkGoalRewards(); }
 function filterTrades(){ const q=($('#tf-q').value||'').toLowerCase().trim(); const side=$('#tf-side').value; const out=$('#tf-out').value; let tr=Store.trades().slice().reverse(); if(q)tr=tr.filter(t=>(t.symbol||'').toLowerCase().includes(q)); if(side)tr=tr.filter(t=>t.side===side); if(out==='win')tr=tr.filter(t=>t.pnl>0); else if(out==='loss')tr=tr.filter(t=>t.pnl<0); $('#tradeTableWrap').innerHTML=tradeTable(tr,true)+(tr.length?'':'<div class="hint" style="padding:14px 2px">No trades match those filters.</div>'); }
 function importShot(input){ const f=input.files[0]; if(!f)return; input.value=''; runShotImport(f); }
+/* ---- broker auto-import (connect flow; live sync rolling out) ---- */
+const BROKERS=[
+  {id:'mt45',name:'MetaTrader 4 / 5',desc:'FTMO, MyFundedFX, most forex brokers'},
+  {id:'ctrader',name:'cTrader',desc:'IC Markets, Pepperstone, FTMO cTrader'},
+  {id:'tradelocker',name:'TradeLocker',desc:'Many newer prop firms'},
+  {id:'crypto',name:'Crypto exchange',desc:'Binance, Bybit, Bitget (read-only API)'}
+];
+function brokerConnect(){ const el=document.getElementById('detailInner'); if(!el)return;
+  el.innerHTML='<div class="row-sb"><div class="card-title">Connect your broker</div><button class="modal-x" onclick="closeDetail()" aria-label="Close">✕</button></div>'
+    +'<div class="card-sub" style="margin-bottom:14px">Auto-sync your closed trades so you never log by hand. Pick your platform — we’ll email you the moment your integration is live, and it uses <b>read-only</b> access (we can never move your money).</div>'
+    +'<div style="display:flex;flex-direction:column;gap:10px">'+BROKERS.map(b=>'<button class="rule" style="width:100%;text-align:left" onclick="brokerInterest(\''+b.id+'\',\''+escHtml(b.name).replace(/'/g,"\\'")+'\')"><span style="flex:0 0 auto;color:var(--violet-2)">'+svgi('link',20,'currentColor')+'</span><div style="flex:1"><b style="font-size:14px">'+escHtml(b.name)+'</b><div class="hint">'+escHtml(b.desc)+'</div></div><span class="chip" style="color:var(--gold);border-color:rgba(255,196,61,.4)">Soon</span></button>').join('')+'</div>'
+    +'<div class="hint" style="margin-top:14px;line-height:1.55">In the meantime, <button class="btn-inline" onclick="closeDetail()" style="background:none;border:none;color:var(--violet-2);cursor:pointer;padding:0;font:inherit">AI screenshot import</button> and CSV import already bring your history in within seconds.</div>';
+  document.getElementById('detailModal').classList.add('show'); }
+function brokerInterest(id,name){ try{ const s=Store.settings(); s.brokerInterest=Array.from(new Set([...(s.brokerInterest||[]),id])); Store.saveSettings(s); }catch(e){}
+  const url='mailto:support@edgeprojournal.com?subject='+encodeURIComponent('Broker sync interest: '+name)+'&body='+encodeURIComponent('I’d like to auto-sync my '+name+' account into EDGE Pro. Please let me know when it’s ready.\n\n— '+(session&&session.email||''));
+  window.location.href=url; toast('Thanks — you’re on the list for '+name,'good'); closeDetail(); }
 function runShotImport(f){ if(!f)return; if(!aiAllowed()){ toast('AI screenshot import is a Pro feature — upgrade to unlock'); return; } if(!/^image\//.test(f.type||'')){ toast('That’s not an image'); return; } if(f.size>4.4*1024*1024){ toast('Image too large — crop or screenshot a smaller area'); return; }
   const r=new FileReader(); r.onload=async ()=>{ const b64=(r.result+'').split(',')[1]; const mt=f.type||'image/png';
     const t=$('#toast'); t.textContent='Reading your screenshot with AI…'; t.className='show';
@@ -2169,6 +2245,7 @@ function injectDemoBanner(){
   if(window.__DEMO){ seedDemo(); injectDemoBanner(); }
   await cloudPull();
   buildNav(); renderXP(); go('dash'); tickSession(); setInterval(tickSession,1000); applyPlan(); applySeasonal();
+  loadNews(); startReminders();
   if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
   try{ if(window.__DEMO && !localStorage.getItem('edgepro_tour')){ setTimeout(startTour,1500); } }catch(e){}
   if(planState().locked){ renderPaywall(); }
