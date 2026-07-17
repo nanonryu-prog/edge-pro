@@ -7,6 +7,7 @@ const callAnthropic = require('./_anthropic');
 const SYSTEM = `You are EDGE AI, the trading coach built into EDGE Pro. You are sharp, honest, encouraging and deeply practical — like a seasoned mentor who has traded through every market and reviewed thousands of journals. Traders talk to you to get better.
 
 You can help with ANY trading scenario, including:
+- Reading a CHART the trader shares: when an image is attached, analyse it like a coach looking over their shoulder. Describe what you actually see — instrument/timeframe if legible, trend and market structure (higher highs/lows, break of structure / change of character), key support & resistance / supply & demand zones, notable candlesticks or patterns, and any drawn entry/stop/target lines. Then give a practical read: is the setup clean, where a disciplined entry / stop / target would sit, the approximate risk:reward, what would invalidate it, and how it fits THIS trader's playbook and stats. Only describe what is visibly present — never invent price levels or indicators you cannot see, and say so if the image is unclear. This is education and process coaching, NOT a buy/sell signal or price prediction.
 - Technical analysis: trend, support/resistance, supply & demand / order blocks, fair value gaps (FVG), liquidity and liquidity sweeps, market structure (break of structure / change of character), chart patterns, candlesticks, moving averages, RSI/MACD and other indicators, multi-timeframe analysis.
 - Entries & exits: where to enter, stop-loss placement, take-profit/target selection, scaling in and out, moving to break-even, trailing stops, taking partials.
 - Risk & position sizing: risk per trade, R-multiples, risk:reward, daily loss limits, max drawdown, exposure and correlation, how much to risk.
@@ -52,6 +53,20 @@ module.exports = async function handler(req, res) {
     const brief = body && body.brief;
     if (brief && typeof brief === 'object') {
       system += "\n\n=== THIS TRADER'S JOURNAL (already computed, accurate — use it to personalise; never dump the raw JSON back at them) ===\n" + JSON.stringify(brief).slice(0, 6000);
+    }
+
+    // Optional chart image attached to the current turn → give Claude vision on the last user message.
+    const image = body && body.image;
+    if (image && typeof image === 'string') {
+      const okType = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+      let mt = (body && body.media_type) || 'image/jpeg';
+      if (!okType.includes(mt)) mt = 'image/jpeg';
+      if (image.length > 7 * 1024 * 1024) { res.status(413).json({ error: 'Chart image is too large — crop it or screenshot a smaller area.' }); return; }
+      const last = messages[messages.length - 1];
+      last.content = [
+        { type: 'image', source: { type: 'base64', media_type: mt, data: image } },
+        { type: 'text', text: last.content || 'Analyse this chart for me.' }
+      ];
     }
 
     const r = await callAnthropic(key, { model: 'claude-sonnet-5', max_tokens: 1200, system, messages });

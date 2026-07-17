@@ -224,6 +224,14 @@
   .ai-input{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border);align-items:flex-end;}
   #aiInput{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);padding:10px 12px;font-family:inherit;font-size:14px;resize:none;max-height:120px;outline:none;}
   .ai-send{flex:0 0 auto;width:38px;height:38px;border-radius:11px;border:none;background:var(--grad);color:#fff;cursor:pointer;display:grid;place-items:center;}
+  .ai-attach{flex:0 0 auto;width:38px;height:38px;border-radius:11px;border:1px solid var(--border-2);background:rgba(255,255,255,.04);color:var(--muted);cursor:pointer;display:grid;place-items:center;transition:.18s;}
+  .ai-attach:hover{color:var(--violet-2);border-color:var(--violet-2);}
+  .ai-attach-chip{display:none;margin:0 12px 0;padding:8px;gap:10px;align-items:center;border:1px solid var(--border-2);border-radius:11px;background:var(--card);}
+  .ai-attach-chip.on{display:flex;}
+  .ai-attach-chip img{width:46px;height:46px;object-fit:cover;border-radius:7px;flex:none;}
+  .ai-attach-chip .x{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px;}
+  .ai-msg img.ai-chart{display:block;max-width:190px;max-height:150px;width:auto;border-radius:9px;margin-bottom:7px;border:1px solid var(--border-2);}
+  #edgeAiPanel.dragover{outline:2px dashed var(--violet-2);outline-offset:-6px;}
   .ai-disc{font-size:10.5px;color:var(--faint);text-align:center;padding:0 12px 10px;}
   .ai-typing{display:inline-flex;gap:4px;align-items:center;}
   .ai-typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:aiblink 1.2s infinite;}
@@ -497,7 +505,9 @@ tr{transition:background .15s}
 <div id="edgeAiPanel" role="dialog" aria-label="EDGE AI chat">
   <div class="ai-head"><div class="ai-head-l"><span class="ai-orb"></span><div><b style="font-size:15px">EDGE AI</b><span class="ai-status">Your trading coach · always on</span></div></div><button class="modal-x" onclick="edgeAiToggle()" aria-label="Close">✕</button></div>
   <div id="aiMsgs" class="ai-msgs"></div>
-  <div class="ai-input"><textarea id="aiInput" rows="1" placeholder="Ask anything — a setup, your stats, psychology…" oninput="edgeAiGrow(this)" onkeydown="edgeAiKey(event)"></textarea><button class="ai-send" onclick="edgeAiSend()" aria-label="Send"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>
+  <div id="aiAttachChip" class="ai-attach-chip"><img id="aiAttachThumb" alt="Attached chart"><div style="min-width:0"><div style="font-size:12.5px;font-weight:600">Chart attached</div><div class="hint" style="font-size:11px">Ask about it, or just send →</div></div><button class="x" onclick="aiClearAttach()" aria-label="Remove chart">✕</button></div>
+  <input type="file" id="aiFile" accept="image/*" style="display:none" onchange="aiAttachFile(this.files[0]);this.value=''">
+  <div class="ai-input"><button class="ai-attach" onclick="document.getElementById('aiFile').click()" aria-label="Attach a chart" title="Attach a chart"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button><textarea id="aiInput" rows="1" placeholder="Ask anything, or attach a chart to analyse…" oninput="edgeAiGrow(this)" onkeydown="edgeAiKey(event)"></textarea><button class="ai-send" onclick="edgeAiSend()" aria-label="Send"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>
   <div class="ai-disc">EDGE AI is a coach for learning — not financial advice or trade signals.</div>
 </div>
 
@@ -1955,7 +1965,9 @@ function runShotImport(f){ if(!f)return; if(!aiAllowed()){ toast('AI screenshot 
     }catch(e){ toast('AI import runs on the live site once the API key is set.'); } };
   r.readAsDataURL(f); }
 /* paste a chart image anywhere → AI logs it; press N → quick log */
-document.addEventListener('paste',e=>{ const items=(e.clipboardData||{}).items||[]; for(const it of items){ if(it.type&&it.type.indexOf('image')===0){ const f=it.getAsFile(); if(f){ e.preventDefault(); toast('Screenshot pasted — reading it with AI…'); runShotImport(f); } return; } } });
+document.addEventListener('paste',e=>{ const items=(e.clipboardData||{}).items||[]; for(const it of items){ if(it.type&&it.type.indexOf('image')===0){ const f=it.getAsFile(); if(f){ e.preventDefault(); const panel=$('#edgeAiPanel'); if(panel&&panel.classList.contains('open')){ toast('Chart pasted — ask EDGE about it'); aiAttachFile(f); } else { toast('Screenshot pasted — reading it with AI…'); runShotImport(f); } } return; } } });
+/* drag a chart onto the AI panel → attach it for analysis */
+(function(){ const panel=$('#edgeAiPanel'); if(!panel)return; ['dragenter','dragover'].forEach(ev=>panel.addEventListener(ev,e=>{ if((e.dataTransfer&&[...e.dataTransfer.types].includes('Files'))){ e.preventDefault(); panel.classList.add('dragover'); } })); ['dragleave','drop'].forEach(ev=>panel.addEventListener(ev,e=>{ if(ev==='dragleave'&&panel.contains(e.relatedTarget))return; panel.classList.remove('dragover'); })); panel.addEventListener('drop',e=>{ const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f){ e.preventDefault(); aiAttachFile(f); } }); })();
 document.addEventListener('keydown',e=>{ if(e.key!=='n'&&e.key!=='N')return; if(e.metaKey||e.ctrlKey||e.altKey)return; const a=document.activeElement; if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))return; if(document.querySelector('.modal-bg.show')||document.querySelector('.cmdk-bg.show'))return; if(typeof quickLog==='function'){ e.preventDefault(); quickLog(); } });
 /* ---- first-run guided tour (demo) ---- */
 const TOUR_STEPS=[
@@ -1987,19 +1999,33 @@ function fmtAi(t){ return escHtml(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').repla
 function renderAiMsgs(typing){ const box=$('#aiMsgs'); if(!box)return; let html='';
   if(!aiAllowed()){ box.innerHTML='<div style="text-align:center;padding:30px 14px"><div style="display:flex;justify-content:center;margin-bottom:12px">'+svgi('sparkle',36,'var(--violet-2)')+'</div><div class="card-title" style="font-size:18px">EDGE AI is a Pro feature</div><p class="hint" style="margin:10px 0 0;line-height:1.6">Upgrade to Pro to chat with your AI coach, generate Edge Reports, and import trades from screenshots.</p><a href="index.html#pricing" class="btn btn-primary" style="margin-top:16px;text-decoration:none">Upgrade to Pro</a></div>'; const ir=document.querySelector('.ai-input'); if(ir)ir.style.display='none'; return; }
   const ir=document.querySelector('.ai-input'); if(ir)ir.style.display='';
-  if(!_aiChat.length){ const pro=(typeof proactiveInsight==='function')?proactiveInsight():null; if(pro){ html+='<div class="ai-msg bot" style="border-color:rgba(245,71,107,.35);background:rgba(245,71,107,.06)"><b>I spotted something in your journal 👀</b><br>'+escHtml(pro)+'<br><br>Want to dig into it?</div>'; } html+='<div class="ai-msg bot">Hey — I\'m <b>EDGE AI</b>. Ask me anything: a setup you\'re eyeing, why a trade went wrong, how your stats look, position sizing, prop-firm rules, or the psychology of a tilt day. I can see your journal too, so ask about <b>your own</b> trading.</div>';
-    const sugg=['Analyse my recent trades','How do I stop revenge trading?','Is my risk:reward healthy?','Explain fair value gaps'];
+  if(!_aiChat.length){ const pro=(typeof proactiveInsight==='function')?proactiveInsight():null; if(pro){ html+='<div class="ai-msg bot" style="border-color:rgba(245,71,107,.35);background:rgba(245,71,107,.06)"><b>I spotted something in your journal 👀</b><br>'+escHtml(pro)+'<br><br>Want to dig into it?</div>'; } html+='<div class="ai-msg bot">Hey — I\'m <b>EDGE AI</b>. Ask me anything, or <b>attach a chart</b> (📎 or paste) and I\'ll read the setup live — trend, structure, key levels, and where a disciplined entry, stop and target sit. I can see your journal too, so ask about <b>your own</b> trading.</div>';
+    const sugg=['Analyse a chart I\'m watching','Analyse my recent trades','How do I stop revenge trading?','Is my risk:reward healthy?'];
     html+='<div class="ai-sugg">'+sugg.map(s=>'<button onclick="edgeAiAsk(\''+s.replace(/'/g,"\\'")+'\')">'+escHtml(s)+'</button>').join('')+'</div>';
-  } else { html+=_aiChat.map(m=>'<div class="ai-msg '+(m.role==='user'?'user':'bot')+'">'+(m.role==='user'?escHtml(m.content):fmtAi(m.content))+'</div>').join(''); }
+  } else { html+=_aiChat.map(m=>'<div class="ai-msg '+(m.role==='user'?'user':'bot')+'">'+(m.role==='user'?((m.img?'<img class="ai-chart" src="'+m.img+'" alt="Chart">':'')+escHtml(m.content)):fmtAi(m.content))+'</div>').join(''); }
   if(typing) html+='<div class="ai-msg bot"><span class="ai-typing"><i></i><i></i><i></i></span></div>';
   box.innerHTML=html; box.scrollTop=box.scrollHeight;
 }
-function edgeAiAsk(q){ const i=$('#aiInput'); if(i)i.value=q; edgeAiSend(); }
+function edgeAiAsk(q){ if(/^Analyse a chart/i.test(q)){ const f=$('#aiFile'); if(f)f.click(); return; } const i=$('#aiInput'); if(i)i.value=q; edgeAiSend(); }
 function edgeAiGrow(el){ el.style.height='auto'; el.style.height=Math.min(120,el.scrollHeight)+'px'; }
 function edgeAiKey(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); edgeAiSend(); } }
-async function edgeAiSend(){ if(!aiAllowed()){ renderAiMsgs(); return; } const inp=$('#aiInput'); const text=(inp?inp.value:'').trim(); if(!text)return; if(inp){ inp.value=''; inp.style.height='auto'; }
-  _aiChat.push({role:'user',content:text}); renderAiMsgs(true); persistAi();
-  try{ const resp=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({ messages:_aiChat.slice(-16), brief:(typeof coachBrief==='function'&&Store.trades().length?coachBrief():null) })});
+let _aiPendingImg=null; // {data, media_type, thumb} for the next turn only
+/* shrink a chart to a sane payload (full for the API) + a tiny thumb (for the bubble) */
+function aiDownscale(file,maxW,q){ return new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>{ const sc=Math.min(1,maxW/img.width); const w=Math.round(img.width*sc),h=Math.round(img.height*sc); const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); res(c.toDataURL('image/jpeg',q)); }; img.onerror=rej; img.src=URL.createObjectURL(file); }); }
+async function aiAttachFile(f){ if(!f)return; if(!aiAllowed()){ toast('EDGE AI is a Pro feature — upgrade to unlock'); return; } if(!/^image\//.test(f.type||'')){ toast('That’s not an image'); return; } if(f.size>12*1024*1024){ toast('Image too large — crop or screenshot a smaller area'); return; }
+  try{ const full=await aiDownscale(f,1400,.85); const thumb=await aiDownscale(f,220,.6);
+    _aiPendingImg={ data:full.split(',')[1], media_type:'image/jpeg', thumb };
+    const chip=$('#aiAttachChip'),th=$('#aiAttachThumb'); if(th)th.src=thumb; if(chip)chip.classList.add('on');
+    const i=$('#aiInput'); if(i){ if(!i.value)i.placeholder='Ask about this chart — or just send →'; i.focus(); }
+  }catch(e){ toast('Could not read that image'); } }
+function aiClearAttach(){ _aiPendingImg=null; const chip=$('#aiAttachChip'); if(chip)chip.classList.remove('on'); const i=$('#aiInput'); if(i)i.placeholder='Ask anything, or attach a chart to analyse…'; }
+async function edgeAiSend(){ if(!aiAllowed()){ renderAiMsgs(); return; } const inp=$('#aiInput'); let text=(inp?inp.value:'').trim(); const img=_aiPendingImg;
+  if(!text&&!img)return; if(inp){ inp.value=''; inp.style.height='auto'; }
+  if(img&&!text) text='What do you think of this chart?';
+  _aiChat.push(img?{role:'user',content:text,img:img.thumb}:{role:'user',content:text}); aiClearAttach(); renderAiMsgs(true); persistAi();
+  try{ const payload={ messages:_aiChat.slice(-16).map(m=>({role:m.role,content:m.content})), brief:(typeof coachBrief==='function'&&Store.trades().length?coachBrief():null) };
+    if(img){ payload.image=img.data; payload.media_type=img.media_type; }
+    const resp=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
     let data={}; try{ data=await resp.json(); }catch(e){}
     if(!resp.ok||!data.reply){ _aiChat.push({role:'assistant',content:data.error||'I hit a snag — try again in a moment.'}); }
     else _aiChat.push({role:'assistant',content:data.reply});
