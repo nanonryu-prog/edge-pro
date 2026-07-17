@@ -69,11 +69,13 @@ module.exports = async function handler(req, res) {
       ];
     }
 
-    const r = await callAnthropic(key, { model: 'claude-sonnet-5', max_tokens: 1200, system, messages });
+    const r = await callAnthropic(key, { model: 'claude-sonnet-5', max_tokens: 1600, system, messages });
     const data = await r.json();
     if (!r.ok) { res.status(502).json({ error: (data.error && data.error.message) || 'AI request failed' }); return; }
-    const reply = (data.content || []).map(c => c.text || '').join('').trim();
+    let reply = (data.content || []).map(c => c.text || '').join('').trim();
     if (!reply) { res.status(502).json({ error: 'Empty reply — try again' }); return; }
+    // if the model was cut off by the token cap, end cleanly instead of mid-word
+    if (data.stop_reason === 'max_tokens' && !/[.!?…]$/.test(reply)) reply += '…';
     res.status(200).json({ reply });
   } catch (e) {
     res.status(500).json({ error: e.message || 'Server error' });

@@ -786,7 +786,7 @@ VIEWS.dash=function(){
       ${kpi('Win rate',s.wr+'%',s.wr>=50?'win':(s.tr.length?'loss':'win'),s.wins+'W · '+s.losses+'L')}
       ${kpi('Profit factor',s.pf===Infinity?'∞':s.pf.toFixed(2),'','Gross wins ÷ losses')}
       ${kpi('Net P&L',money(s.net),s.net>=0?'win':'loss',(pct>=0?'+':'')+pct.toFixed(1)+'% on '+money0(s.acct))}
-      ${kpi('Discipline',disVal,'violet',hasDis?(s.broken+' broken · '+s.slips+' slips'):'Log a checklist trade to start','<span class="badge '+(hasDis?'good':'')+'">'+disBadge+'</span>')}
+      ${kpi('Discipline',disVal,'violet',hasDis?(s.broken+' broken · '+s.slips+' slip'+(s.slips===1?'':'s')):'Log a checklist trade to start','<span class="badge '+(hasDis?'good':'')+'">'+disBadge+'</span>')}
     </div>
     <div class="grid kpis section-gap">
       ${kpi('Expectancy',money(s.exp),s.exp>=0?'win':'loss','Expected $ per trade — your real edge')}
@@ -1781,7 +1781,7 @@ function monteCarloCard(tr){
   for(let s=0;s<SIMS;s++){ let eq=acct,peak=acct,mdd=0; for(let k=0;k<N;k++){ const p=pnls[Math.floor(Math.random()*N)]; eq+=p; if(eq>peak)peak=eq; const d=peak-eq; if(d>mdd)mdd=d; } finals.push(eq-acct); maxDDs.push(mdd); }
   const srt=a=>a.slice().sort((x,y)=>x-y); const pct=(a,p)=>srt(a)[Math.min(a.length-1,Math.floor(p/100*a.length))];
   const ddMed=Math.round(pct(maxDDs,50)), dd95=Math.round(pct(maxDDs,95)), profitable=Math.round(finals.filter(v=>v>0).length/SIMS*100), worst=Math.round(pct(finals,5));
-  return '<div class="card section-gap"><div class="card-title">Monte Carlo — 1,000 futures</div><div class="card-sub">Your real trades reshuffled 1,000 times, to see the range of outcomes luck could deal you.</div><div class="grid kpis" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:14px">'+kpi('Typical max drawdown',money0(ddMed),'','median run')+kpi('Bad-luck drawdown',money0(dd95),'loss','95th percentile')+kpi('Runs that profit',profitable+'%','',profitable>=80?'robust edge':'fragile')+kpi('Worst-case P&L',money(worst),worst>=0?'win':'loss','5th percentile')+'</div><div class="hint" style="margin-top:10px">Even a winning system hits unlucky streaks — size so you survive the <b>95th-percentile drawdown ('+money0(dd95)+')</b>, not the average one.</div></div>';
+  return '<div class="card section-gap"><div class="card-title">Monte Carlo — 1,000 simulations</div><div class="card-sub">Your real trades reshuffled 1,000 times, to see the range of outcomes luck could deal you.</div><div class="grid kpis" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:14px">'+kpi('Typical max drawdown',money0(ddMed),'','median run')+kpi('Bad-luck drawdown',money0(dd95),'loss','95th percentile')+kpi('Runs that profit',profitable+'%','',profitable>=80?'robust edge':'fragile')+kpi('Worst-case P&L',money(worst),worst>=0?'win':'loss','5th percentile')+'</div><div class="hint" style="margin-top:10px">Even a winning system hits unlucky streaks — size so you survive the <b>95th-percentile drawdown ('+money0(dd95)+')</b>, not the average one.</div></div>';
 }
 function rrDistribution(tr){ const b=[['< 1:1',t=>t.rr!=null&&t.rr<1],['1:1 – 2:1',t=>t.rr!=null&&t.rr>=1&&t.rr<2],['2:1 – 3:1',t=>t.rr!=null&&t.rr>=2&&t.rr<3],['3:1 +',t=>t.rr!=null&&t.rr>=3]];
   const rows=b.map(([label,f])=>{const set=tr.filter(f); const w=set.filter(t=>t.pnl>0).length; return {label,n:set.length,wr:set.length?Math.round(w/set.length*100):0,net:set.reduce((a,t)=>a+t.pnl,0)};}); const max=Math.max(1,...rows.map(r=>r.n));
@@ -1824,7 +1824,12 @@ function emotionRadar(s){
   const tr=s.tr; const cnt={Calm:0,Confident:0,Focused:0,Fear:0,FOMO:0,Greed:0,Revenge:0}; let tagged=0;
   tr.forEach(t=>{ if(t.emotion&&cnt.hasOwnProperty(t.emotion)){cnt[t.emotion]++;tagged++;} });
   const defs=[['Calm','#24D19B'],['Confident','#3BE0A8'],['Focused','#7DE8C6'],['Greed','#FFC43D'],['FOMO','#FF9A52'],['Fear','#F5476B'],['Revenge','#E15CC6']];
-  const items=defs.map(([k,c])=>({k,c,n:cnt[k],pct:tagged?Math.round(cnt[k]/tagged*100):0}));
+  const items=defs.map(([k,c])=>({k,c,n:cnt[k],pct:0}));
+  // largest-remainder rounding so the displayed percentages always sum to exactly 100
+  if(tagged){ const raw=items.map(x=>x.n/tagged*100); const fl=raw.map(Math.floor); let rem=100-fl.reduce((a,b)=>a+b,0);
+    const order=raw.map((v,i)=>({i,frac:v-fl[i]})).sort((a,b)=>b.frac-a.frac);
+    const pct=fl.slice(); for(let j=0;j<order.length&&rem>0;j++){ if(items[order[j].i].n>0){ pct[order[j].i]++; rem--; } }
+    items.forEach((x,i)=>x.pct=pct[i]); }
   let acc=0; const stops=[]; const present=items.filter(x=>x.n>0);
   (present.length?present:items).forEach(x=>{ const share=tagged? x.n/tagged*100 : 100/items.length; stops.push(x.c+' '+acc.toFixed(2)+'% '+(acc+share).toFixed(2)+'%'); acc+=share; });
   const grad = tagged? 'conic-gradient(from -90deg,'+stops.join(',')+')' : 'conic-gradient(from -90deg,var(--track) 0% 100%)';
