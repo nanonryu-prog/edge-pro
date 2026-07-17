@@ -861,7 +861,7 @@ VIEWS.trades=function(){
     </div>
     <div class="card section-gap">
       <div class="row-sb" style="margin-bottom:14px;gap:10px;flex-wrap:wrap">
-        <div class="card-title">${tr.length} trades</div>
+        <div class="card-title" id="tradeCount">${tr.length} trades</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <input class="finp" id="tf-q" placeholder="Search symbol…" style="width:150px;height:38px" oninput="filterTrades()">
           <select class="finp" id="tf-side" style="width:auto;height:38px" onchange="filterTrades()"><option value="">All sides</option><option value="long">Long</option><option value="short">Short</option></select>
@@ -2052,7 +2052,11 @@ function reviewCSV(){ const rows=window._csvRows; const head=rows[0].map(h=>((h|
     '<div style="display:flex;gap:12px;margin-top:16px"><button class="btn btn-primary" onclick="confirmCSVImport()">Import '+(rows.length-1)+' trade'+(rows.length-1===1?'':'s')+'</button><button class="btn btn-ghost" onclick="closeDetail()">Cancel</button></div>';
   document.getElementById('detailModal').classList.add('show'); csvPreview(); }
 function confirmCSVImport(){ const rows=window._csvRows; const m=readCsvMap(); if(m.symbol<0&&m.pnl<0){ toast('Map at least the Symbol or P&L column'); return; } const arr=Store.trades(); let n=0; rows.slice(1).forEach(c=>{ if(!c.join('').trim())return; const t=csvTrade(c,m); t.id=Date.now()+Math.random(); t.emotion=''; t.tilt=null; t.rulesFollowed=0; t.rulesTotal=0; t.shot=null; t.account=''; t.tags=['imported']; arr.push(t); n++; }); Store.saveTrades(arr); closeDetail(); toast('Imported '+n+' trade'+(n===1?'':'s'),'good'); go('dash'); checkGoalRewards(); }
-function filterTrades(){ const q=($('#tf-q').value||'').toLowerCase().trim(); const side=$('#tf-side').value; const out=$('#tf-out').value; const tag=$('#tf-tag')?$('#tf-tag').value:''; let tr=Store.trades().slice().reverse(); if(q)tr=tr.filter(t=>(t.symbol||'').toLowerCase().includes(q)); if(side)tr=tr.filter(t=>t.side===side); if(out==='win')tr=tr.filter(t=>t.pnl>0); else if(out==='loss')tr=tr.filter(t=>t.pnl<0); if(tag)tr=tr.filter(t=>(t.tags||[]).includes(tag)); $('#tradeTableWrap').innerHTML=tradeTable(tr,true)+(tr.length?'':'<div class="hint" style="padding:14px 2px">No trades match those filters.</div>'); }
+function filterTrades(){ const q=($('#tf-q').value||'').toLowerCase().trim(); const side=$('#tf-side').value; const out=$('#tf-out').value; const tag=$('#tf-tag')?$('#tf-tag').value:''; let tr=Store.trades().slice().reverse(); if(q)tr=tr.filter(t=>(t.symbol||'').toLowerCase().includes(q)); if(side)tr=tr.filter(t=>t.side===side); if(out==='win')tr=tr.filter(t=>t.pnl>0); else if(out==='loss')tr=tr.filter(t=>t.pnl<0); if(tag)tr=tr.filter(t=>(t.tags||[]).includes(tag));
+  const active=!!(q||side||out||tag); const cnt=$('#tradeCount'); if(cnt)cnt.textContent=tr.length+' trade'+(tr.length===1?'':'s')+(active?' matched':'');
+  const closed=tr.filter(t=>!t.open); const net=closed.reduce((a,t)=>a+t.pnl,0); const wins=closed.filter(t=>t.pnl>0).length; const wr=closed.length?Math.round(wins/closed.length*100):0;
+  const summary=(active&&closed.length)?'<div class="hint" style="display:flex;gap:18px;flex-wrap:wrap;padding:0 2px 12px;font-size:13px"><span>Net <b class="'+(net>=0?'pos':'neg')+'">'+money(net)+'</b></span><span>Win rate <b>'+wr+'%</b></span><span>'+wins+'W · '+(closed.length-wins)+'L</span></div>':'';
+  $('#tradeTableWrap').innerHTML=summary+tradeTable(tr,true)+(tr.length?'':'<div class="hint" style="padding:14px 2px">No trades match those filters.</div>'); }
 function importShot(input){ const f=input.files[0]; if(!f)return; input.value=''; runShotImport(f); }
 /* ---- broker auto-import (connect flow; live sync rolling out) ---- */
 const BROKERS=[
