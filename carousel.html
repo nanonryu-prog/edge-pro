@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EDGE Pro — Instagram Carousel</title>
+<style>
+  :root{--bg:#0A0A16;--text:#ECEAF6;--muted:#A6A1C2;--violet:#9D7BFF;}
+  *{box-sizing:border-box}
+  body{margin:0;background:#0A0A16;background-image:radial-gradient(700px 400px at 50% -8%,rgba(124,92,252,.18),transparent 60%);
+    color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.6}
+  .wrap{max-width:900px;margin:0 auto;padding:44px 18px 80px}
+  .eyebrow{font-family:ui-monospace,'JetBrains Mono',Menlo,monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--violet);text-align:center}
+  h1{font-size:27px;font-weight:800;letter-spacing:-.02em;margin:12px 0 6px;text-align:center}
+  .sub{color:var(--muted);font-size:15px;text-align:center;max-width:46ch;margin:0 auto 8px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;margin-top:34px}
+  .slide{background:transparent;text-align:center}
+  .slide img{width:100%;border-radius:14px;border:1px solid rgba(255,255,255,.08);box-shadow:0 14px 34px -18px rgba(0,0,0,.8);display:block}
+  .slide a{display:inline-block;margin-top:9px;font-family:ui-monospace,monospace;font-size:12px;color:var(--violet);text-decoration:none;border:1px solid rgba(157,123,255,.4);border-radius:8px;padding:6px 12px}
+  .slide a:hover{background:rgba(124,92,252,.12)}
+  .num{font-family:ui-monospace,monospace;font-size:11px;color:var(--muted);margin-bottom:6px}
+  .cap{margin-top:44px;background:#14141F;border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:20px}
+  .cap h3{margin:0 0 10px;font-size:15px}
+  .cap pre{white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:13px;color:var(--muted);margin:0}
+  .hint{text-align:center;color:var(--muted);font-size:13px;margin-top:22px}
+  .hint b{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">EDGE Pro · Instagram carousel</div>
+  <h1>7 ready-made slides</h1>
+  <p class="sub">Download each one, then post them in order as an Instagram carousel. Caption is at the bottom.</p>
+  <div class="grid" id="grid"></div>
+  <div class="hint"><b>On your phone:</b> long-press a slide → “Save Image,” or tap “Download” under it.</div>
+  <div class="cap">
+    <h3>📋 Caption (paste under the post)</h3>
+    <pre>Most journals track your P&amp;L. That's the easy part. Here's what actually makes you a better trader 👇
+
+Try it free, no signup — link in bio 📈
+
+#trading #daytrading #forex #propfirm #tradingpsychology #tradingjournal #fundedtrader</pre>
+  </div>
+</div>
+<script>
+const W=1080,H=1350,PAD=96;
+const slides=[
+  {type:'hook', title:'5 things your trading journal should actually do', sub:"Most only track your P&L. That's the easy part."},
+  {type:'feature', n:'1', title:'Score your discipline', sub:'Graded 0–100 on how well you followed your own rules — on every trade.'},
+  {type:'feature', n:'2', title:'Read your chart with AI', sub:'Paste a chart and it reads the trend, structure, and your entry, stop & target.'},
+  {type:'feature', n:'3', title:'Warn you before the news', sub:'Stand-down alerts before red-folder events — NFP, FOMC, CPI.'},
+  {type:'feature', n:'4', title:'Track prop-firm rules live', sub:'Daily loss, drawdown, consistency — never fail a challenge on a technicality.'},
+  {type:'feature', n:'5', title:'Log a trade from a screenshot', sub:'AI reads your broker screenshot straight into your journal in seconds.'},
+  {type:'cta', title:'Try it free', sub:'No signup. No card.'}
+];
+function roundRect(x,X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath();}
+function logoTile(x,X,Y,S){
+  x.save();roundRect(x,X,Y,S,S,S*0.24);
+  var g=x.createLinearGradient(X,Y,X+S,Y+S);g.addColorStop(0,'#7C5CFC');g.addColorStop(1,'#E15CC6');x.fillStyle=g;x.fill();
+  var s=S*0.6/32,ox=X+(S-32*s)/2,oy=Y+(S-32*s)/2;
+  x.strokeStyle='#fff';x.lineWidth=Math.max(3,2.7*s);x.lineCap='round';x.lineJoin='round';
+  x.beginPath();x.moveTo(ox+6*s,oy+22*s);x.lineTo(ox+13*s,oy+15*s);x.lineTo(ox+18*s,oy+19*s);x.lineTo(ox+25.5*s,oy+10*s);x.stroke();
+  x.beginPath();x.moveTo(ox+19.5*s,oy+10*s);x.lineTo(ox+25.5*s,oy+10*s);x.lineTo(ox+25.5*s,oy+16*s);x.stroke();
+  x.restore();
+}
+function wrap(x,text,X,Y,maxW,lh,font){
+  x.font=font;x.textBaseline='alphabetic';var words=text.split(' '),line='',cy=Y;
+  for(var i=0;i<words.length;i++){var t=line?line+' '+words[i]:words[i];if(x.measureText(t).width>maxW&&line){x.fillText(line,X,cy);line=words[i];cy+=lh;}else line=t;}
+  if(line){x.fillText(line,X,cy);cy+=lh;}return cy;
+}
+function draw(s){
+  var c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');
+  x.fillStyle='#0A0A16';x.fillRect(0,0,W,H);
+  var g=x.createRadialGradient(W*0.82,-80,60,W*0.82,-80,920);g.addColorStop(0,'rgba(124,92,252,.28)');g.addColorStop(1,'rgba(124,92,252,0)');x.fillStyle=g;x.fillRect(0,0,W,H);
+  var g2=x.createRadialGradient(-40,H+40,60,-40,H+40,760);g2.addColorStop(0,'rgba(225,92,198,.16)');g2.addColorStop(1,'rgba(225,92,198,0)');x.fillStyle=g2;x.fillRect(0,0,W,H);
+  // header
+  logoTile(x,PAD,PAD,78);
+  x.textBaseline='alphabetic';x.fillStyle='#ECEAF6';x.font='800 38px system-ui,-apple-system,sans-serif';
+  x.fillText('EDGE',PAD+100,PAD+52);var ew=x.measureText('EDGE').width;
+  var pg=x.createLinearGradient(PAD+100+ew,0,PAD+100+ew+130,0);pg.addColorStop(0,'#9D7BFF');pg.addColorStop(1,'#E15CC6');
+  x.fillStyle=pg;x.fillText(' Pro',PAD+100+ew,PAD+52);
+  if(s.type==='hook'){
+    x.fillStyle='#9D7BFF';x.font='700 30px ui-monospace,monospace';x.fillText('SWIPE →',PAD,440);
+    x.fillStyle='#ECEAF6';var y=wrap(x,s.title,PAD,540,W-PAD*2,94,'800 80px system-ui,-apple-system,sans-serif');
+    x.fillStyle='#A6A1C2';wrap(x,s.sub,PAD,y+54,W-PAD*2,52,'400 40px system-ui,-apple-system,sans-serif');
+  }else if(s.type==='cta'){
+    logoTile(x,W/2-95,360,190);
+    x.textAlign='center';
+    x.fillStyle='#ECEAF6';x.font='800 96px system-ui,-apple-system,sans-serif';x.fillText('Try it free',W/2,720);
+    x.fillStyle='#A6A1C2';x.font='400 44px system-ui,-apple-system,sans-serif';x.fillText('No signup. No card.',W/2,790);
+    var lg=x.createLinearGradient(W/2-260,0,W/2+260,0);lg.addColorStop(0,'#9D7BFF');lg.addColorStop(1,'#E15CC6');
+    x.fillStyle=lg;x.font='800 52px system-ui,-apple-system,sans-serif';x.fillText('edgeprojournal.com',W/2,900);
+    x.fillStyle='#6E6890';x.font='600 32px ui-monospace,monospace';x.fillText('Discipline is the edge.',W/2,980);
+    x.textAlign='left';
+  }else{
+    var ng=x.createLinearGradient(PAD,360,PAD+240,520);ng.addColorStop(0,'#9D7BFF');ng.addColorStop(1,'#E15CC6');
+    x.fillStyle=ng;x.font='800 160px system-ui,-apple-system,sans-serif';x.fillText(s.n,PAD,520);
+    x.fillStyle='#ECEAF6';var y2=wrap(x,s.title,PAD,660,W-PAD*2,84,'800 70px system-ui,-apple-system,sans-serif');
+    x.fillStyle='#A6A1C2';wrap(x,s.sub,PAD,y2+44,W-PAD*2,50,'400 38px system-ui,-apple-system,sans-serif');
+  }
+  if(s.type!=='cta'){x.textAlign='left';x.fillStyle='#6E6890';x.font='600 30px ui-monospace,monospace';x.fillText('edgeprojournal.com',PAD,H-PAD);}
+  return c.toDataURL('image/png');
+}
+var grid=document.getElementById('grid');
+slides.forEach(function(s,i){
+  var url=draw(s);
+  var d=document.createElement('div');d.className='slide';
+  d.innerHTML='<div class="num">Slide '+(i+1)+' / '+slides.length+'</div><img src="'+url+'" alt="Slide '+(i+1)+'"><br><a download="edgepro-slide-'+(i+1)+'.png" href="'+url+'">↓ Download</a>';
+  grid.appendChild(d);
+});
+</script>
+</body>
+</html>
