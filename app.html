@@ -504,7 +504,7 @@ tr{transition:background .15s}
 <button class="log-fab" onclick="quickLog()" aria-label="Log a trade"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Log</button>
 <button id="edgeAiFab" onclick="edgeAiToggle()" aria-label="Ask EDGE AI"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10z"/><path d="M18.5 15.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></svg><span>Ask EDGE</span></button>
 <div id="edgeAiPanel" role="dialog" aria-label="EDGE AI chat">
-  <div class="ai-head"><div class="ai-head-l"><span class="ai-orb"></span><div><b style="font-size:15px">EDGE AI</b><span class="ai-status">Your trading coach · always on</span></div></div><button class="modal-x" onclick="edgeAiToggle()" aria-label="Close">✕</button></div>
+  <div class="ai-head"><div class="ai-head-l"><span class="ai-orb"></span><div><b style="font-size:15px">EDGE AI</b><span class="ai-status">Your trading coach · always on</span></div></div><div style="display:flex;gap:4px;align-items:center"><button class="modal-x" onclick="clearAiChat()" aria-label="New chat" title="New chat"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button><button class="modal-x" onclick="edgeAiToggle()" aria-label="Close">✕</button></div></div>
   <div id="aiMsgs" class="ai-msgs"></div>
   <div id="aiAttachChip" class="ai-attach-chip"><img id="aiAttachThumb" alt="Attached chart"><div style="min-width:0"><div style="font-size:12.5px;font-weight:600">Chart attached</div><div class="hint" style="font-size:11px">Ask about it, or just send →</div></div><button class="x" onclick="aiClearAttach()" aria-label="Remove chart">✕</button></div>
   <input type="file" id="aiFile" accept="image/*" style="display:none" onchange="aiAttachFile(this.files[0]);this.value=''">
@@ -2126,6 +2126,7 @@ function renderAiMsgs(typing){ const box=$('#aiMsgs'); if(!box)return; let html=
   box.innerHTML=html; box.scrollTop=box.scrollHeight;
 }
 function edgeAiAsk(q){ if(/^Analyse a chart/i.test(q)){ const f=$('#aiFile'); if(f)f.click(); return; } const i=$('#aiInput'); if(i)i.value=q; edgeAiSend(); }
+function clearAiChat(){ if(_aiChat.length && !confirm('Start a new chat? This clears the current conversation.'))return; _aiChat=[]; persistAi(); if(typeof aiClearAttach==='function')aiClearAttach(); renderAiMsgs(); const i=$('#aiInput'); if(i)i.focus(); }
 function edgeAiGrow(el){ el.style.height='auto'; el.style.height=Math.min(120,el.scrollHeight)+'px'; }
 function edgeAiKey(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); edgeAiSend(); } }
 let _aiPendingImg=null; // {data, media_type, thumb} for the next turn only
