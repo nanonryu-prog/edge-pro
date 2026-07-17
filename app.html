@@ -677,14 +677,19 @@ let NEWS={events:[],at:0}; try{ const c=JSON.parse(localStorage.getItem('edgepro
 function newsEnabled(){ return Store.settings().newsGuard!==false; }
 async function loadNews(force){ if(!newsEnabled())return; if(!force && NEWS.events.length && Date.now()-NEWS.at<20*60*1000)return; try{ const r=await fetch('/api/news'); const d=await r.json(); if(d&&Array.isArray(d.events)){ NEWS={events:d.events,at:Date.now()}; try{ localStorage.setItem('edgepro_news',JSON.stringify(NEWS)); }catch(e){} if(current==='dash')VIEWS.dash(); } }catch(e){} }
 function upcomingHigh(withinMs){ const now=Date.now(); return NEWS.events.filter(e=>e.impact>=3 && Date.parse(e.time)-now>=-15*60*1000 && Date.parse(e.time)-now<=withinMs); }
+/* currencies the trader actually trades, derived from their symbols (for relevant news) */
+function tradedCurrencies(){ const fx=['EUR','USD','GBP','JPY','AUD','CAD','CHF','NZD'];
+  const idx={NAS:'USD',US30:'USD',US100:'USD',US500:'USD',SPX:'USD',NDX:'USD',DJI:'USD',DOW:'USD',USTEC:'USD',XAU:'USD',XAG:'USD',GOLD:'USD',WTI:'USD',OIL:'USD',BTC:'USD',ETH:'USD',GER:'EUR',DAX:'EUR',UK100:'GBP',FTSE:'GBP',JP225:'JPY',NIK:'JPY',AUS200:'AUD'};
+  const set=new Set(); Store.trades().forEach(t=>{ const s=((t.symbol||'')+'').toUpperCase().replace(/[^A-Z0-9]/g,''); if(!s)return; fx.forEach(c=>{ if(s.includes(c))set.add(c); }); Object.keys(idx).forEach(k=>{ if(s.includes(k))set.add(idx[k]); }); }); return set; }
 function fmtCountdown(ms){ if(ms<0)return 'now'; const m=Math.round(ms/60000); if(m<60)return 'in '+m+' min'; const h=Math.floor(m/60); return 'in '+h+'h '+(m%60)+'m'; }
 function newsGuardBanner(){ if(!newsEnabled()||!NEWS.events.length)return '';
   const now=Date.now();
   // active window: a high-impact event within the next 30 min or up to 15 min ago
   const active=NEWS.events.filter(e=>e.impact>=3).map(e=>({e,dt:Date.parse(e.time)-now})).filter(o=>o.dt<=30*60*1000 && o.dt>=-15*60*1000).sort((a,b)=>a.dt-b.dt)[0];
   if(active){ const e=active.e; return '<div class="card section-gap" style="border-color:rgba(245,71,107,.6);background:radial-gradient(120% 100% at 0 0,rgba(245,71,107,.14),transparent 60%);cursor:pointer" onclick="newsModal()"><div style="display:flex;gap:14px;align-items:center"><span style="flex:0 0 auto;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:var(--loss);background:rgba(245,71,107,.16)">'+svgi('warn',22,'currentColor')+'</span><div style="flex:1"><b style="color:var(--loss);font-size:16px">Red-folder news '+fmtCountdown(active.dt)+' — stand down</b><div class="hint" style="margin-top:3px"><b>'+escHtml(e.country)+' · '+escHtml(e.title)+'</b> at '+new Date(e.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'. Spreads widen and stops get hunted around high-impact news — wait for it to settle before taking a new trade.</div></div><span class="hint" style="flex:0 0 auto;color:var(--violet-2)">This week →</span></div></div>'; }
-  // otherwise: next high-impact event today (informational)
-  const next=NEWS.events.filter(e=>e.impact>=3 && Date.parse(e.time)>now && Date.parse(e.time)-now<=12*3600*1000).sort((a,b)=>Date.parse(a.time)-Date.parse(b.time))[0];
+  // otherwise: next high-impact event today (informational) — prefer the trader's own markets
+  const upcoming=NEWS.events.filter(e=>e.impact>=3 && Date.parse(e.time)>now && Date.parse(e.time)-now<=12*3600*1000).sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));
+  const mine=tradedCurrencies(); const next=(mine.size?upcoming.find(e=>mine.has(e.country)):null)||upcoming[0];
   if(!next)return '';
   return '<div class="card section-gap" style="border-color:rgba(255,196,61,.35);cursor:pointer" onclick="newsModal()"><div style="display:flex;gap:12px;align-items:center"><span style="flex:0 0 auto;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;color:var(--gold);background:rgba(255,196,61,.14)">'+svgi('calendar',20,'currentColor')+'</span><div style="flex:1"><b>Next high-impact news '+fmtCountdown(Date.parse(next.time)-now)+'</b> <span class="hint">· '+escHtml(next.country)+' '+escHtml(next.title)+' at '+new Date(next.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</span></div><span class="hint" style="flex:0 0 auto;color:var(--violet-2)">This week →</span></div></div>'; }
 /* ---- smart reminders (fire even when EDGE isn't the active tab, while it's open) ---- */
@@ -716,8 +721,10 @@ function newsModal(){ const el=document.getElementById('detailInner'); if(!el)re
   if(!NEWS.events.length){ loadNews(true); el.innerHTML='<div class="row-sb"><div class="card-title">This week’s news</div><button class="modal-x" onclick="closeDetail()" aria-label="Close">✕</button></div><p class="hint" style="margin-top:14px">Loading the economic calendar… reopen in a moment.</p>'; document.getElementById('detailModal').classList.add('show'); return; }
   const now=Date.now();
   const curs=Array.from(new Set(NEWS.events.map(e=>e.country).filter(Boolean))).sort();
+  const mine=tradedCurrencies();
   let evs=NEWS.events.filter(e=>Date.parse(e.time)>now-6*3600*1000);
   if(_newsFilter.high) evs=evs.filter(e=>e.impact>=3);
+  if(_newsFilter.mine && mine.size) evs=evs.filter(e=>mine.has(e.country));
   if(_newsFilter.cur) evs=evs.filter(e=>e.country===_newsFilter.cur);
   evs.sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));
   // group by day
@@ -728,6 +735,7 @@ function newsModal(){ const el=document.getElementById('detailInner'); if(!el)re
   el.innerHTML='<div class="row-sb"><div><div class="card-title">This week’s news</div><div class="card-sub">High-impact events widen spreads and hunt stops — plan around them.</div></div><button class="modal-x" onclick="closeDetail()" aria-label="Close">✕</button></div>'
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center">'
     +'<button class="chip-tag'+(_newsFilter.high?' on':'')+'" onclick="_newsFilter.high=!_newsFilter.high;newsModal()">High impact only</button>'
+    +(mine.size?'<button class="chip-tag'+(_newsFilter.mine?' on':'')+'" onclick="_newsFilter.mine=!_newsFilter.mine;newsModal()" title="Currencies you trade: '+Array.from(mine).join(', ')+'">My markets</button>':'')
     +'<select class="finp" style="width:auto;height:34px;padding:0 10px;font-size:13px" onchange="_newsFilter.cur=this.value;newsModal()"><option value="">All currencies</option>'+curs.map(c=>'<option value="'+c+'"'+(_newsFilter.cur===c?' selected':'')+'>'+escHtml(c)+'</option>').join('')+'</select>'
     +'<span class="hint" style="margin-left:auto;display:flex;align-items:center;gap:12px"><span style="display:flex;align-items:center;gap:5px">'+dot(3)+'High</span><span style="display:flex;align-items:center;gap:5px">'+dot(2)+'Medium</span></span></div>'
     +'<div style="max-height:56vh;overflow:auto;margin-top:4px">'+body+'</div>'
