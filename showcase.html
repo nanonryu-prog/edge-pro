@@ -119,8 +119,22 @@ function breach(x,X,Y,w,h){
   gauge(x,X+40,Y+350,w-80,'Max drawdown',0.31,'$6,900 left','#FFC43D');
   gauge(x,X+40,Y+440,w-80,'Consistency rule',0.86,'26% / 30% max','#FFC43D');
 }
+function drawReport(x,X,Y,w,h){
+  rr(x,X,Y,w,h,26);x.fillStyle='#12121F';x.fill();rr(x,X,Y,w,h,26);x.lineWidth=1.5;x.strokeStyle='rgba(255,255,255,.08)';x.stroke();
+  var gs=76;rr(x,X+40,Y+40,gs,gs,18);var g=x.createLinearGradient(X+40,Y+40,X+40+gs,Y+40+gs);g.addColorStop(0,'#7C5CFC');g.addColorStop(1,'#E15CC6');x.fillStyle=g;x.fill();
+  x.textAlign='center';x.textBaseline='middle';x.fillStyle='#fff';x.font='800 44px system-ui,-apple-system,sans-serif';x.fillText('B+',X+40+gs/2,Y+42+gs/2);x.textBaseline='alphabetic';
+  x.textAlign='left';x.fillStyle='#ECEAF6';x.font='700 32px system-ui,-apple-system,sans-serif';x.fillText('Your Edge Report',X+134,Y+74);
+  x.fillStyle='#6E6890';x.font='400 23px system-ui,-apple-system,sans-serif';x.fillText('AI-read from your last 28 trades',X+134,Y+106);
+  x.fillStyle='#ECEAF6';var y=wrap(x,'Your edge is real — but breaking your own rules on 1 in 4 trades is a self-inflicted wound.',X+42,Y+188,w-84,45,'600 33px system-ui,-apple-system,sans-serif','left');
+  y+=30;x.fillStyle='#F5476B';x.font='700 22px ui-monospace,monospace';x.fillText('BIGGEST LEAK',X+42,y);
+  x.fillStyle='#C9C4DE';y=wrap(x,'Revenge trades after a loss cost you −$210 this month.',X+42,y+42,w-84,42,'500 30px system-ui,-apple-system,sans-serif','left');
+  y+=26;var bh=120;rr(x,X+40,y,w-80,bh,16);x.fillStyle='rgba(255,196,61,.1)';x.fill();
+  x.save();rr(x,X+40,y,7,bh,3.5);x.fillStyle='#FFC43D';x.fill();x.restore();
+  x.fillStyle='#FFC43D';x.font='700 22px ui-monospace,monospace';x.fillText('DO THIS WEEK',X+72,y+46);
+  x.fillStyle='#ECEAF6';x.font='600 30px system-ui,-apple-system,sans-serif';x.fillText('Skip the first trade after a loss.',X+72,y+92);
+}
 var slides=[
-  {type:'hook'},{type:'disc'},{type:'insight'},{type:'chat'},{type:'breach'},{type:'offer'}
+  {type:'hook'},{type:'disc'},{type:'insight'},{type:'report'},{type:'breach'},{type:'offer'}
 ];
 function draw(s){
   var c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');bg(x);header(x);
@@ -139,8 +153,8 @@ function draw(s){
     x.fillStyle='#6E6890';x.font='700 30px ui-monospace,monospace';x.fillText('— but only —',W/2,878);
     x.fillStyle='#F5476B';x.font='800 188px system-ui,-apple-system,sans-serif';x.fillText('38%',W/2,1038);
     x.fillStyle='#ECEAF6';x.font='500 33px system-ui,-apple-system,sans-serif';x.fillText('when you break one',W/2,1101);
-  }else if(s.type==='chat'){
-    head(x,'Paste a chart. AI reads it live.');chatScreen(x,W/2-380,460,760,620);
+  }else if(s.type==='report'){
+    head(x,'AI reads your journal & hands you the fix.');drawReport(x,W/2-380,470,760,600);
   }else if(s.type==='breach'){
     head(x,'Never blow a prop challenge again.');breach(x,W/2-380,470,760,590);
   }else{
