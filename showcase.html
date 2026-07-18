@@ -121,17 +121,18 @@ function breach(x,X,Y,w,h){
 }
 function drawReport(x,X,Y,w,h){
   rr(x,X,Y,w,h,26);x.fillStyle='#12121F';x.fill();rr(x,X,Y,w,h,26);x.lineWidth=1.5;x.strokeStyle='rgba(255,255,255,.08)';x.stroke();
-  var gs=76;rr(x,X+40,Y+40,gs,gs,18);var g=x.createLinearGradient(X+40,Y+40,X+40+gs,Y+40+gs);g.addColorStop(0,'#7C5CFC');g.addColorStop(1,'#E15CC6');x.fillStyle=g;x.fill();
-  x.textAlign='center';x.textBaseline='middle';x.fillStyle='#fff';x.font='800 44px system-ui,-apple-system,sans-serif';x.fillText('B+',X+40+gs/2,Y+42+gs/2);x.textBaseline='alphabetic';
-  x.textAlign='left';x.fillStyle='#ECEAF6';x.font='700 32px system-ui,-apple-system,sans-serif';x.fillText('Your Edge Report',X+134,Y+74);
-  x.fillStyle='#6E6890';x.font='400 23px system-ui,-apple-system,sans-serif';x.fillText('AI-read from your last 28 trades',X+134,Y+106);
-  x.fillStyle='#ECEAF6';var y=wrap(x,'Your edge is real — but breaking your own rules on 1 in 4 trades is a self-inflicted wound.',X+42,Y+188,w-84,45,'600 33px system-ui,-apple-system,sans-serif','left');
-  y+=30;x.fillStyle='#F5476B';x.font='700 22px ui-monospace,monospace';x.fillText('BIGGEST LEAK',X+42,y);
-  x.fillStyle='#C9C4DE';y=wrap(x,'Revenge trades after a loss cost you −$210 this month.',X+42,y+42,w-84,42,'500 30px system-ui,-apple-system,sans-serif','left');
-  y+=26;var bh=120;rr(x,X+40,y,w-80,bh,16);x.fillStyle='rgba(255,196,61,.1)';x.fill();
-  x.save();rr(x,X+40,y,7,bh,3.5);x.fillStyle='#FFC43D';x.fill();x.restore();
-  x.fillStyle='#FFC43D';x.font='700 22px ui-monospace,monospace';x.fillText('DO THIS WEEK',X+72,y+46);
-  x.fillStyle='#ECEAF6';x.font='600 30px system-ui,-apple-system,sans-serif';x.fillText('Skip the first trade after a loss.',X+72,y+92);
+  var gs=74;rr(x,X+40,Y+38,gs,gs,18);var g=x.createLinearGradient(X+40,Y+38,X+40+gs,Y+38+gs);g.addColorStop(0,'#7C5CFC');g.addColorStop(1,'#E15CC6');x.fillStyle=g;x.fill();
+  x.textAlign='center';x.textBaseline='middle';x.fillStyle='#fff';x.font='800 42px system-ui,-apple-system,sans-serif';x.fillText('B+',X+40+gs/2,Y+40+gs/2);x.textBaseline='alphabetic';
+  x.textAlign='left';x.fillStyle='#ECEAF6';x.font='700 31px system-ui,-apple-system,sans-serif';x.fillText('Your Edge Report',X+130,Y+70);
+  x.fillStyle='#6E6890';x.font='400 22px system-ui,-apple-system,sans-serif';x.fillText('AI-read from your last 28 trades',X+130,Y+102);
+  x.fillStyle='#ECEAF6';wrap(x,'Your edge is real — but breaking your rules on 1 in 4 trades is costing you.',X+42,Y+178,w-84,44,'600 32px system-ui,-apple-system,sans-serif','left');
+  x.fillStyle='#F5476B';x.font='700 21px ui-monospace,monospace';x.fillText('BIGGEST LEAK',X+42,Y+330);
+  x.fillStyle='#C9C4DE';x.font='500 29px system-ui,-apple-system,sans-serif';x.fillText('Revenge trades cost you −$210 this month.',X+42,Y+374);
+  // focus box pinned near the bottom of the card
+  var by=Y+h-146,bh=110;rr(x,X+40,by,w-80,bh,16);x.fillStyle='rgba(255,196,61,.1)';x.fill();
+  x.save();rr(x,X+40,by,7,bh,3.5);x.fillStyle='#FFC43D';x.fill();x.restore();
+  x.fillStyle='#FFC43D';x.font='700 21px ui-monospace,monospace';x.fillText('DO THIS WEEK',X+72,by+44);
+  x.fillStyle='#ECEAF6';x.font='600 29px system-ui,-apple-system,sans-serif';x.fillText('Skip the first trade after a loss.',X+72,by+86);
 }
 var slides=[
   {type:'hook'},{type:'disc'},{type:'insight'},{type:'report'},{type:'breach'},{type:'offer'}
