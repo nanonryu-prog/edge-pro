@@ -29,7 +29,7 @@
   <div class="note"><b>Phone:</b> long-press a slide → “Save Image,” or tap Download.</div>
   <div class="cap"><h3>📋 Caption</h3><pre>This is what a trading journal should actually look like 👇 It scores your discipline, reads your charts with AI, and keeps you inside your prop-firm rules.
 
-Start free — 7-day trial, no card. Link in bio 📈
+Start free — 7-day trial, no card. First 100 founding members get 30% off with code FOUNDER 👇 Link in bio 📈
 
 #trading #daytrading #forex #propfirm #tradingpsychology #fundedtrader #tradingjournal</pre></div>
 </div>
@@ -159,11 +159,12 @@ function draw(s){
   }else if(s.type==='breach'){
     head(x,'Never blow a prop challenge again.');breach(x,W/2-380,470,760,590);
   }else{
-    logoTile(x,W/2-90,320,180);x.textAlign='center';
-    x.fillStyle='#ECEAF6';x.font='800 94px system-ui,-apple-system,sans-serif';x.fillText('7 days free',W/2,644);
-    x.fillStyle='#A6A1C2';x.font='400 40px system-ui,-apple-system,sans-serif';x.fillText('The full app. No card to start.',W/2,710);
-    pill(x,W/2,818,'START YOUR TRIAL — LINK IN BIO','800 37px system-ui,-apple-system,sans-serif',92);
-    var lg=x.createLinearGradient(W/2-260,0,W/2+260,0);lg.addColorStop(0,'#9D7BFF');lg.addColorStop(1,'#E15CC6');x.fillStyle=lg;x.font='800 48px system-ui,-apple-system,sans-serif';x.fillText('edgeprojournal.com',W/2,948);
+    logoTile(x,W/2-70,296,140);x.textAlign='center';
+    x.fillStyle='#FFC43D';x.font='700 32px ui-monospace,monospace';x.fillText('🎁 FOUNDING OFFER',W/2,540);
+    var og=x.createLinearGradient(W/2-330,0,W/2+330,0);og.addColorStop(0,'#9D7BFF');og.addColorStop(1,'#E15CC6');x.fillStyle=og;x.font='800 178px system-ui,-apple-system,sans-serif';x.fillText('30% OFF',W/2,720);
+    x.fillStyle='#ECEAF6';x.font='600 40px system-ui,-apple-system,sans-serif';x.fillText('First 100 members · forever',W/2,788);
+    pill(x,W/2,884,'7-DAY FREE TRIAL · CODE FOUNDER','800 34px system-ui,-apple-system,sans-serif',88);
+    var lg=x.createLinearGradient(W/2-260,0,W/2+260,0);lg.addColorStop(0,'#9D7BFF');lg.addColorStop(1,'#E15CC6');x.fillStyle=lg;x.font='800 46px system-ui,-apple-system,sans-serif';x.fillText('edgeprojournal.com',W/2,982);
   }
   if(s.type!=='offer'){x.textAlign='left';x.fillStyle='#6E6890';x.font='600 30px ui-monospace,monospace';x.fillText('edgeprojournal.com',PAD,H-PAD);}
   return c.toDataURL('image/png');
