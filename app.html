@@ -2287,7 +2287,8 @@ function renderPaywall(){
     +planCard('Pro','$19',links.pro,['Everything in Starter','AI coach — reads your charts &amp; journal','AI screenshot import','Full reports, goals &amp; weekly review'],true)
     +planCard('Funded','$39',links.funded,['Everything in Pro','Live prop-firm breach monitor','50-trade track record','Priority support'])
     +'</div>'
-    +'<div style="margin-top:22px;display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap"><span class="hint">Your data is safe — nothing is deleted.</span><button class="btn btn-ghost btn-sm" onclick="Store.logout()">Log out</button></div>'
+    +'<p class="hint" style="margin:20px auto 0;max-width:540px;line-height:1.55;display:flex;gap:8px;align-items:center;justify-content:center"><span style="color:var(--win);flex:0 0 auto">'+svgi('wave',16,'var(--win)')+'</span>Your trades &amp; journal always stay yours — changing or canceling a plan never deletes anything.</p>'
+    +'<div style="margin-top:16px"><button class="btn btn-ghost btn-sm" onclick="Store.logout()">Log out</button></div>'
     +'</div>';
   document.body.appendChild(d);
 }
