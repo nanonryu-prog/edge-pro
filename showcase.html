@@ -113,7 +113,7 @@ function gauge(x,X,Y,w,label,pct,left,col){
 function breach(x,X,Y,w,h){
   rr(x,X,Y,w,h,26);x.fillStyle='#12121F';x.fill();rr(x,X,Y,w,h,26);x.lineWidth=1.5;x.strokeStyle='rgba(255,255,255,.08)';x.stroke();
   x.textAlign='left';x.fillStyle='#ECEAF6';x.font='700 32px system-ui,-apple-system,sans-serif';x.fillText('Breach monitor',X+40,Y+64);
-  x.fillStyle='#6E6890';x.font='400 24px system-ui,-apple-system,sans-serif';x.fillText('FTMO $100k · Phase 1',X+40,Y+100);
+  x.fillStyle='#6E6890';x.font='400 24px system-ui,-apple-system,sans-serif';x.fillText('Your rules — prop firm or your own capital',X+40,Y+100);
   gauge(x,X+40,Y+170,w-80,'Profit target',0.62,'$6,200 / $10k','#24D19B');
   gauge(x,X+40,Y+260,w-80,'Daily loss limit',0.06,'$4,790 left','#24D19B');
   gauge(x,X+40,Y+350,w-80,'Max drawdown',0.31,'$6,900 left','#FFC43D');
@@ -157,7 +157,7 @@ function draw(s){
   }else if(s.type==='report'){
     head(x,'AI reads your journal & hands you the fix.');drawReport(x,W/2-380,470,760,600);
   }else if(s.type==='breach'){
-    head(x,'Never blow a prop challenge again.');breach(x,W/2-380,470,760,590);
+    head(x,'Never blow your account on a rule you forgot.');breach(x,W/2-380,470,760,590);
   }else{
     logoTile(x,W/2-70,296,140);x.textAlign='center';
     x.fillStyle='#FFC43D';x.font='700 32px ui-monospace,monospace';x.fillText('🎁 FOUNDING OFFER',W/2,540);
