@@ -55,23 +55,32 @@ function card(x,X,Y,w,h){x.save();x.shadowColor='rgba(0,0,0,.5)';x.shadowBlur=48
   x.save();rr(x,X,Y,w,h,30);x.lineWidth=1.5;x.strokeStyle='rgba(255,255,255,.09)';x.stroke();x.restore();}
 // ---- app mockups ----
 function discipline(x,cx,cy){
-  var r=150;x.lineWidth=44;x.strokeStyle='rgba(255,255,255,.1)';x.beginPath();x.arc(cx,cy,r,0,Math.PI*2);x.stroke();
+  var r=128;x.lineWidth=38;x.strokeStyle='rgba(255,255,255,.1)';x.beginPath();x.arc(cx,cy,r,0,Math.PI*2);x.stroke();
   var g=x.createLinearGradient(cx-r,cy-r,cx+r,cy+r);g.addColorStop(0,'#7C5CFC');g.addColorStop(1,'#E15CC6');
   x.strokeStyle=g;x.lineCap='round';x.beginPath();x.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*0.88);x.stroke();x.lineCap='butt';
-  x.textAlign='center';x.fillStyle='#ECEAF6';x.font='800 130px system-ui,-apple-system,sans-serif';x.fillText('88',cx,cy+42);
-  x.fillStyle='#9D7BFF';x.font='600 30px ui-monospace,monospace';x.fillText('DISCIPLINE',cx,cy+108);
+  x.textAlign='center';x.fillStyle='#ECEAF6';x.font='800 104px system-ui,-apple-system,sans-serif';x.fillText('88',cx,cy+22);
+  x.fillStyle='#A6A1C2';x.font='500 26px ui-monospace,monospace';x.fillText('OF 100',cx,cy+68);
 }
 function chart(x,X,Y,w,h){
-  x.save();rr(x,X,Y,w,h,26);x.clip();
-  var n=9,gap=w/(n+1),vals=[0.28,0.42,0.36,0.55,0.5,0.66,0.6,0.82,0.94],prev=0.2;
-  for(var i=0;i<n;i++){var px=X+gap*(i+1);var top=Y+h-vals[i]*(h-90)-60;var bot=Y+h-prev*(h-90)-60;var up=vals[i]>=prev;
-    var col=up?'#24D19B':'#F5476B';x.strokeStyle=col;x.fillStyle=col;x.lineWidth=4;
-    x.beginPath();x.moveTo(px,Math.min(top,bot)-26);x.lineTo(px,Math.max(top,bot)+26);x.stroke();
-    rr(x,px-15,Math.min(top,bot),30,Math.max(14,Math.abs(top-bot)),5);x.fill();prev=vals[i];}
-  // dashed entry line
-  x.setLineDash([12,10]);x.strokeStyle='rgba(157,123,255,.8)';x.lineWidth=3;var ey=Y+h-0.7*(h-90)-60;
-  x.beginPath();x.moveTo(X+20,ey);x.lineTo(X+w-20,ey);x.stroke();x.setLineDash([]);
-  x.fillStyle='#9D7BFF';x.font='600 24px ui-monospace,monospace';x.textAlign='right';x.fillText('ENTRY',X+w-24,ey-14);
+  x.save();rr(x,X,Y,w,h,22);x.clip();
+  // faint gridlines
+  x.strokeStyle='rgba(255,255,255,.05)';x.lineWidth=1;for(var gy=1;gy<4;gy++){x.beginPath();x.moveTo(X,Y+h/4*gy);x.lineTo(X+w,Y+h/4*gy);x.stroke();}
+  var toY=function(v){return Y+h-30 - v*(h-72);};
+  // realistic OHLC: [open,high,low,close] as fractions — consolidation then uptrend with pullbacks
+  var cn=[[.30,.36,.27,.34],[.34,.39,.31,.32],[.32,.35,.26,.29],[.29,.40,.28,.39],[.39,.45,.37,.43],[.43,.46,.38,.40],[.40,.52,.39,.50],[.50,.55,.47,.47],[.47,.58,.45,.56],[.56,.61,.53,.54],[.54,.66,.52,.64],[.64,.70,.61,.68],[.68,.73,.60,.63],[.63,.82,.62,.80]];
+  var n=cn.length,gap=(w-40)/n,bw=gap*0.52;
+  for(var i=0;i<n;i++){var o=cn[i][0],hi=cn[i][1],lo=cn[i][2],c=cn[i][3];var px=X+20+gap*(i+0.5);
+    var up=c>=o;var col=up?'#24D19B':'#F5476B';x.strokeStyle=col;x.fillStyle=col;x.lineWidth=3;
+    x.beginPath();x.moveTo(px,toY(hi));x.lineTo(px,toY(lo));x.stroke();
+    var bt=toY(Math.max(o,c)),bb=toY(Math.min(o,c));rr(x,px-bw/2,bt,bw,Math.max(5,bb-bt),3);x.fill();}
+  function lvl(v,col,lbl){x.setLineDash([13,9]);x.strokeStyle=col;x.lineWidth=2.5;var yy=toY(v);
+    x.beginPath();x.moveTo(X+16,yy);x.lineTo(X+w-16,yy);x.stroke();x.setLineDash([]);
+    x.fillStyle=col;x.font='700 22px ui-monospace,monospace';x.textAlign='left';
+    rr(x,X+16,yy-30,x.measureText(lbl).width+22,26,6);x.fillStyle='rgba(10,10,22,.85)';x.fill();
+    x.fillStyle=col;x.fillText(lbl,X+27,yy-10);}
+  lvl(.88,'#24D19B','TARGET');
+  lvl(.62,'#9D7BFF','ENTRY');
+  lvl(.44,'#F5476B','STOP');
   x.restore();
 }
 function bubble(x,X,Y,w,text){
@@ -94,9 +103,12 @@ function draw(s){
     x.fillStyle='#ECEAF6';var y=wrap(x,'Most traders can’t tell you why they actually win or lose.',PAD,560,W-PAD*2,96,'800 82px system-ui,-apple-system,sans-serif','left');
     x.fillStyle='#A6A1C2';wrap(x,'This does. 👇',PAD,y+50,W-PAD*2,52,'400 44px system-ui,-apple-system,sans-serif','left');
   }else if(s.type==='discipline'){
-    x.fillStyle='#ECEAF6';wrap(x,'It scores your discipline — every trade.',W/2,PAD+190,W-PAD*2,72,'800 62px system-ui,-apple-system,sans-serif','center');
-    card(x,W/2-330,560,660,560);discipline(x,W/2,830);
-    x.textAlign='center';x.fillStyle='#A6A1C2';x.font='400 32px system-ui,-apple-system,sans-serif';x.fillText('Not your P&L — how well you followed your rules.',W/2,1050);
+    x.fillStyle='#ECEAF6';wrap(x,'Scores your discipline — every trade.',W/2,PAD+185,W-PAD*2,74,'800 64px system-ui,-apple-system,sans-serif','center');
+    card(x,W/2-330,545,660,620);
+    x.textAlign='center';x.fillStyle='#9D7BFF';x.font='600 27px ui-monospace,monospace';x.fillText('DISCIPLINE SCORE',W/2,628);
+    pill(x,W/2,690,'GOOD','700 30px system-ui,-apple-system,sans-serif',56);
+    discipline(x,W/2,880);
+    x.fillStyle='#A6A1C2';wrap(x,'How well you followed your own rules — not your P&L.',W/2,1085,560,42,'400 30px system-ui,-apple-system,sans-serif','center');
   }else if(s.type==='chart'){
     x.fillStyle='#ECEAF6';wrap(x,'And reads your charts with AI.',W/2,PAD+190,W-PAD*2,72,'800 62px system-ui,-apple-system,sans-serif','center');
     card(x,W/2-370,540,740,620);chart(x,W/2-330,580,660,300);
