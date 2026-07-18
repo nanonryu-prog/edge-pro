@@ -94,11 +94,11 @@ function draw(s){
     x.fillStyle='#ECEAF6';var y=wrap(x,'Most traders can’t tell you why they actually win or lose.',PAD,560,W-PAD*2,96,'800 82px system-ui,-apple-system,sans-serif','left');
     x.fillStyle='#A6A1C2';wrap(x,'This does. 👇',PAD,y+50,W-PAD*2,52,'400 44px system-ui,-apple-system,sans-serif','left');
   }else if(s.type==='discipline'){
-    x.fillStyle='#ECEAF6';wrap(x,'It scores your discipline — every trade.',PAD,PAD+190,W-PAD*2,72,'800 62px system-ui,-apple-system,sans-serif','center');
+    x.fillStyle='#ECEAF6';wrap(x,'It scores your discipline — every trade.',W/2,PAD+190,W-PAD*2,72,'800 62px system-ui,-apple-system,sans-serif','center');
     card(x,W/2-330,560,660,560);discipline(x,W/2,830);
     x.textAlign='center';x.fillStyle='#A6A1C2';x.font='400 32px system-ui,-apple-system,sans-serif';x.fillText('Not your P&L — how well you followed your rules.',W/2,1050);
   }else if(s.type==='chart'){
-    x.fillStyle='#ECEAF6';wrap(x,'And reads your charts with AI.',PAD,PAD+190,W-PAD*2,72,'800 62px system-ui,-apple-system,sans-serif','center');
+    x.fillStyle='#ECEAF6';wrap(x,'And reads your charts with AI.',W/2,PAD+190,W-PAD*2,72,'800 62px system-ui,-apple-system,sans-serif','center');
     card(x,W/2-370,540,740,620);chart(x,W/2-330,580,660,300);
     bubble(x,W/2-330,910,660,'Clean uptrend. Long valid above 1.084 — but your stop is wider than your winning average. Tuck it under structure.');
   }else{
