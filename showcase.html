@@ -23,8 +23,8 @@
 <body>
 <div class="wrap">
   <div class="eyebrow">EDGE Pro · showcase carousel</div>
-  <h1>The inside of the app — 5 slides</h1>
-  <p class="sub">Real screens: the dashboard, the AI coach, the prop-firm monitor. Download all, post in order.</p>
+  <h1>The inside of the app — 6 slides</h1>
+  <p class="sub">Real screens: the discipline score, AI coach, and prop-firm monitor. Download all, post in order.</p>
   <div class="grid" id="grid"></div>
   <div class="note"><b>Phone:</b> long-press a slide → “Save Image,” or tap Download.</div>
   <div class="cap"><h3>📋 Caption</h3><pre>This is what a trading journal should actually look like 👇 It scores your discipline, reads your charts with AI, and keeps you inside your prop-firm rules.
@@ -45,10 +45,12 @@ function head(x,t){x.fillStyle='#ECEAF6';return wrap(x,t,W/2,PAD+180,W-PAD*2,72,
 // ---- faithful app screens ----
 function kpiCard(x,X,Y,w,h,label,val,valcol,sub,badge){
   rr(x,X,Y,w,h,20);x.fillStyle='#12121F';x.fill();rr(x,X,Y,w,h,20);x.lineWidth=1.5;x.strokeStyle='rgba(255,255,255,.08)';x.stroke();
-  x.textAlign='left';x.fillStyle='#6E6890';x.font='600 22px ui-monospace,monospace';x.fillText(label,X+26,Y+50);
-  x.fillStyle=valcol;x.font='800 78px system-ui,-apple-system,sans-serif';x.fillText(val,X+24,Y+140);
-  if(badge){var bw=x.measureText?0:0;pill(x,X+w-70,Y+42,badge,'700 22px system-ui,-apple-system,sans-serif',44,'rgba(36,209,155,.9)');}
-  x.fillStyle='#A6A1C2';x.font='400 24px system-ui,-apple-system,sans-serif';x.fillText(sub,X+26,Y+h-30);
+  x.textAlign='left';x.textBaseline='alphabetic';x.fillStyle='#6E6890';x.font='600 21px ui-monospace,monospace';x.fillText(label,X+26,Y+48);
+  x.fillStyle=valcol;x.font='800 74px system-ui,-apple-system,sans-serif';x.fillText(val,X+24,Y+136);
+  if(badge){x.font='700 19px ui-monospace,monospace';var tw=x.measureText(badge).width,bw2=tw+26,bx=X+w-bw2-20,by2=Y+24;
+    rr(x,bx,by2,bw2,36,10);x.fillStyle='rgba(36,209,155,.16)';x.fill();
+    x.fillStyle='#24D19B';x.textBaseline='middle';x.fillText(badge,bx+13,by2+19);x.textBaseline='alphabetic';}
+  x.fillStyle='#A6A1C2';x.font='400 22px system-ui,-apple-system,sans-serif';x.fillText(sub,X+26,Y+h-36);
 }
 function dashboard(x,X,Y,w,h){
   var g=16,cw=(w-g)/2,ch=(h-g)/2;
@@ -57,22 +59,50 @@ function dashboard(x,X,Y,w,h){
   kpiCard(x,X,Y+ch+g,cw,ch,'NET P&L','+$3,438','#24D19B','+34% on $10,000');
   kpiCard(x,X+cw+g,Y+ch+g,cw,ch,'DISCIPLINE','88','#9D7BFF','7 broken · 1 slip','GOOD');
 }
+function miniChart(x,X,Y,w,h){
+  rr(x,X,Y,w,h,10);x.fillStyle='#0b0f1a';x.fill();x.save();rr(x,X,Y,w,h,10);x.clip();
+  var cl=[.30,.36,.30,.44,.40,.52,.48,.60,.68,.74],n=cl.length,gap=(w-16)/n,o=.28;
+  var toY=function(v){return Y+h-10-v*(h-26);};
+  for(var i=0;i<n;i++){var c=cl[i],px=X+8+gap*(i+0.5),up=c>=o,col=up?'#24D19B':'#F5476B';x.strokeStyle=col;x.fillStyle=col;x.lineWidth=2.5;
+    var hi=Math.max(o,c)+.045,lo=Math.min(o,c)-.035;x.beginPath();x.moveTo(px,toY(hi));x.lineTo(px,toY(lo));x.stroke();
+    var bt=toY(Math.max(o,c)),bb=toY(Math.min(o,c));rr(x,px-gap*0.2,bt,gap*0.4,Math.max(3,bb-bt),2);x.fill();o=c;}
+  x.restore();
+}
 function chatScreen(x,X,Y,w,h){
   rr(x,X,Y,w,h,26);x.fillStyle='#12121F';x.fill();rr(x,X,Y,w,h,26);x.lineWidth=1.5;x.strokeStyle='rgba(255,255,255,.08)';x.stroke();
   x.save();rr(x,X,Y,w,h,26);x.clip();
-  // header
   x.fillStyle='#17172a';x.fillRect(X,Y,w,86);x.fillStyle='#9D7BFF';x.beginPath();x.arc(X+50,Y+43,20,0,7);x.fill();
-  x.fillStyle='#ECEAF6';x.textAlign='left';x.font='700 30px system-ui,-apple-system,sans-serif';x.fillText('EDGE AI',X+86,Y+40);
+  x.fillStyle='#ECEAF6';x.textAlign='left';x.textBaseline='alphabetic';x.font='700 30px system-ui,-apple-system,sans-serif';x.fillText('EDGE AI',X+86,Y+40);
   x.fillStyle='#6E6890';x.font='400 22px system-ui,-apple-system,sans-serif';x.fillText('your trading coach · always on',X+86,Y+68);
-  // user bubble (right)
-  var uw=430,uh=64,ux=X+w-uw-30,uy=Y+120;rr(x,ux,uy,uw,uh,18);x.fillStyle='#7C5CFC';x.fill();
-  x.fillStyle='#fff';x.textAlign='left';x.font='400 26px system-ui,-apple-system,sans-serif';x.fillText('📈 What do you think of this setup?',ux+22,uy+40);
-  // ai bubble (left)
-  var aw=w-100,ax=X+30,ay=uy+uh+26;var txt='Clean uptrend — price holding prior resistance as support. Long valid above 1.084. But your stop is 2.1R, wider than your winning average. Tuck it under structure.';
-  x.font='400 27px system-ui,-apple-system,sans-serif';var words=txt.split(' '),ln='',lines=[];for(var i=0;i<words.length;i++){var t=ln?ln+' '+words[i]:words[i];if(x.measureText(t).width>aw-44&&ln){lines.push(ln);ln=words[i];}else ln=t;}if(ln)lines.push(ln);
-  var ah=32+lines.length*38;rr(x,ax,ay,aw,ah,18);x.fillStyle='#1c1c2b';x.fill();rr(x,ax,ay,aw,ah,18);x.lineWidth=1.5;x.strokeStyle='rgba(157,123,255,.3)';x.stroke();
-  x.fillStyle='#ECEAF6';for(var j=0;j<lines.length;j++)x.fillText(lines[j],ax+22,ay+42+j*38);
+  // user message: a real chart thumbnail + short question, inside the bubble
+  var bw=360,bx=X+w-bw-30,by=Y+114,thumbH=172,bubbleH=16+thumbH+12+34+16;
+  rr(x,bx,by,bw,bubbleH,18);x.fillStyle='#7C5CFC';x.fill();
+  miniChart(x,bx+16,by+16,bw-32,thumbH);
+  x.fillStyle='#fff';x.textAlign='right';x.font='400 25px system-ui,-apple-system,sans-serif';x.fillText('What do you think? 📈',bx+bw-18,by+16+thumbH+42);
+  // ai response
+  var aw=w-130,ax=X+30,ay=by+bubbleH+22;var txt='Clean uptrend — price holding prior resistance as support. Long valid above 1.084. But your stop is 2.1R, wider than your winning average — tuck it under structure.';
+  x.textAlign='left';x.font='400 26px system-ui,-apple-system,sans-serif';var words=txt.split(' '),ln='',lines=[];for(var i=0;i<words.length;i++){var t=ln?ln+' '+words[i]:words[i];if(x.measureText(t).width>aw-44&&ln){lines.push(ln);ln=words[i];}else ln=t;}if(ln)lines.push(ln);
+  var ah=30+lines.length*37;rr(x,ax,ay,aw,ah,18);x.fillStyle='#1c1c2b';x.fill();rr(x,ax,ay,aw,ah,18);x.lineWidth=1.5;x.strokeStyle='rgba(157,123,255,.3)';x.stroke();
+  x.fillStyle='#ECEAF6';for(var j=0;j<lines.length;j++)x.fillText(lines[j],ax+22,ay+40+j*37);
   x.restore();
+}
+function ring(x,cx,cy,r,pct,val){
+  x.lineWidth=30;x.strokeStyle='rgba(255,255,255,.1)';x.beginPath();x.arc(cx,cy,r,0,7);x.stroke();
+  var g=x.createLinearGradient(cx-r,cy-r,cx+r,cy+r);g.addColorStop(0,'#7C5CFC');g.addColorStop(1,'#E15CC6');
+  x.strokeStyle=g;x.lineCap='round';x.beginPath();x.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*pct);x.stroke();x.lineCap='butt';
+  x.textAlign='center';x.textBaseline='alphabetic';x.fillStyle='#ECEAF6';x.font='800 '+Math.round(r*0.82)+'px system-ui,-apple-system,sans-serif';x.fillText(val,cx,cy+r*0.28);
+}
+function disciplineCard(x,X,Y,w,h){
+  rr(x,X,Y,w,h,26);x.fillStyle='#12121F';x.fill();rr(x,X,Y,w,h,26);x.lineWidth=1.5;x.strokeStyle='rgba(255,255,255,.08)';x.stroke();
+  x.textAlign='left';x.textBaseline='alphabetic';x.fillStyle='#ECEAF6';x.font='700 33px system-ui,-apple-system,sans-serif';x.fillText('Discipline Score',X+42,Y+66);
+  x.fillStyle='#6E6890';x.font='400 24px system-ui,-apple-system,sans-serif';x.fillText('How well you followed your plan',X+42,Y+104);
+  ring(x,X+190,Y+300,112,0.88,'88');
+  var rows=[['Rules followed','20','#24D19B'],['Partial slips','3','#9D7BFF'],['Rules broken','5','#F5476B'],['Total trades','28','#6E6890']];
+  var rx=X+370,ry=Y+218;
+  rows.forEach(function(rw,i){var yy=ry+i*62;
+    x.fillStyle=rw[2];x.beginPath();x.arc(rx+9,yy-9,9,0,7);x.fill();
+    x.fillStyle='#C9C4DE';x.textAlign='left';x.font='500 27px system-ui,-apple-system,sans-serif';x.fillText(rw[0],rx+34,yy);
+    x.fillStyle='#ECEAF6';x.textAlign='right';x.font='700 28px ui-monospace,monospace';x.fillText(rw[1],X+w-42,yy);});
 }
 function gauge(x,X,Y,w,label,pct,left,col){
   x.textAlign='left';x.fillStyle='#ECEAF6';x.font='600 27px system-ui,-apple-system,sans-serif';x.fillText(label,X,Y);
@@ -90,16 +120,25 @@ function breach(x,X,Y,w,h){
   gauge(x,X+40,Y+440,w-80,'Consistency rule',0.86,'26% / 30% max','#FFC43D');
 }
 var slides=[
-  {type:'hook'},{type:'dash'},{type:'chat'},{type:'breach'},{type:'offer'}
+  {type:'hook'},{type:'disc'},{type:'insight'},{type:'chat'},{type:'breach'},{type:'offer'}
 ];
 function draw(s){
   var c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');bg(x);header(x);
   if(s.type==='hook'){
     x.fillStyle='#9D7BFF';x.font='700 30px ui-monospace,monospace';x.textAlign='left';x.fillText('SWIPE →',PAD,470);
-    x.fillStyle='#ECEAF6';var y=wrap(x,'This is what a trading journal should actually look like.',PAD,560,W-PAD*2,90,'800 78px system-ui,-apple-system,sans-serif','left');
-    x.fillStyle='#A6A1C2';wrap(x,'Take a look inside 👇',PAD,y+46,W-PAD*2,52,'400 42px system-ui,-apple-system,sans-serif','left');
-  }else if(s.type==='dash'){
-    head(x,'Your whole edge — at a glance.');dashboard(x,W/2-370,470,740,600);
+    x.fillStyle='#ECEAF6';var y=wrap(x,'Your journal tracks your P&L. It should score your discipline.',PAD,540,W-PAD*2,88,'800 74px system-ui,-apple-system,sans-serif','left');
+    x.fillStyle='#A6A1C2';wrap(x,'Here’s what that looks like 👇',PAD,y+46,W-PAD*2,52,'400 40px system-ui,-apple-system,sans-serif','left');
+  }else if(s.type==='disc'){
+    head(x,'Every trade — scored on discipline.');disciplineCard(x,W/2-380,470,760,600);
+  }else if(s.type==='insight'){
+    x.fillStyle='#ECEAF6';wrap(x,'It shows what breaking a rule really costs you.',W/2,PAD+175,W-PAD*2,66,'800 56px system-ui,-apple-system,sans-serif','center');
+    x.textAlign='center';
+    x.fillStyle='#A6A1C2';x.font='400 34px system-ui,-apple-system,sans-serif';x.fillText('You win',W/2,555);
+    x.fillStyle='#24D19B';x.font='800 188px system-ui,-apple-system,sans-serif';x.fillText('71%',W/2,715);
+    x.fillStyle='#ECEAF6';x.font='500 33px system-ui,-apple-system,sans-serif';x.fillText('on setups where you followed your rules',W/2,778);
+    x.fillStyle='#6E6890';x.font='700 30px ui-monospace,monospace';x.fillText('— but only —',W/2,878);
+    x.fillStyle='#F5476B';x.font='800 188px system-ui,-apple-system,sans-serif';x.fillText('38%',W/2,1038);
+    x.fillStyle='#ECEAF6';x.font='500 33px system-ui,-apple-system,sans-serif';x.fillText('when you break one',W/2,1101);
   }else if(s.type==='chat'){
     head(x,'Paste a chart. AI reads it live.');chatScreen(x,W/2-380,460,760,620);
   }else if(s.type==='breach'){
@@ -115,7 +154,7 @@ function draw(s){
   return c.toDataURL('image/png');
 }
 var grid=document.getElementById('grid');
-slides.forEach(function(s,i){var url=draw(s);var d=document.createElement('div');d.className='slide';d.innerHTML='<div class="num">Slide '+(i+1)+' / 5</div><img src="'+url+'" alt="Slide '+(i+1)+'"><br><a download="edgepro-showcase-'+(i+1)+'.png" href="'+url+'">↓ Download</a>';grid.appendChild(d);});
+slides.forEach(function(s,i){var url=draw(s);var d=document.createElement('div');d.className='slide';d.innerHTML='<div class="num">Slide '+(i+1)+' / '+slides.length+'</div><img src="'+url+'" alt="Slide '+(i+1)+'"><br><a download="edgepro-showcase-'+(i+1)+'.png" href="'+url+'">↓ Download</a>';grid.appendChild(d);});
 </script>
 </body>
 </html>
