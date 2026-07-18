@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EDGE Pro — "What your journal can't do" Carousel</title>
+<style>
+  :root{--bg:#0A0A16;--text:#ECEAF6;--muted:#A6A1C2;--violet:#9D7BFF;--line:rgba(255,255,255,.1)}
+  *{box-sizing:border-box}
+  body{margin:0;background:#0A0A16;background-image:radial-gradient(700px 400px at 50% -8%,rgba(124,92,252,.16),transparent 60%);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.6}
+  .wrap{max-width:760px;margin:0 auto;padding:44px 18px 80px}
+  .eyebrow{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--violet);text-align:center}
+  h1{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:12px 0 6px;text-align:center}
+  .sub{color:var(--muted);font-size:15px;text-align:center;max-width:48ch;margin:0 auto 8px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:32px}
+  .slide{text-align:center}
+  .slide img{width:100%;border-radius:14px;border:1px solid var(--line);box-shadow:0 14px 34px -18px rgba(0,0,0,.8);display:block}
+  .slide a{display:inline-block;margin-top:9px;font-family:ui-monospace,monospace;font-size:12px;color:var(--violet);text-decoration:none;border:1px solid rgba(157,123,255,.4);border-radius:8px;padding:6px 12px}
+  .num{font-family:ui-monospace,monospace;font-size:11px;color:var(--muted);margin-bottom:6px}
+  .cap{margin-top:40px;background:#14141F;border:1px solid var(--line);border-radius:14px;padding:20px}.cap h3{margin:0 0 10px;font-size:15px}.cap pre{white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:13px;color:var(--muted);margin:0}
+  .note{text-align:center;color:var(--muted);font-size:13px;margin-top:20px}.note b{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">EDGE Pro · "what your journal can't do"</div>
+  <h1>The unique-angle carousel</h1>
+  <p class="sub">Leads with the one thing no other journal has — a direct comparison. Download all 4, post in order.</p>
+  <div class="grid" id="grid"></div>
+  <div class="note"><b>Phone:</b> long-press a slide → “Save Image,” or tap Download.</div>
+  <div class="cap"><h3>📋 Caption</h3><pre>Your trading journal tracks WHAT happened. It can't tell you WHY you keep losing. EDGE Pro scores your discipline — the rule-breaking that's actually costing you 👇
+
+Try it free, 30% off with code FOUNDER — link in bio 📈
+
+#trading #daytrading #forex #propfirm #tradingpsychology #fundedtrader</pre></div>
+</div>
+<script>
+var W=1080,H=1350,PAD=96;
+function rr(c,X,Y,w,h,r){c.beginPath();c.moveTo(X+r,Y);c.arcTo(X+w,Y,X+w,Y+h,r);c.arcTo(X+w,Y+h,X,Y+h,r);c.arcTo(X,Y+h,X,Y,r);c.arcTo(X,Y,X+w,Y,r);c.closePath();}
+function logoTile(c,X,Y,S){c.save();rr(c,X,Y,S,S,S*0.24);var g=c.createLinearGradient(X,Y,X+S,Y+S);g.addColorStop(0,'#7C5CFC');g.addColorStop(1,'#E15CC6');c.fillStyle=g;c.fill();
+  var s=S*0.6/32,ox=X+(S-32*s)/2,oy=Y+(S-32*s)/2;c.strokeStyle='#fff';c.lineWidth=Math.max(3,2.7*s);c.lineCap='round';c.lineJoin='round';
+  c.beginPath();c.moveTo(ox+6*s,oy+22*s);c.lineTo(ox+13*s,oy+15*s);c.lineTo(ox+18*s,oy+19*s);c.lineTo(ox+25.5*s,oy+10*s);c.stroke();
+  c.beginPath();c.moveTo(ox+19.5*s,oy+10*s);c.lineTo(ox+25.5*s,oy+10*s);c.lineTo(ox+25.5*s,oy+16*s);c.stroke();c.restore();}
+function wrap(c,text,X,Y,maxW,lh,font,align){c.font=font;c.textAlign=align||'left';c.textBaseline='alphabetic';var w=text.split(' '),line='',cy=Y;
+  for(var i=0;i<w.length;i++){var t=line?line+' '+w[i]:w[i];if(c.measureText(t).width>maxW&&line){c.fillText(line,X,cy);line=w[i];cy+=lh;}else line=t;}if(line){c.fillText(line,X,cy);cy+=lh;}return cy;}
+function pill(c,cx,y,text,font,h){c.font=font;var tw=c.measureText(text).width,px=40,w=tw+px*2,X=cx-w/2;var g=c.createLinearGradient(X,0,X+w,0);g.addColorStop(0,'#7C5CFC');g.addColorStop(1,'#E15CC6');rr(c,X,y-h/2,w,h,h/2);c.fillStyle=g;c.fill();c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(text,cx,y);c.textBaseline='alphabetic';}
+function bg(x){x.fillStyle='#0A0A16';x.fillRect(0,0,W,H);var g=x.createRadialGradient(W*0.82,-80,60,W*0.82,-80,920);g.addColorStop(0,'rgba(124,92,252,.28)');g.addColorStop(1,'rgba(124,92,252,0)');x.fillStyle=g;x.fillRect(0,0,W,H);var g2=x.createRadialGradient(-40,H+40,60,-40,H+40,760);g2.addColorStop(0,'rgba(225,92,198,.16)');g2.addColorStop(1,'rgba(225,92,198,0)');x.fillStyle=g2;x.fillRect(0,0,W,H);}
+function header(x){logoTile(x,PAD,PAD,78);x.textAlign='left';x.textBaseline='alphabetic';x.fillStyle='#ECEAF6';x.font='800 38px system-ui,-apple-system,sans-serif';x.fillText('EDGE',PAD+100,PAD+52);var ew=x.measureText('EDGE').width;var pg=x.createLinearGradient(PAD+100+ew,0,PAD+100+ew+130,0);pg.addColorStop(0,'#9D7BFF');pg.addColorStop(1,'#E15CC6');x.fillStyle=pg;x.fillText(' Pro',PAD+100+ew,PAD+52);}
+function icon(x,cx,cy,r,type){x.beginPath();x.arc(cx,cy,r,0,7);x.fillStyle=type==='x'?'rgba(245,71,107,.16)':'rgba(36,209,155,.18)';x.fill();
+  x.strokeStyle=type==='x'?'#F5476B':'#24D19B';x.lineWidth=6;x.lineCap='round';
+  if(type==='x'){x.beginPath();x.moveTo(cx-r*.4,cy-r*.4);x.lineTo(cx+r*.4,cy+r*.4);x.moveTo(cx+r*.4,cy-r*.4);x.lineTo(cx-r*.4,cy+r*.4);x.stroke();}
+  else{x.beginPath();x.moveTo(cx-r*.45,cy+r*.02);x.lineTo(cx-r*.08,cy+r*.38);x.lineTo(cx+r*.5,cy-r*.4);x.stroke();}}
+function compare(x,dim,bad,good){
+  x.textAlign='center';x.fillStyle='#9D7BFF';x.font='700 28px ui-monospace,monospace';x.fillText(dim,W/2,PAD+180);
+  var ax=PAD,aw=W-PAD*2;
+  // ordinary (muted)
+  var ay=PAD+230,ah=350;rr(x,ax,ay,aw,ah,26);x.fillStyle='#111119';x.fill();rr(x,ax,ay,aw,ah,26);x.lineWidth=1.5;x.strokeStyle='rgba(245,71,107,.22)';x.stroke();
+  icon(x,ax+80,ay+92,36,'x');
+  x.textAlign='left';x.fillStyle='#8A84A6';x.font='700 25px ui-monospace,monospace';x.fillText('EVERY OTHER JOURNAL',ax+142,ay+102);
+  x.fillStyle='#B8B3CC';wrap(x,bad,ax+52,ay+196,aw-104,52,'500 40px system-ui,-apple-system,sans-serif','left');
+  // edge pro (winner)
+  var by=ay+ah+34,bh=406;rr(x,ax,by,aw,bh,26);var g=x.createLinearGradient(ax,by,ax+aw,by+bh);g.addColorStop(0,'rgba(124,92,252,.18)');g.addColorStop(1,'rgba(225,92,198,.13)');x.fillStyle=g;x.fill();rr(x,ax,by,aw,bh,26);x.lineWidth=2;x.strokeStyle='rgba(157,123,255,.55)';x.stroke();
+  icon(x,ax+80,by+96,38,'v');
+  x.textAlign='left';var pg=x.createLinearGradient(ax+142,0,ax+520,0);pg.addColorStop(0,'#9D7BFF');pg.addColorStop(1,'#E15CC6');x.fillStyle=pg;x.font='800 27px ui-monospace,monospace';x.fillText('EDGE PRO',ax+142,by+106);
+  x.fillStyle='#ECEAF6';wrap(x,good,ax+52,by+210,aw-104,60,'700 47px system-ui,-apple-system,sans-serif','left');
+}
+var slides=[
+  {type:'hook'},
+  {type:'cmp',dim:'WHAT IT TRACKS',bad:'Your P&L and win rate. The same stats as everyone else.',good:'Scores your DISCIPLINE 0–100 — how well you followed your own rules.'},
+  {type:'cmp',dim:'WHEN YOU GET HELP',bad:'You review your trades alone, after they’re gone.',good:'AI reads your charts live and finds the leak that’s costing you money.'},
+  {type:'offer'}
+];
+function draw(s){
+  var c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');bg(x);header(x);
+  if(s.type==='hook'){
+    x.fillStyle='#9D7BFF';x.font='700 30px ui-monospace,monospace';x.textAlign='left';x.fillText('SWIPE →',PAD,470);
+    x.fillStyle='#ECEAF6';var y=wrap(x,'Your journal tracks what happened. It can’t tell you why you keep losing.',PAD,560,W-PAD*2,88,'800 74px system-ui,-apple-system,sans-serif','left');
+    x.fillStyle='#A6A1C2';wrap(x,'One journal does. 👇',PAD,y+46,W-PAD*2,52,'400 42px system-ui,-apple-system,sans-serif','left');
+  }else if(s.type==='cmp'){
+    compare(x,s.dim,s.bad,s.good);
+  }else{
+    logoTile(x,W/2-90,320,180);x.textAlign='center';
+    x.fillStyle='#ECEAF6';x.font='800 84px system-ui,-apple-system,sans-serif';x.fillText('See your real edge.',W/2,640);
+    x.fillStyle='#A6A1C2';x.font='400 40px system-ui,-apple-system,sans-serif';x.fillText('Free demo. No signup.',W/2,706);
+    pill(x,W/2,812,'30% OFF — CODE: FOUNDER','800 40px system-ui,-apple-system,sans-serif',94);
+    var lg=x.createLinearGradient(W/2-260,0,W/2+260,0);lg.addColorStop(0,'#9D7BFF');lg.addColorStop(1,'#E15CC6');x.fillStyle=lg;x.font='800 48px system-ui,-apple-system,sans-serif';x.fillText('edgeprojournal.com',W/2,942);
+  }
+  if(s.type!=='offer'){x.textAlign='left';x.fillStyle='#6E6890';x.font='600 30px ui-monospace,monospace';x.fillText('edgeprojournal.com',PAD,H-PAD);}
+  return c.toDataURL('image/png');
+}
+var grid=document.getElementById('grid');
+slides.forEach(function(s,i){var url=draw(s);var d=document.createElement('div');d.className='slide';d.innerHTML='<div class="num">Slide '+(i+1)+' / 4</div><img src="'+url+'" alt="Slide '+(i+1)+'"><br><a download="edgepro-unique-'+(i+1)+'.png" href="'+url+'">↓ Download</a>';grid.appendChild(d);});
+</script>
+</body>
+</html>
