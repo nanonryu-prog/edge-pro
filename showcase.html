@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EDGE Pro — Showcase Carousel</title>
+<style>
+  :root{--bg:#0A0A16;--text:#ECEAF6;--muted:#A6A1C2;--violet:#9D7BFF;--line:rgba(255,255,255,.1)}
+  *{box-sizing:border-box}
+  body{margin:0;background:#0A0A16;background-image:radial-gradient(700px 400px at 50% -8%,rgba(124,92,252,.16),transparent 60%);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.6}
+  .wrap{max-width:760px;margin:0 auto;padding:44px 18px 80px}
+  .eyebrow{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--violet);text-align:center}
+  h1{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:12px 0 6px;text-align:center}
+  .sub{color:var(--muted);font-size:15px;text-align:center;max-width:48ch;margin:0 auto 8px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:32px}
+  .slide{text-align:center}.slide img{width:100%;border-radius:14px;border:1px solid var(--line);box-shadow:0 14px 34px -18px rgba(0,0,0,.8);display:block}
+  .slide a{display:inline-block;margin-top:9px;font-family:ui-monospace,monospace;font-size:12px;color:var(--violet);text-decoration:none;border:1px solid rgba(157,123,255,.4);border-radius:8px;padding:6px 12px}
+  .num{font-family:ui-monospace,monospace;font-size:11px;color:var(--muted);margin-bottom:6px}
+  .cap{margin-top:40px;background:#14141F;border:1px solid var(--line);border-radius:14px;padding:20px}.cap h3{margin:0 0 10px;font-size:15px}.cap pre{white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:13px;color:var(--muted);margin:0}
+  .note{text-align:center;color:var(--muted);font-size:13px;margin-top:20px}.note b{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">EDGE Pro · showcase carousel</div>
+  <h1>The inside of the app — 5 slides</h1>
+  <p class="sub">Real screens: the dashboard, the AI coach, the prop-firm monitor. Download all, post in order.</p>
+  <div class="grid" id="grid"></div>
+  <div class="note"><b>Phone:</b> long-press a slide → “Save Image,” or tap Download.</div>
+  <div class="cap"><h3>📋 Caption</h3><pre>This is what a trading journal should actually look like 👇 It scores your discipline, reads your charts with AI, and keeps you inside your prop-firm rules.
+
+Try it free — 30% off code FOUNDER. Link in bio 📈
+
+#trading #daytrading #forex #propfirm #tradingpsychology #fundedtrader #tradingjournal</pre></div>
+</div>
+<script>
+var W=1080,H=1350,PAD=96;
+function rr(c,X,Y,w,h,r){c.beginPath();c.moveTo(X+r,Y);c.arcTo(X+w,Y,X+w,Y+h,r);c.arcTo(X+w,Y+h,X,Y+h,r);c.arcTo(X,Y+h,X,Y,r);c.arcTo(X,Y,X+w,Y,r);c.closePath();}
+function logoTile(c,X,Y,S){c.save();rr(c,X,Y,S,S,S*0.24);var g=c.createLinearGradient(X,Y,X+S,Y+S);g.addColorStop(0,'#7C5CFC');g.addColorStop(1,'#E15CC6');c.fillStyle=g;c.fill();var s=S*0.6/32,ox=X+(S-32*s)/2,oy=Y+(S-32*s)/2;c.strokeStyle='#fff';c.lineWidth=Math.max(3,2.7*s);c.lineCap='round';c.lineJoin='round';c.beginPath();c.moveTo(ox+6*s,oy+22*s);c.lineTo(ox+13*s,oy+15*s);c.lineTo(ox+18*s,oy+19*s);c.lineTo(ox+25.5*s,oy+10*s);c.stroke();c.beginPath();c.moveTo(ox+19.5*s,oy+10*s);c.lineTo(ox+25.5*s,oy+10*s);c.lineTo(ox+25.5*s,oy+16*s);c.stroke();c.restore();}
+function wrap(c,text,X,Y,maxW,lh,font,align){c.font=font;c.textAlign=align||'left';c.textBaseline='alphabetic';var w=text.split(' '),line='',cy=Y;for(var i=0;i<w.length;i++){var t=line?line+' '+w[i]:w[i];if(c.measureText(t).width>maxW&&line){c.fillText(line,X,cy);line=w[i];cy+=lh;}else line=t;}if(line){c.fillText(line,X,cy);cy+=lh;}return cy;}
+function pill(c,cx,y,text,font,h,col){c.font=font;var tw=c.measureText(text).width,px=34,w=tw+px*2,X=cx-w/2;if(col){rr(c,X,y-h/2,w,h,h/2);c.fillStyle=col;c.fill();}else{var g=c.createLinearGradient(X,0,X+w,0);g.addColorStop(0,'#7C5CFC');g.addColorStop(1,'#E15CC6');rr(c,X,y-h/2,w,h,h/2);c.fillStyle=g;c.fill();}c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(text,cx,y);c.textBaseline='alphabetic';}
+function bg(x){x.fillStyle='#0A0A16';x.fillRect(0,0,W,H);var g=x.createRadialGradient(W*0.82,-80,60,W*0.82,-80,920);g.addColorStop(0,'rgba(124,92,252,.28)');g.addColorStop(1,'rgba(124,92,252,0)');x.fillStyle=g;x.fillRect(0,0,W,H);var g2=x.createRadialGradient(-40,H+40,60,-40,H+40,760);g2.addColorStop(0,'rgba(225,92,198,.16)');g2.addColorStop(1,'rgba(225,92,198,0)');x.fillStyle=g2;x.fillRect(0,0,W,H);}
+function header(x){logoTile(x,PAD,PAD,78);x.textAlign='left';x.textBaseline='alphabetic';x.fillStyle='#ECEAF6';x.font='800 38px system-ui,-apple-system,sans-serif';x.fillText('EDGE',PAD+100,PAD+52);var ew=x.measureText('EDGE').width;var pg=x.createLinearGradient(PAD+100+ew,0,PAD+100+ew+130,0);pg.addColorStop(0,'#9D7BFF');pg.addColorStop(1,'#E15CC6');x.fillStyle=pg;x.fillText(' Pro',PAD+100+ew,PAD+52);}
+function head(x,t){x.fillStyle='#ECEAF6';return wrap(x,t,W/2,PAD+180,W-PAD*2,72,'800 60px system-ui,-apple-system,sans-serif','center');}
+// ---- faithful app screens ----
+function kpiCard(x,X,Y,w,h,label,val,valcol,sub,badge){
+  rr(x,X,Y,w,h,20);x.fillStyle='#12121F';x.fill();rr(x,X,Y,w,h,20);x.lineWidth=1.5;x.strokeStyle='rgba(255,255,255,.08)';x.stroke();
+  x.textAlign='left';x.fillStyle='#6E6890';x.font='600 22px ui-monospace,monospace';x.fillText(label,X+26,Y+50);
+  x.fillStyle=valcol;x.font='800 78px system-ui,-apple-system,sans-serif';x.fillText(val,X+24,Y+140);
+  if(badge){var bw=x.measureText?0:0;pill(x,X+w-70,Y+42,badge,'700 22px system-ui,-apple-system,sans-serif',44,'rgba(36,209,155,.9)');}
+  x.fillStyle='#A6A1C2';x.font='400 24px system-ui,-apple-system,sans-serif';x.fillText(sub,X+26,Y+h-30);
+}
+function dashboard(x,X,Y,w,h){
+  var g=16,cw=(w-g)/2,ch=(h-g)/2;
+  kpiCard(x,X,Y,cw,ch,'WIN RATE','68%','#24D19B','19W · 9L');
+  kpiCard(x,X+cw+g,Y,cw,ch,'PROFIT FACTOR','2.40','#ECEAF6','gross wins ÷ losses');
+  kpiCard(x,X,Y+ch+g,cw,ch,'NET P&L','+$3,438','#24D19B','+34% on $10,000');
+  kpiCard(x,X+cw+g,Y+ch+g,cw,ch,'DISCIPLINE','88','#9D7BFF','7 broken · 1 slip','GOOD');
+}
+function chatScreen(x,X,Y,w,h){
+  rr(x,X,Y,w,h,26);x.fillStyle='#12121F';x.fill();rr(x,X,Y,w,h,26);x.lineWidth=1.5;x.strokeStyle='rgba(255,255,255,.08)';x.stroke();
+  x.save();rr(x,X,Y,w,h,26);x.clip();
+  // header
+  x.fillStyle='#17172a';x.fillRect(X,Y,w,86);x.fillStyle='#9D7BFF';x.beginPath();x.arc(X+50,Y+43,20,0,7);x.fill();
+  x.fillStyle='#ECEAF6';x.textAlign='left';x.font='700 30px system-ui,-apple-system,sans-serif';x.fillText('EDGE AI',X+86,Y+40);
+  x.fillStyle='#6E6890';x.font='400 22px system-ui,-apple-system,sans-serif';x.fillText('your trading coach · always on',X+86,Y+68);
+  // user bubble (right)
+  var uw=430,uh=64,ux=X+w-uw-30,uy=Y+120;rr(x,ux,uy,uw,uh,18);x.fillStyle='#7C5CFC';x.fill();
+  x.fillStyle='#fff';x.textAlign='left';x.font='400 26px system-ui,-apple-system,sans-serif';x.fillText('📈 What do you think of this setup?',ux+22,uy+40);
+  // ai bubble (left)
+  var aw=w-100,ax=X+30,ay=uy+uh+26;var txt='Clean uptrend — price holding prior resistance as support. Long valid above 1.084. But your stop is 2.1R, wider than your winning average. Tuck it under structure.';
+  x.font='400 27px system-ui,-apple-system,sans-serif';var words=txt.split(' '),ln='',lines=[];for(var i=0;i<words.length;i++){var t=ln?ln+' '+words[i]:words[i];if(x.measureText(t).width>aw-44&&ln){lines.push(ln);ln=words[i];}else ln=t;}if(ln)lines.push(ln);
+  var ah=32+lines.length*38;rr(x,ax,ay,aw,ah,18);x.fillStyle='#1c1c2b';x.fill();rr(x,ax,ay,aw,ah,18);x.lineWidth=1.5;x.strokeStyle='rgba(157,123,255,.3)';x.stroke();
+  x.fillStyle='#ECEAF6';for(var j=0;j<lines.length;j++)x.fillText(lines[j],ax+22,ay+42+j*38);
+  x.restore();
+}
+function gauge(x,X,Y,w,label,pct,left,col){
+  x.textAlign='left';x.fillStyle='#ECEAF6';x.font='600 27px system-ui,-apple-system,sans-serif';x.fillText(label,X,Y);
+  x.textAlign='right';x.fillStyle=col;x.font='700 26px ui-monospace,monospace';x.fillText(left,X+w,Y);
+  x.textAlign='left';rr(x,X,Y+18,w,18,9);x.fillStyle='rgba(255,255,255,.09)';x.fill();
+  rr(x,X,Y+18,Math.max(20,w*pct),18,9);x.fillStyle=col;x.fill();
+}
+function breach(x,X,Y,w,h){
+  rr(x,X,Y,w,h,26);x.fillStyle='#12121F';x.fill();rr(x,X,Y,w,h,26);x.lineWidth=1.5;x.strokeStyle='rgba(255,255,255,.08)';x.stroke();
+  x.textAlign='left';x.fillStyle='#ECEAF6';x.font='700 32px system-ui,-apple-system,sans-serif';x.fillText('Breach monitor',X+40,Y+64);
+  x.fillStyle='#6E6890';x.font='400 24px system-ui,-apple-system,sans-serif';x.fillText('FTMO $100k · Phase 1',X+40,Y+100);
+  gauge(x,X+40,Y+170,w-80,'Profit target',0.62,'$6,200 / $10k','#24D19B');
+  gauge(x,X+40,Y+260,w-80,'Daily loss limit',0.06,'$4,790 left','#24D19B');
+  gauge(x,X+40,Y+350,w-80,'Max drawdown',0.31,'$6,900 left','#FFC43D');
+  gauge(x,X+40,Y+440,w-80,'Consistency rule',0.86,'26% / 30% max','#FFC43D');
+}
+var slides=[
+  {type:'hook'},{type:'dash'},{type:'chat'},{type:'breach'},{type:'offer'}
+];
+function draw(s){
+  var c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');bg(x);header(x);
+  if(s.type==='hook'){
+    x.fillStyle='#9D7BFF';x.font='700 30px ui-monospace,monospace';x.textAlign='left';x.fillText('SWIPE →',PAD,470);
+    x.fillStyle='#ECEAF6';var y=wrap(x,'This is what a trading journal should actually look like.',PAD,560,W-PAD*2,90,'800 78px system-ui,-apple-system,sans-serif','left');
+    x.fillStyle='#A6A1C2';wrap(x,'Take a look inside 👇',PAD,y+46,W-PAD*2,52,'400 42px system-ui,-apple-system,sans-serif','left');
+  }else if(s.type==='dash'){
+    head(x,'Your whole edge — at a glance.');dashboard(x,W/2-370,470,740,600);
+  }else if(s.type==='chat'){
+    head(x,'Paste a chart. AI reads it live.');chatScreen(x,W/2-380,460,760,620);
+  }else if(s.type==='breach'){
+    head(x,'Never blow a prop challenge again.');breach(x,W/2-380,470,760,590);
+  }else{
+    logoTile(x,W/2-90,320,180);x.textAlign='center';
+    x.fillStyle='#ECEAF6';x.font='800 84px system-ui,-apple-system,sans-serif';x.fillText('Try it free',W/2,640);
+    x.fillStyle='#A6A1C2';x.font='400 40px system-ui,-apple-system,sans-serif';x.fillText('No signup. See the whole app.',W/2,706);
+    pill(x,W/2,812,'30% OFF — CODE: FOUNDER','800 40px system-ui,-apple-system,sans-serif',94);
+    var lg=x.createLinearGradient(W/2-260,0,W/2+260,0);lg.addColorStop(0,'#9D7BFF');lg.addColorStop(1,'#E15CC6');x.fillStyle=lg;x.font='800 48px system-ui,-apple-system,sans-serif';x.fillText('edgeprojournal.com',W/2,942);
+  }
+  if(s.type!=='offer'){x.textAlign='left';x.fillStyle='#6E6890';x.font='600 30px ui-monospace,monospace';x.fillText('edgeprojournal.com',PAD,H-PAD);}
+  return c.toDataURL('image/png');
+}
+var grid=document.getElementById('grid');
+slides.forEach(function(s,i){var url=draw(s);var d=document.createElement('div');d.className='slide';d.innerHTML='<div class="num">Slide '+(i+1)+' / 5</div><img src="'+url+'" alt="Slide '+(i+1)+'"><br><a download="edgepro-showcase-'+(i+1)+'.png" href="'+url+'">↓ Download</a>';grid.appendChild(d);});
+</script>
+</body>
+</html>
