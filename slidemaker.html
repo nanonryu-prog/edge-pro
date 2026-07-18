@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EDGE Pro — Slide Maker</title>
+<style>
+  :root{--bg:#0A0A16;--surface:#14141F;--text:#ECEAF6;--muted:#A6A1C2;--violet:#9D7BFF;--line:rgba(255,255,255,.1)}
+  *{box-sizing:border-box}
+  body{margin:0;background:#0A0A16;background-image:radial-gradient(700px 400px at 50% -8%,rgba(124,92,252,.16),transparent 60%);
+    color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.6}
+  .wrap{max-width:900px;margin:0 auto;padding:40px 18px 80px;display:grid;gap:28px;grid-template-columns:1fr;align-items:start}
+  @media(min-width:760px){.wrap{grid-template-columns:1fr 340px}}
+  .eyebrow{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--violet)}
+  h1{font-size:25px;font-weight:800;letter-spacing:-.02em;margin:10px 0 4px}
+  .sub{color:var(--muted);font-size:14.5px;margin:0 0 4px}
+  .previewwrap{text-align:center}
+  canvas{width:100%;max-width:360px;border-radius:14px;border:1px solid var(--line);box-shadow:0 18px 44px -20px rgba(0,0,0,.8)}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;display:grid;gap:14px;position:sticky;top:20px}
+  label{font-size:12.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px}
+  input[type=text],textarea{width:100%;background:#0E0E1C;border:1px solid var(--line);border-radius:10px;color:var(--text);padding:11px 12px;font:inherit;font-size:14px;resize:vertical}
+  input[type=text]:focus,textarea:focus{outline:none;border-color:var(--violet)}
+  .file{display:block;background:#0E0E1C;border:1px dashed rgba(157,123,255,.5);border-radius:10px;padding:14px;text-align:center;cursor:pointer;font-size:13.5px;color:var(--violet)}
+  .file input{display:none}
+  .btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;width:100%;font-size:15px;font-weight:700;color:#fff;
+    background:linear-gradient(135deg,#7C5CFC,#E15CC6);border:none;border-radius:12px;padding:14px;cursor:pointer;box-shadow:0 12px 30px -12px rgba(124,92,252,.8)}
+  .clr{background:none;border:1px solid var(--line);color:var(--muted);padding:9px;border-radius:10px;cursor:pointer;font-size:12.5px}
+  .tip{font-size:12px;color:var(--muted);line-height:1.5}
+  .tip b{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <div class="eyebrow">EDGE Pro · slide maker</div>
+    <h1>Make a slide</h1>
+    <p class="sub">Type a headline, upload an app screenshot → download a branded slide. No screenshot = a clean text slide.</p>
+    <div class="previewwrap"><canvas id="cv" width="1080" height="1350"></canvas></div>
+  </div>
+  <div class="panel">
+    <div><label>Headline</label><textarea id="hl" rows="2">Scores your discipline on every trade.</textarea></div>
+    <div><label>Small line (optional)</label><input type="text" id="sub" value=""></div>
+    <label class="file">📷 Upload app screenshot (optional)<input type="file" id="file" accept="image/*"></label>
+    <button class="clr" id="clr" type="button">✕ Remove screenshot</button>
+    <button class="btn" id="dl" type="button">↓ Download slide</button>
+    <div class="tip"><b>How to get screenshots:</b> open <b>edgeprojournal.com/app.html?demo=1</b> on your phone → screenshot the Discipline Score, an AI chart read, etc. Upload each here.</div>
+  </div>
+</div>
+<script>
+var W=1080,H=1350,PAD=96,img=null;
+var cv=document.getElementById('cv'),x=cv.getContext('2d');
+function roundRect(c,X,Y,w,h,r){c.beginPath();c.moveTo(X+r,Y);c.arcTo(X+w,Y,X+w,Y+h,r);c.arcTo(X+w,Y+h,X,Y+h,r);c.arcTo(X,Y+h,X,Y,r);c.arcTo(X,Y,X+w,Y,r);c.closePath();}
+function logoTile(c,X,Y,S){
+  c.save();roundRect(c,X,Y,S,S,S*0.24);var g=c.createLinearGradient(X,Y,X+S,Y+S);g.addColorStop(0,'#7C5CFC');g.addColorStop(1,'#E15CC6');c.fillStyle=g;c.fill();
+  var s=S*0.6/32,ox=X+(S-32*s)/2,oy=Y+(S-32*s)/2;c.strokeStyle='#fff';c.lineWidth=Math.max(3,2.7*s);c.lineCap='round';c.lineJoin='round';
+  c.beginPath();c.moveTo(ox+6*s,oy+22*s);c.lineTo(ox+13*s,oy+15*s);c.lineTo(ox+18*s,oy+19*s);c.lineTo(ox+25.5*s,oy+10*s);c.stroke();
+  c.beginPath();c.moveTo(ox+19.5*s,oy+10*s);c.lineTo(ox+25.5*s,oy+10*s);c.lineTo(ox+25.5*s,oy+16*s);c.stroke();c.restore();
+}
+function wrap(c,text,X,Y,maxW,lh,font,align){
+  c.font=font;c.textAlign=align||'left';c.textBaseline='alphabetic';var words=text.split(' '),line='',cy=Y;
+  for(var i=0;i<words.length;i++){var t=line?line+' '+words[i]:words[i];if(c.measureText(t).width>maxW&&line){c.fillText(line,X,cy);line=words[i];cy+=lh;}else line=t;}
+  if(line){c.fillText(line,X,cy);cy+=lh;}return cy;
+}
+function render(){
+  x.fillStyle='#0A0A16';x.fillRect(0,0,W,H);
+  var g=x.createRadialGradient(W*0.82,-80,60,W*0.82,-80,920);g.addColorStop(0,'rgba(124,92,252,.28)');g.addColorStop(1,'rgba(124,92,252,0)');x.fillStyle=g;x.fillRect(0,0,W,H);
+  var g2=x.createRadialGradient(-40,H+40,60,-40,H+40,760);g2.addColorStop(0,'rgba(225,92,198,.16)');g2.addColorStop(1,'rgba(225,92,198,0)');x.fillStyle=g2;x.fillRect(0,0,W,H);
+  // header
+  logoTile(x,PAD,PAD,78);
+  x.textAlign='left';x.textBaseline='alphabetic';x.fillStyle='#ECEAF6';x.font='800 38px system-ui,-apple-system,sans-serif';
+  x.fillText('EDGE',PAD+100,PAD+52);var ew=x.measureText('EDGE').width;
+  var pg=x.createLinearGradient(PAD+100+ew,0,PAD+100+ew+130,0);pg.addColorStop(0,'#9D7BFF');pg.addColorStop(1,'#E15CC6');x.fillStyle=pg;x.fillText(' Pro',PAD+100+ew,PAD+52);
+  var hl=document.getElementById('hl').value.trim();
+  var sub=document.getElementById('sub').value.trim();
+  if(img){
+    // headline on top, screenshot below
+    var y=PAD+180; x.fillStyle='#ECEAF6';
+    if(hl) y=wrap(x,hl,W/2,y,W-PAD*2,66,'800 56px system-ui,-apple-system,sans-serif','center');
+    if(sub){x.fillStyle='#A6A1C2';y=wrap(x,sub,W/2,y+14,W-PAD*2,42,'400 32px system-ui,-apple-system,sans-serif','center');}
+    var boxW=760,boxH=H-y-200,bx=(W-boxW)/2,by=y+40;
+    var sc=Math.min(boxW/img.width,boxH/img.height),iw=img.width*sc,ih=img.height*sc,ix=(W-iw)/2,iy=by+(boxH-ih)/2;
+    x.save();x.shadowColor='rgba(0,0,0,.55)';x.shadowBlur=54;x.shadowOffsetY=22;roundRect(x,ix,iy,iw,ih,26);x.fillStyle='#000';x.fill();x.restore();
+    x.save();roundRect(x,ix,iy,iw,ih,26);x.clip();x.drawImage(img,ix,iy,iw,ih);x.restore();
+    x.save();roundRect(x,ix,iy,iw,ih,26);x.lineWidth=2;x.strokeStyle='rgba(255,255,255,.16)';x.stroke();x.restore();
+  }else{
+    x.fillStyle='#ECEAF6';var yy=wrap(x,hl||'Your headline',W/2,H/2-60,W-PAD*2,96,'800 84px system-ui,-apple-system,sans-serif','center');
+    if(sub){x.fillStyle='#A6A1C2';wrap(x,sub,W/2,yy+40,W-PAD*2,54,'400 40px system-ui,-apple-system,sans-serif','center');}
+  }
+  x.textAlign='left';x.fillStyle='#6E6890';x.font='600 30px ui-monospace,monospace';x.fillText('edgeprojournal.com',PAD,H-PAD);
+}
+document.getElementById('hl').addEventListener('input',render);
+document.getElementById('sub').addEventListener('input',render);
+document.getElementById('file').addEventListener('change',function(e){
+  var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){img=im;render();};im.src=r.result;};r.readAsDataURL(f);
+});
+document.getElementById('clr').addEventListener('click',function(){img=null;document.getElementById('file').value='';render();});
+document.getElementById('dl').addEventListener('click',function(){
+  var a=document.createElement('a');a.download='edgepro-slide.png';a.href=cv.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove();
+});
+render();
+</script>
+</body>
+</html>
