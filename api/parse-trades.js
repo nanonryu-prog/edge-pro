@@ -5,6 +5,14 @@ const callAnthropic = require('./_anthropic');
 
 const PROMPT = `You extract a trader's REAL trades from a screenshot. The screenshot is either a trade-HISTORY TABLE or a price CHART (candlesticks). Your #1 job: count trades correctly. ONE trade must never be split into two or more.
 
+=== NEVER FABRICATE — accuracy beats completeness (most important rule) ===
+A wrong number silently corrupts the trader's entire journal, so:
+- If you cannot clearly and confidently read a value, set that field to null. A missing field is fine; a guessed number is NOT. Never estimate, never round from a blur, never invent a digit to "fill in" a field.
+- Only output a trade if you can actually READ a real P&L for it. If a trade's P&L is unreadable, cut off at the edge, or you'd be guessing — do not output that trade at all.
+- If the image is blurry, low-res, cropped, glare-covered, or you're not even sure it shows real executed trades, return "trades":[] with a note explaining why. Returning nothing is ALWAYS better than returning wrong data.
+- You WILL see platforms, languages, currencies and layouts you don't recognize — that is expected and completely fine. Apply the same universal logic to ANY layout; never fabricate or give up just because the platform is unfamiliar. If it's genuinely not a trading screenshot at all (a meme, a photo, random UI), return "trades":[] and say so.
+- Do not assume a "typical" value. If entry/stop/target/rr aren't shown, they are null — never back-fill them from the P&L or a guess.
+
 Return ONLY a JSON object (no prose, no markdown fences), shaped exactly:
 {"source":"history_table"|"chart"|"other","positions":<integer count of DISTINCT real trades you actually see>,"notes":"<one short sentence describing what you saw>","trades":[ <one object per DISTINCT trade> ]}
 
@@ -54,6 +62,10 @@ Screenshots come from anywhere — read them all: MetaTrader 4/5 (History tab), 
 - Use the NET / realized profit for each trade — the final profit that already includes commission and swap. If there are separate Commission / Swap / Fee columns or rows, do NOT turn them into their own trades and do not double-count them.
 - A running BALANCE or EQUITY column is NOT the trade's P&L. Never put an account balance in "pnl" — use the profit/P&L column only.
 - Numbers may use commas as thousands separators ("1,234.50"); read the real value and output a plain number.
+- WATCH DECIMAL vs THOUSANDS SEPARATORS — this is the #1 way to get a value 1000x wrong. US/UK writes "1,234.56"; many EU/LatAm/Asian platforms write the SAME value as "1.234,56" or "1 234,56". Rule of thumb: the LAST separator followed by exactly 1-2 digits is the DECIMAL point; separators every 3 digits are thousands. Read "1.234,56" as 1234.56, and "89,50" (EU) as 89.5, not 8950. When in doubt about the magnitude, prefer the reading that's a sensible trade P&L.
+- Currency symbols appear before OR after the number and vary widely ($, €, £, ¥, ₩, R$, ₹, C$, A$, USD, EUR…). Strip the symbol, keep the number.
+- If P&L is shown only in PIPS, POINTS, TICKS, or a PERCENTAGE (not account currency) and you cannot reliably convert it to money, set pnl to null and note it — do NOT output a made-up dollar figure.
+- Don't confuse SIZE/QUANTITY (lots, contracts, shares, units — often a small round number like 0.10, 2, 100) or LEVERAGE ("10x", "1:100") or MARGIN with the P&L. The P&L is the realized/floating profit column, usually with a +/- sign or red/green colour.
 - Side mapping: buy / long / "B" = long; sell / short / "S" = short. On a chart, entry below the take-profit is usually a long; entry above it is usually a short.
 - Dates: keep what the platform shows; if the format is ambiguous (DD/MM vs MM/DD) keep the digits as shown and use the current year only when the year is missing. Never invent a date.
 - Combine PARTIAL fills / partial closes of the SAME position (same symbol, adjacent time) into ONE trade with the total net P&L.
