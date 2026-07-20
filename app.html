@@ -575,6 +575,138 @@ function stats(trArg){
   const recovery=mdd>0?(net/mdd):(net>0?Infinity:0);
   return {tr,acct,wins:wins.length,losses:losses.length,net,wr,pf,exp,avgRR,avgWin,avgLoss,tilt,dis,broken,rulesFollowed,slips,maxDD,maxDDpct,avgR,rCount,recovery};
 }
+/* ---- EDGE Scores — proprietary performance metrics, computed only from the trader's own data (never fabricated) ---- */
+function _edgeRaw(list){
+  const clamp=x=>Math.max(0,Math.min(100,Math.round(x)));
+  const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+  const std=a=>{ if(a.length<2)return 0; const m=mean(a); return Math.sqrt(mean(a.map(x=>(x-m)*(x-m)))); };
+  const chron=list.slice(); const n=chron.length;
+  const graded=chron.filter(t=>t.rulesTotal>0);
+  const risk=t=>(t.entry!=null&&t.stop!=null&&t.size&&Math.abs(t.entry-t.stop)>0)?Math.abs(t.entry-t.stop)*Math.abs(t.size):null;
+  const rOf=t=>{ const rk=risk(t); return rk?t.pnl/rk:null; };
+
+  const discipline = graded.length ? clamp(mean(graded.map(t=>t.rulesFollowed/t.rulesTotal))*100) : null;
+  const ruleAdh = graded.length>=3 ? clamp(graded.filter(t=>t.rulesFollowed>=t.rulesTotal).length/graded.length*100) : null;
+
+  let consistency=null;
+  if(n>=5){
+    const risks=chron.map(risk).filter(x=>x!=null&&x>0);
+    let sizeScore=null;
+    if(risks.length>=5){ const cv=std(risks)/(mean(risks)||1); sizeScore=clamp(100-cv*90); }
+    const rs=chron.map(rOf).filter(x=>x!=null);
+    const series=rs.length>=5?rs:chron.map(t=>t.pnl);
+    const base=Math.abs(mean(series.map(Math.abs)))||1;
+    const outScore=clamp(100-(std(series)/base)*45);
+    consistency = sizeScore!=null ? clamp(sizeScore*0.55+outScore*0.45) : outScore;
+  }
+
+  let execution=null;
+  const rTr=chron.map(t=>rOf(t)).filter(x=>x!=null);
+  if(rTr.length>=5){
+    const blown=rTr.filter(r=>r<-1.15).length/rTr.length;
+    const avgR=mean(rTr);
+    execution=clamp(clamp(55+avgR*35)*(1-blown*0.6));
+  } else if(n>=6){
+    const gw=chron.filter(t=>t.pnl>0).reduce((a,t)=>a+t.pnl,0);
+    const gl=Math.abs(chron.filter(t=>t.pnl<0).reduce((a,t)=>a+t.pnl,0));
+    const pf=gl?gw/gl:(gw?3:0);
+    execution=clamp(38+Math.min(pf,3)*18);
+  }
+
+  let emotional=null; { const parts=[];
+    const tiltArr=chron.filter(t=>t.tilt!=null).map(t=>t.tilt);
+    if(tiltArr.length>=4) parts.push(clamp(100-(mean(tiltArr)/5)*100));
+    if(n>=8){
+      const wrAll=chron.filter(t=>t.pnl>0).length/n;
+      let alW=0,alN=0; for(let i=1;i<chron.length;i++){ if(chron[i-1].pnl<0){ alN++; if(chron[i].pnl>0)alW++; } }
+      if(alN>=3){ const ratio=wrAll>0?(alW/alN)/wrAll:1; parts.push(clamp(60+(ratio-1)*80)); }
+    }
+    if(parts.length) emotional=clamp(mean(parts));
+  }
+
+  let confidence=null;
+  if(n>=6){
+    let aL=[],aW=[]; for(let i=1;i<chron.length;i++){ const rk=risk(chron[i]); if(rk==null)continue; if(chron[i-1].pnl<0)aL.push(rk); else if(chron[i-1].pnl>0)aW.push(rk); }
+    if(aL.length>=2&&aW.length>=2){ const ratio=mean(aL)/(mean(aW)||1); confidence=clamp(100-Math.abs(Math.log(ratio||1))*70); }
+    else if(ruleAdh!=null){ confidence=clamp(ruleAdh*0.6+(chron.filter(t=>t.pnl>0).length/n*100)*0.4); }
+  }
+
+  let decision=null;
+  if(graded.length>=5){
+    const good=graded.filter(t=>{ const ruleOK=t.rulesFollowed>=t.rulesTotal; const edgeOK=(t.rr==null)?ruleOK:(t.rr>=1); return ruleOK&&edgeOK; }).length;
+    decision=clamp(good/graded.length*100);
+  }
+
+  let maturity=null;
+  const avail=[discipline,ruleAdh,consistency,execution,emotional,confidence,decision].filter(x=>x!=null);
+  if(avail.length>=3){
+    const core=mean(avail); const exp=Math.min(1,n/60);
+    let imp=0;
+    if(graded.length>=8){ const h=Math.floor(graded.length/2); const e=graded.slice(0,h),r=graded.slice(h); imp=(mean(r.map(t=>t.rulesFollowed/t.rulesTotal))-mean(e.map(t=>t.rulesFollowed/t.rulesTotal)))*100; }
+    maturity=clamp(core*0.7+(35+exp*45)*0.3+Math.max(-6,Math.min(8,imp))*0.4);
+  }
+  return {discipline,execution,consistency,ruleAdh,emotional,confidence,decision,maturity};
+}
+function edgeScores(trArg){
+  const all=(trArg||Store.trades()).filter(t=>!t.open).slice().sort((a,b)=>((a.date||'')+'').localeCompare((b.date||'')+''));
+  const cur=_edgeRaw(all); const n=all.length;
+  let tA=null,tB=null;
+  if(n>=8){ const h=Math.floor(n/2); tA=_edgeRaw(all.slice(0,h)); tB=_edgeRaw(all.slice(h)); }
+  const META=[
+    ['maturity','Trading Maturity','Your overall growth as a trader'],
+    ['discipline','Discipline','How well you followed your plan'],
+    ['execution','Execution','Turning good setups into results'],
+    ['consistency','Consistency','Steady sizing & steady results'],
+    ['ruleAdh','Rule Adherence','Trades taken fully by the book'],
+    ['emotional','Emotional Stability','Staying calm after wins & losses'],
+    ['confidence','Confidence','Sizing with conviction, not fear'],
+    ['decision','Decision Quality','Good process, whatever the outcome']
+  ];
+  const list=META.map(m=>{ const v=cur[m[0]]; let trend='flat'; if(tA&&tB&&tA[m[0]]!=null&&tB[m[0]]!=null){ const d=tB[m[0]]-tA[m[0]]; trend=d>=4?'up':d<=-4?'down':'flat'; } return {key:m[0],name:m[1],sub:m[2],v:(v==null?null:v),trend}; });
+  return {list,byKey:cur};
+}
+function scoreColor(v){ if(v==null)return 'var(--muted)'; if(v>=85)return 'var(--violet-2)'; if(v>=70)return 'var(--win)'; if(v>=50)return 'var(--gold)'; return 'var(--loss)'; }
+function edgeScoresPanel(sc){
+  const tiles=sc.list.map(function(x){
+    const col=scoreColor(x.v), val=(x.v==null?'—':x.v), w=(x.v==null?0:x.v), hero=(x.key==='maturity');
+    const tr=(x.v==null)?'':(x.trend==='up'?'<span style="color:var(--win);font-size:13px">▲</span>':x.trend==='down'?'<span style="color:var(--loss);font-size:13px">▼</span>':'<span style="color:var(--muted);font-size:13px">▬</span>');
+    return '<div style="background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 15px'+(hero?';grid-column:1/-1;background:radial-gradient(130% 160% at 0 0,rgba(124,92,252,.18),transparent 62%)':'')+'">'
+      +'<div class="row-sb" style="align-items:flex-start;gap:10px"><div><div style="font-weight:600;font-size:14px">'+x.name+'</div><div class="hint" style="font-size:11.5px;margin-top:2px">'+x.sub+'</div></div>'
+      +'<div style="text-align:right;white-space:nowrap"><span class="mono" style="font-size:'+(hero?32:26)+'px;font-weight:800;color:'+col+'">'+val+'</span> '+tr+'</div></div>'
+      +'<div style="height:7px;border-radius:99px;background:rgba(255,255,255,.08);margin-top:12px;overflow:hidden"><div style="height:100%;border-radius:99px;width:'+Math.max(3,w)+'%;background:'+col+'"></div></div></div>';
+  }).join('');
+  return '<div class="card section-gap"><div class="row-sb"><div><div class="card-title">Your EDGE Scores</div><div class="card-sub">The 8 numbers that measure you as a trader — not just your P&L</div></div><span class="chip">EDGE analysis</span></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;margin-top:16px">'+tiles+'</div>'
+    +'<div class="hint" style="margin-top:12px">Scores are computed only from your own trades and update as you log more. A “—” means we need a few more trades to measure it honestly.</div></div>';
+}
+function coachHero(s,sc){
+  const b=sc.byKey, n=s.tr.length; if(!n) return '';
+  const wr=a=>a.length?Math.round(a.filter(t=>t.pnl>0).length/a.length*100):null;
+  const gr=s.tr.filter(t=>t.rulesTotal>0);
+  const clean=gr.filter(t=>t.rulesFollowed>=t.rulesTotal), broke=gr.filter(t=>t.rulesFollowed<t.rulesTotal);
+  const cWR=wr(clean), bWR=wr(broke);
+  const R=[];
+  if(b.ruleAdh!=null&&b.ruleAdh<80&&cWR!=null&&bWR!=null&&cWR>bWR)
+    R.push({sev:100-b.ruleAdh,title:'Follow your checklist before every trade.',detail:'You win <b class="mono pos">'+cWR+'%</b> when you follow your rules but only <b class="mono neg">'+bWR+'%</b> when you break one. Ticking the checklist is the single highest-value habit you have.',cta:['Open checklist','checklist']});
+  if(b.emotional!=null&&b.emotional<62)
+    R.push({sev:100-b.emotional,title:'Skip the first trade after a loss.',detail:'Your results swing hardest right after a red trade — that\'s where your edge leaks. Take a short reset before you re-enter.',cta:['Talk to your coach','coach']});
+  if(b.consistency!=null&&b.consistency<58)
+    R.push({sev:100-b.consistency,title:'Risk the same amount on every trade.',detail:'Your position sizes swing too much — that turns a real edge into random results. Pick one risk % and hold it every time.',cta:['Size calculator','calc']});
+  if(b.execution!=null&&b.execution<58)
+    R.push({sev:100-b.execution,title:'Protect your stop, let winners run.',detail:'Your exits are costing you — losers are running past your stop, or winners are being cut early. Set the stop before entry and don\'t move it.',cta:['Review your trades','trades']});
+  if(b.decision!=null&&b.decision<62)
+    R.push({sev:100-b.decision,title:'Only take trades that fit your plan.',detail:'Too many trades don\'t meet your own criteria. The best decision is often no trade — wait for your A+ setup.',cta:['See your playbooks','playbooks']});
+  let title,detail,cta,tone;
+  if(R.length){ R.sort((a,b)=>b.sev-a.sev); title=R[0].title; detail=R[0].detail; cta=R[0].cta; tone='var(--violet-2)'; }
+  else { const best=sc.list.filter(x=>x.v!=null&&x.key!=='maturity').sort((a,b)=>b.v-a.v)[0];
+    title='You\'re trading clean — keep it up.'; detail=best?('Your strongest edge right now is <b>'+best.name+'</b> at <b class="mono">'+best.v+'</b>. Protect it — same routine, same rules, every session.'):'Keep logging every trade and following your rules.'; cta=['See full report','coach']; tone='var(--win)'; }
+  return '<div class="card section-gap" style="border-color:rgba(124,92,252,.4);background:radial-gradient(130% 120% at 0 0,rgba(124,92,252,.14),transparent 60%)">'
+    +'<div style="display:flex;gap:15px;align-items:flex-start"><span style="flex:0 0 auto;width:44px;height:44px;border-radius:13px;display:grid;place-items:center;color:#fff;background:var(--grad)">'+svgi('sparkle',22,'#fff')+'</span>'
+    +'<div style="flex:1;min-width:0"><div class="mono" style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--violet-2);font-weight:700">Your coach says</div>'
+    +'<div style="font-size:19px;font-weight:700;letter-spacing:-.01em;margin:5px 0 6px">'+title+'</div>'
+    +'<div class="hint" style="line-height:1.6;color:var(--muted)">'+detail+'</div>'
+    +'<button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="go(\''+cta[1]+'\')">'+cta[0]+' →</button></div></div></div>';
+}
 function levelInfo(){ const xp=Store.profile().xp||0; return {xp,lvl:Math.floor(xp/100)+1,into:xp%100}; }
 function lossGuard(s){
   const w=s.avgWin, l=s.avgLoss;
@@ -774,7 +906,7 @@ function gamePlanCard(){ const p=todayPlan();
 }
 function riskStopModal(r){ const el=document.getElementById('detailInner'); if(!el)return; const reason=(r.maxT&&r.count>=r.maxT)?('You\'ve taken '+r.count+' trades — your daily max.'):('You\'re down '+money(r.pnl)+', past your -'+money0(r.loss)+' daily limit.'); el.innerHTML='<div style="text-align:center;padding:14px 8px"><div style="display:flex;justify-content:center;margin-bottom:14px"><span style="width:64px;height:64px;border-radius:16px;display:grid;place-items:center;color:var(--loss);background:rgba(245,71,107,.14)">'+svgi('warn',34,'currentColor')+'</span></div><div class="card-title" style="font-size:23px;color:var(--loss)">Stand down for today</div><p class="hint" style="max-width:400px;margin:12px auto 0;line-height:1.6">'+reason+' The market will be here tomorrow — your account and your challenge won\'t be if you keep pushing. Protecting the day IS the edge.</p><button class="btn btn-primary" style="margin-top:20px" onclick="closeDetail()">I\'m done for today</button></div>'; document.getElementById('detailModal').classList.add('show'); }
 VIEWS.dash=function(){
-  const s=stats(); const li=levelInfo(); const eq=s.acct+s.net; const pct=s.net/s.acct*100;
+  const s=stats(); const sc=edgeScores(s.tr); const li=levelInfo(); const eq=s.acct+s.net; const pct=s.net/s.acct*100;
   const hasDis = s.tr.some(t=>t.rulesTotal>0);
   const disBadge = !hasDis?'NEW':s.dis>=90?'GREAT':s.dis>=70?'GOOD':s.dis>=50?'OK':'WORK';
   const disVal = hasDis?s.dis:'—';
@@ -786,6 +918,8 @@ VIEWS.dash=function(){
     ${gamePlanCard()}
     ${reviewNudge()}
     ${coachBanner()}
+    ${s.tr.length?coachHero(s,sc):''}
+    ${s.tr.length?edgeScoresPanel(sc):''}
     <div class="grid kpis">
       ${kpi('Win rate',s.wr+'%',s.wr>=50?'win':(s.tr.length?'loss':'win'),s.wins+'W · '+s.losses+'L')}
       ${kpi('Profit factor',s.pf===Infinity?'∞':s.pf.toFixed(2),'','Gross wins ÷ losses')}
