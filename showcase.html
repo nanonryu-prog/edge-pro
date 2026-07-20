@@ -141,8 +141,8 @@ function draw(s){
   var c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');bg(x);header(x);
   if(s.type==='hook'){
     x.fillStyle='#9D7BFF';x.font='700 30px ui-monospace,monospace';x.textAlign='left';x.fillText('SWIPE →',PAD,470);
-    x.fillStyle='#ECEAF6';var y=wrap(x,'You don’t have a strategy problem. You have a discipline problem.',PAD,520,W-PAD*2,90,'800 78px system-ui,-apple-system,sans-serif','left');
-    x.fillStyle='#A6A1C2';wrap(x,'Here’s the proof 👇',PAD,y+48,W-PAD*2,52,'400 42px system-ui,-apple-system,sans-serif','left');
+    x.fillStyle='#ECEAF6';var y=wrap(x,'You don’t have a strategy problem. You have a discipline problem.',PAD,585,W-PAD*2,88,'800 74px system-ui,-apple-system,sans-serif','left');
+    x.fillStyle='#A6A1C2';wrap(x,'Here’s the proof 👇',PAD,y+50,W-PAD*2,52,'400 42px system-ui,-apple-system,sans-serif','left');
   }else if(s.type==='disc'){
     head(x,'Every trade — scored on discipline.');disciplineCard(x,W/2-380,470,760,600);
   }else if(s.type==='insight'){
