@@ -1525,7 +1525,14 @@ function quickLog(){
   window._editId=null; window._qSide='long'; window._qRules='yes'; window._qSetups=[]; window._qMistakes=[];
   const rt=(Store.playbooks()[0]||{rules:[]}).rules.length;
   $('#logModalInner').innerHTML=`<div class="row-sb"><div class="card-title">Quick log</div><button class="modal-x" onclick="closeLog()" aria-label="Close">✕</button></div>
-    <div class="card-sub" style="margin-bottom:14px">Log a trade in seconds. Add details later if you want.</div>
+    <div class="card-sub" style="margin-bottom:14px">Two ways: let AI read a screenshot, or type it in seconds.</div>
+    <label style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:13px;border:1px solid rgba(124,92,252,.45);background:radial-gradient(140% 160% at 0 0,rgba(124,92,252,.16),transparent 60%);margin-bottom:16px">
+      <span style="width:40px;height:40px;border-radius:11px;background:var(--grad);display:grid;place-items:center;color:#fff;flex:0 0 auto">${svgi('image',20,'currentColor')}</span>
+      <span style="flex:1;min-width:0"><b style="display:block">Snap a screenshot — AI logs it for you</b><span class="hint">Broker or chart · or paste with ⌘/Ctrl+V · reads symbol, side, P&amp;L, entry, stop &amp; target</span></span>
+      <span style="color:var(--violet-2);font-weight:700;flex:0 0 auto">Import →</span>
+      <input type="file" accept="image/*" style="display:none" onchange="importShot(this)">
+    </label>
+    <div style="text-align:center;color:var(--faint);font-size:11px;margin:-2px 0 14px;letter-spacing:.06em">— OR TYPE IT MANUALLY —</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">${(function(){ const tr=Store.trades(); const l=tr[tr.length-1]; return l?`<button type="button" class="chip-tag" onclick="qRepeatLast()">↻ Repeat last · ${escHtml(l.symbol||'trade')}</button>`:''; })()}${(window.SpeechRecognition||window.webkitSpeechRecognition)?`<button type="button" class="chip-tag" id="qVoiceBtn" onclick="startVoiceLog(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg>Speak your trade</button>`:''}</div>
     <form id="qForm" autocomplete="off">
       <div class="fgrp"><label class="flbl">Symbol</label><input class="finp" id="q-sym" placeholder="EURUSD" required style="font-size:18px" autofocus>${(function(){ const rs=recentSymbols(); return rs.length?'<div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:8px">'+rs.map(sy=>'<button type="button" class="chip-tag" onclick="qPick(\''+escHtml(sy).replace(/'/g,'')+'\')">'+escHtml(sy)+'</button>').join('')+'</div>':''; })()}</div>
@@ -1537,7 +1544,6 @@ function quickLog(){
       <div class="fgrp" style="margin-top:16px"><label class="flbl">Any mistakes? <span class="hint" style="font-weight:400">· be honest — this is how you improve</span></label>
         <div id="qMistakes" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px">${mistakeList().map(mk=>`<button type="button" class="chip-tag chip-miss" data-v="${escHtml(mk)}" onclick="qToggleMistake(this)">${escHtml(mk)}</button>`).join('')}</div></div>
       <div style="display:flex;gap:12px;margin-top:22px;flex-wrap:wrap"><button type="submit" class="btn btn-primary" style="flex:1;min-width:150px">Log it (+10 XP)</button><button type="button" class="btn btn-ghost btn-sm" onclick="openLog()">+ Full details</button></div>
-      <label class="btn btn-ghost btn-sm btn-full" style="cursor:pointer;margin-top:12px;border-color:rgba(124,92,252,.4);color:var(--violet-2)">${svgi('image',15,'currentColor')}<span style="margin-left:7px">Upload a screenshot — or just paste one (⌘/Ctrl + V)</span><input type="file" accept="image/*" style="display:none" onchange="importShot(this)"></label>
     </form>`;
   $('#logModal').classList.add('show'); $('#qForm').onsubmit=saveQuick;
 }
