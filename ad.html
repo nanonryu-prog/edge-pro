@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EDGE Pro — Instagram Ad Image</title>
+<style>
+  :root{--bg:#0A0A16;--text:#ECEAF6;--muted:#A6A1C2;--violet:#9D7BFF;--line:rgba(255,255,255,.1)}
+  *{box-sizing:border-box}
+  body{margin:0;background:#0A0A16;background-image:radial-gradient(700px 400px at 50% -8%,rgba(124,92,252,.16),transparent 60%);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.6}
+  .wrap{max-width:560px;margin:0 auto;padding:44px 18px 80px;text-align:center}
+  .eyebrow{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--violet)}
+  h1{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:12px 0 6px}
+  .sub{color:var(--muted);font-size:15px;max-width:44ch;margin:0 auto 8px}
+  img{width:100%;border-radius:16px;border:1px solid var(--line);box-shadow:0 20px 50px -22px rgba(0,0,0,.85);display:block;margin:26px 0 14px}
+  a.dl{display:inline-block;font-family:ui-monospace,monospace;font-size:14px;color:#fff;text-decoration:none;background:linear-gradient(90deg,#7C5CFC,#E15CC6);border-radius:10px;padding:12px 22px;font-weight:700}
+  .note{color:var(--muted);font-size:13px;margin-top:18px}.note b{color:var(--text)}
+  .cap{margin-top:34px;background:#14141F;border:1px solid var(--line);border-radius:14px;padding:20px;text-align:left}
+  .cap h3{margin:0 0 10px;font-size:15px}.cap pre{white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:13px;color:var(--muted);margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">EDGE Pro · single ad image</div>
+  <h1>Your Instagram ad — one image</h1>
+  <p class="sub">1080×1350, everything in one frame: the hook, the proof, the CTA. Download and post as a single photo (or run as an ad).</p>
+  <img id="ad" alt="EDGE Pro ad">
+  <a class="dl" id="dl" download="edgepro-ad.png">↓ Download ad image</a>
+  <div class="note"><b>Phone:</b> long-press the image → “Save Image,” or tap Download.</div>
+  <div class="cap"><h3>📋 Caption</h3><pre>Same trader. Same setups. The only difference? Discipline.
+
+EDGE Pro scores every trade, reads your charts with AI, and shows you the exact leak costing you money.
+
+Try it free — no signup, no card. Link in bio 📈
+
+#trading #daytrading #tradingpsychology #tradingjournal #forex #stockmarket #trader #propfirm</pre></div>
+</div>
+<script>
+var W=1080,H=1350,PAD=96;
+function rr(c,X,Y,w,h,r){c.beginPath();c.moveTo(X+r,Y);c.arcTo(X+w,Y,X+w,Y+h,r);c.arcTo(X+w,Y+h,X,Y+h,r);c.arcTo(X,Y+h,X,Y,r);c.arcTo(X,Y,X+w,Y,r);c.closePath();}
+function logoTile(c,X,Y,S){c.save();rr(c,X,Y,S,S,S*0.24);var g=c.createLinearGradient(X,Y,X+S,Y+S);g.addColorStop(0,'#7C5CFC');g.addColorStop(1,'#E15CC6');c.fillStyle=g;c.fill();var s=S*0.6/32,ox=X+(S-32*s)/2,oy=Y+(S-32*s)/2;c.strokeStyle='#fff';c.lineWidth=Math.max(3,2.7*s);c.lineCap='round';c.lineJoin='round';c.beginPath();c.moveTo(ox+6*s,oy+22*s);c.lineTo(ox+13*s,oy+15*s);c.lineTo(ox+18*s,oy+19*s);c.lineTo(ox+25.5*s,oy+10*s);c.stroke();c.beginPath();c.moveTo(ox+19.5*s,oy+10*s);c.lineTo(ox+25.5*s,oy+10*s);c.lineTo(ox+25.5*s,oy+16*s);c.stroke();c.restore();}
+function pill(c,cx,y,text,font,h){c.font=font;var tw=c.measureText(text).width,px=40,w=tw+px*2,X=cx-w/2;var g=c.createLinearGradient(X,0,X+w,0);g.addColorStop(0,'#7C5CFC');g.addColorStop(1,'#E15CC6');rr(c,X,y-h/2,w,h,h/2);c.fillStyle=g;c.fill();c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(text,cx,y);c.textBaseline='alphabetic';}
+function bg(x){x.fillStyle='#0A0A16';x.fillRect(0,0,W,H);var g=x.createRadialGradient(W*0.82,-80,60,W*0.82,-80,920);g.addColorStop(0,'rgba(124,92,252,.28)');g.addColorStop(1,'rgba(124,92,252,0)');x.fillStyle=g;x.fillRect(0,0,W,H);var g2=x.createRadialGradient(-40,H+40,60,-40,H+40,760);g2.addColorStop(0,'rgba(225,92,198,.16)');g2.addColorStop(1,'rgba(225,92,198,0)');x.fillStyle=g2;x.fillRect(0,0,W,H);}
+function ring(x,cx,cy,r,pct,val,lw){x.lineWidth=lw;x.strokeStyle='rgba(255,255,255,.12)';x.beginPath();x.arc(cx,cy,r,0,7);x.stroke();var g=x.createLinearGradient(cx-r,cy-r,cx+r,cy+r);g.addColorStop(0,'#7C5CFC');g.addColorStop(1,'#E15CC6');x.strokeStyle=g;x.lineCap='round';x.beginPath();x.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*pct);x.stroke();x.lineCap='butt';x.textAlign='center';x.textBaseline='middle';x.fillStyle='#ECEAF6';x.font='800 '+Math.round(r*0.9)+'px system-ui,-apple-system,sans-serif';x.fillText(val,cx,cy+2);x.textBaseline='alphabetic';}
+
+function draw(){
+  var c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');
+  bg(x);
+  // ---- header ----
+  logoTile(x,PAD,PAD,74);
+  x.textAlign='left';x.textBaseline='alphabetic';x.fillStyle='#ECEAF6';x.font='800 36px system-ui,-apple-system,sans-serif';x.fillText('EDGE',PAD+96,PAD+48);
+  var ew=x.measureText('EDGE').width;var pg=x.createLinearGradient(PAD+96+ew,0,PAD+96+ew+120,0);pg.addColorStop(0,'#9D7BFF');pg.addColorStop(1,'#E15CC6');x.fillStyle=pg;x.fillText(' Pro',PAD+96+ew,PAD+48);
+  x.textAlign='right';x.fillStyle='#6E6890';x.font='600 20px ui-monospace,monospace';x.fillText('AI TRADING JOURNAL',W-PAD,PAD+46);
+
+  // ---- headline ----
+  var hy=286,lh=80;
+  x.textAlign='left';x.font='800 72px system-ui,-apple-system,sans-serif';
+  x.fillStyle='#ECEAF6';
+  x.fillText('You don’t have a',PAD,hy);
+  x.fillText('strategy problem.',PAD,hy+lh);
+  x.fillStyle='#8A83A8';
+  x.fillText('You have a',PAD,hy+lh*2+16);
+  var lg=x.createLinearGradient(PAD,0,PAD+560,0);lg.addColorStop(0,'#9D7BFF');lg.addColorStop(1,'#E15CC6');x.fillStyle=lg;
+  x.fillText('discipline problem.',PAD,hy+lh*3+16);
+
+  // ---- proof card ----
+  var cX=PAD,cY=636,cW=W-PAD*2,cH=360;
+  rr(x,cX,cY,cW,cH,28);x.fillStyle='#12121F';x.fill();rr(x,cX,cY,cW,cH,28);x.lineWidth=1.5;x.strokeStyle='rgba(255,255,255,.09)';x.stroke();
+  x.textAlign='left';x.fillStyle='#6E6890';x.font='700 21px ui-monospace,monospace';x.fillText('SAME TRADER · SAME SETUPS',cX+40,cY+52);
+  var midX=cX+cW/2, lc=cX+cW*0.25, rc=cX+cW*0.75;
+  // divider
+  x.strokeStyle='rgba(255,255,255,.1)';x.lineWidth=1.5;x.beginPath();x.moveTo(midX,cY+90);x.lineTo(midX,cY+cH-36);x.stroke();
+  // left — rules followed
+  x.textAlign='center';
+  x.fillStyle='#24D19B';x.font='800 128px system-ui,-apple-system,sans-serif';x.fillText('71%',lc,cY+215);
+  x.fillStyle='#ECEAF6';x.font='600 26px system-ui,-apple-system,sans-serif';x.fillText('win rate',lc,cY+258);
+  x.fillStyle='#8A83A8';x.font='400 23px system-ui,-apple-system,sans-serif';x.fillText('when you follow your rules',lc,cY+296);
+  // right — rule broken
+  x.fillStyle='#F5476B';x.font='800 128px system-ui,-apple-system,sans-serif';x.fillText('38%',rc,cY+215);
+  x.fillStyle='#ECEAF6';x.font='600 26px system-ui,-apple-system,sans-serif';x.fillText('win rate',rc,cY+258);
+  x.fillStyle='#8A83A8';x.font='400 23px system-ui,-apple-system,sans-serif';x.fillText('when you break one',rc,cY+296);
+
+  // ---- value line ----
+  x.textAlign='center';x.fillStyle='#C9C4DE';x.font='500 31px system-ui,-apple-system,sans-serif';
+  x.fillText('EDGE Pro scores every trade & shows the leak.',W/2,cY+cH+66);
+
+  // ---- CTA ----
+  pill(x,W/2,cY+cH+152,'TRY IT FREE — LINK IN BIO','800 35px system-ui,-apple-system,sans-serif',86);
+  var ug=x.createLinearGradient(W/2-220,0,W/2+220,0);ug.addColorStop(0,'#9D7BFF');ug.addColorStop(1,'#E15CC6');
+  x.fillStyle=ug;x.font='800 40px system-ui,-apple-system,sans-serif';x.textAlign='center';x.fillText('edgeprojournal.com',W/2,cY+cH+232);
+  x.fillStyle='#6E6890';x.font='400 24px system-ui,-apple-system,sans-serif';x.fillText('No signup. No card. The whole app.',W/2,cY+cH+274);
+
+  return c.toDataURL('image/png');
+}
+var url=draw();
+document.getElementById('ad').src=url;
+document.getElementById('dl').href=url;
+</script>
+</body>
+</html>
