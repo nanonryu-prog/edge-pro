@@ -2306,7 +2306,7 @@ $('#avatar').textContent=(session.name||session.email||'T').trim()[0].toUpperCas
 $('#mName').textContent=session.name||'Trader'; $('#mEmail').textContent=session.email;
 applyTheme(); setInterval(applyTheme,60000);
 /* ---- demo → signup conversion (nudge + soft cap) ---- */
-const DEMO_CAP=20;
+const DEMO_CAP=10;
 function demoOwnCount(){ return Store.trades().filter(t=>!t.demoSeed).length; }
 function demoCapReached(){ return window.__DEMO && demoOwnCount()>=DEMO_CAP; }
 function demoSaveNudge(){ if(!window.__DEMO || demoOwnCount()<1) return '';
