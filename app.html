@@ -240,7 +240,7 @@
   @keyframes aiblink{0%,60%,100%{opacity:.25}30%{opacity:1}}
   @media(max-width:560px){ #edgeAiPanel{bottom:0;right:0;left:0;width:100%;max-width:100%;height:100%;max-height:100%;border-radius:0;} #edgeAiFab{bottom:16px;right:16px;} }
   /* keep the demo banner clear of the bottom Log / Ask-EDGE fabs on phones */
-  @media(max-width:560px){ #demoBanner{ bottom:74px !important; max-width:calc(100vw - 20px) !important; } }
+  @media(max-width:560px){ #demoBanner{ bottom:74px !important; max-width:calc(100vw - 16px) !important; font-size:12px !important; gap:8px !important; padding:6px 6px 6px 14px !important; } #demoBanner .demo-sub{ display:none !important; } }
 
   #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-2);border:1px solid var(--border-2);color:var(--text);padding:13px 20px;border-radius:12px;font-size:14px;font-weight:500;box-shadow:0 16px 40px rgba(0,0,0,0.5);opacity:0;pointer-events:none;transition:.3s var(--ease);z-index:120;}
   @media(max-width:560px){ #toast{bottom:72px;} }
@@ -2332,7 +2332,7 @@ function injectDemoBanner(){
   if(document.getElementById('demoBanner')) return;
   const d=document.createElement('div'); d.id='demoBanner';
   d.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:90;display:flex;align-items:center;gap:14px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:999px;padding:8px 8px 8px 18px;box-shadow:0 16px 40px rgba(0,0,0,.5);font-size:13.5px;max-width:calc(100vw - 24px)';
-  d.innerHTML='<span style="display:inline-flex;align-items:center;gap:8px">'+svgi('target',16,'var(--violet-2)')+'<b>Live demo</b> \u2014 exploring with sample data</span><a href="login.html" class="btn btn-primary btn-sm" style="white-space:nowrap">Create free account \u2192</a>';
+  d.innerHTML='<span style="display:inline-flex;align-items:center;gap:8px;min-width:0">'+svgi('target',16,'var(--violet-2)')+'<b>Live demo</b><span class="demo-sub"> \u2014 exploring with sample data</span></span><a href="login.html" class="btn btn-primary btn-sm" style="white-space:nowrap;flex:0 0 auto">Create free account \u2192</a>';
   document.body.appendChild(d);
 }
 (async function boot(){
