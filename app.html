@@ -707,6 +707,58 @@ function coachHero(s,sc){
     +'<div class="hint" style="line-height:1.6;color:var(--muted)">'+detail+'</div>'
     +'<button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="go(\''+cta[1]+'\')">'+cta[0]+' →</button></div></div></div>';
 }
+/* ---- Behavioral leak engine — spots recurring mistakes from real trades, quantifies the $ cost, prescribes a fix ---- */
+function behavioralLeaks(listArg){
+  const tr=(listArg||Store.trades()).filter(t=>!t.open).slice().sort((a,b)=>{ const d=((a.date||'')+'').localeCompare((b.date||'')+''); return d||((a.id||0)-(b.id||0)); });
+  const n=tr.length; if(n<6) return [];
+  const m0=v=>'$'+Math.round(Math.abs(v)).toLocaleString();
+  const risk=t=>(t.entry!=null&&t.stop!=null&&t.size&&Math.abs(t.entry-t.stop)>0)?Math.abs(t.entry-t.stop)*Math.abs(t.size):null;
+  const median=a=>{ if(!a.length)return 0; const b=a.slice().sort((x,y)=>x-y); const i=Math.floor(b.length/2); return b.length%2?b[i]:(b[i-1]+b[i])/2; };
+  const out=[]; const base=tr.filter(t=>t.pnl>0).length/n;
+
+  // Revenge trading — after-loss trades that keep losing
+  const afterLoss=tr.filter((t,i)=>i>0&&tr[i-1].pnl<0);
+  if(afterLoss.length>=4){ const alWR=afterLoss.filter(t=>t.pnl>0).length/afterLoss.length;
+    const revCost=afterLoss.filter(t=>t.pnl<0).reduce((a,t)=>a+t.pnl,0);
+    if(alWR<base-0.08&&revCost<0) out.push({title:'Revenge trading',cost:revCost,detail:'After a loss you win just <b>'+Math.round(alWR*100)+'%</b> vs <b>'+Math.round(base*100)+'%</b> normally — those trades have cost you '+m0(revCost)+'.',fix:'Step away for 10 minutes after any red trade before taking the next one.'});
+  }
+  // Overtrading — busiest days perform worst
+  const byDay={}; tr.forEach(t=>{ const d=(t.date||'').slice(0,10)||'x'; (byDay[d]=byDay[d]||[]).push(t); });
+  const days=Object.values(byDay);
+  if(days.length>=5){ const counts=days.map(d=>d.length); const med=median(counts); const thr=Math.max(4,med+2);
+    const heavy=days.filter(d=>d.length>=thr).flat(), normal=days.filter(d=>d.length<thr).flat();
+    if(heavy.length>=3&&normal.length>=1){ const hAvg=heavy.reduce((a,t)=>a+t.pnl,0)/heavy.length, nAvg=normal.reduce((a,t)=>a+t.pnl,0)/normal.length;
+      if(hAvg<nAvg&&hAvg<0) out.push({title:'Overtrading',cost:heavy.reduce((a,t)=>a+t.pnl,0),detail:'On your busiest days you average <b>'+(hAvg>=0?'+':'-')+m0(hAvg)+'</b> per trade vs <b>'+(nAvg>=0?'+':'-')+m0(nAvg)+'</b> normally. More trades, worse results.',fix:'Set a max number of trades per day and stop the moment you hit it.'});
+    }
+  }
+  // Oversizing — risk outliers in the red
+  const risks=tr.map(t=>({t,rk:risk(t)})).filter(o=>o.rk!=null&&o.rk>0);
+  if(risks.length>=6){ const med=median(risks.map(o=>o.rk)); const big=risks.filter(o=>o.rk>med*1.8);
+    if(big.length>=2){ const cost=big.reduce((a,o)=>a+o.t.pnl,0); if(cost<0) out.push({title:'Oversizing',cost:cost,detail:'<b>'+big.length+'</b> trades were sized well above your normal risk — together they\'re '+m0(cost)+' in the red. Big bets aren\'t your edge.',fix:'Risk the same fixed % on every trade, no exceptions.'}); }
+  }
+  // Letting losers run — losses past the planned stop
+  const rr=tr.map(t=>{ const rk=risk(t); return rk?{t,r:t.pnl/rk,rk}:null; }).filter(Boolean);
+  if(rr.length>=6){ const blown=rr.filter(o=>o.r<-1.2);
+    if(blown.length>=2){ const extra=blown.reduce((a,o)=>a+(o.t.pnl+o.rk),0); if(extra<0) out.push({title:'Letting losers run',cost:extra,detail:'<b>'+blown.length+'</b> losses blew through your planned stop — that overflow alone cost '+m0(extra)+'. A stop you move isn\'t a stop.',fix:'Set your stop before entry and never widen it.'}); }
+  }
+  // Cutting winners early
+  const cut=tr.filter(t=>t.pnl>0&&t.rr&&t.rr>=1.5).filter(t=>{ const rk=risk(t); return rk?(t.pnl/rk)<t.rr*0.5:false; });
+  if(cut.length>=3) out.push({title:'Cutting winners early',cost:0,detail:'<b>'+cut.length+'</b> winners were closed below half their planned target — you\'re leaving profit on the table.',fix:'Hold to your target or trail your stop; let winners pay for the losers.'});
+  // Rule-breaking cost
+  const graded=tr.filter(t=>t.rulesTotal>0), broke=graded.filter(t=>t.rulesFollowed<t.rulesTotal);
+  if(graded.length>=6&&broke.length>=2){ const cost=broke.reduce((a,t)=>a+t.pnl,0);
+    if(cost<0) out.push({title:'Breaking your rules',cost:cost,detail:'Your <b>'+broke.length+'</b> rule-break trades netted '+(cost>=0?'+':'-')+m0(cost)+', dragging down your clean trades.',fix:'Treat your checklist as non-negotiable — one unchecked box means no trade.'});
+  }
+  return out.filter(o=>o.detail).sort((a,b)=>a.cost-b.cost).slice(0,4);
+}
+function leaksCard(listArg){
+  const L=behavioralLeaks(listArg); if(!L.length) return '';
+  const rows=L.map(function(x){ const c=x.cost<0?'<b class="mono neg">'+money(Math.round(x.cost))+'</b>':'<span class="chip">leak</span>';
+    return '<div style="padding:15px 0;border-top:1px solid rgba(255,255,255,.07)"><div class="row-sb" style="gap:12px;align-items:center"><b style="font-size:15px">'+x.title+'</b>'+c+'</div>'
+      +'<div class="hint" style="margin-top:5px;line-height:1.55;color:var(--muted)">'+x.detail+'</div>'
+      +'<div style="margin-top:9px;display:flex;gap:9px;align-items:flex-start"><span style="flex:0 0 auto;margin-top:1px">'+svgi('flame',15,'var(--win)')+'</span><span style="font-size:13.5px;color:var(--text)"><b>Fix:</b> '+x.fix+'</span></div></div>'; }).join('');
+  return '<div class="card section-gap"><div class="row-sb"><div><div class="card-title">Behavioral leaks</div><div class="card-sub">The habits quietly costing you money — and how to plug them</div></div><span class="chip">EDGE analysis</span></div>'+rows+'</div>';
+}
 function levelInfo(){ const xp=Store.profile().xp||0; return {xp,lvl:Math.floor(xp/100)+1,into:xp%100}; }
 function lossGuard(s){
   const w=s.avgWin, l=s.avgLoss;
@@ -735,7 +787,7 @@ const NAV=[
   ['weekly','Weekly Review','<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>'],
   ['settings','Settings','<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 6 19.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 4.6 15H4a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 6 9.3l-.1-.1A2 2 0 1 1 8.7 6.4l.1.1A1.6 1.6 0 0 0 11 5.6V5a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 .3 1.8h.6a2 2 0 1 1 0 4Z"/>'],
 ];
-const SUB={dash:'Your trading at a glance',coach:'Your personal AI trading coach reads your journal and tells you what to fix',trades:'Every trade you have logged',playbooks:'The strategies & rules that power your grading',reports:'Breakdowns across every angle',journal:'Log how you traded, and how you felt',checklist:'Confirm every rule before you trade',goals:'Personal targets, separate from your evaluation',calc:'Position size & risk : reward',eval:'Track your prop-firm challenge live',calendar:'Your month, coloured by discipline',achievements:'Level up your discipline',weekly:'Reflect and reset each week',settings:'Account & preferences'};
+const SUB={dash:'What to work on next — read from your own trades',coach:'Your personal AI trading coach reads your journal and tells you what to fix',trades:'Every trade you have logged',playbooks:'The strategies & rules that power your grading',reports:'Breakdowns across every angle',journal:'Log how you traded, and how you felt',checklist:'Confirm every rule before you trade',goals:'Personal targets, separate from your evaluation',calc:'Position size & risk : reward',eval:'Track your prop-firm challenge live',calendar:'Your month, coloured by discipline',achievements:'Level up your discipline',weekly:'Reflect and reset each week',settings:'Account & preferences'};
 let current='dash';
 const SHORT={dash:'Dashboard',coach:'AI Coach',trades:'Trades',playbooks:'Playbooks',reports:'Reports',journal:'Journal',checklist:'Checklist',goals:'Goals',calc:'Calculators',eval:'Evaluation',calendar:'Calendar',achievements:'Awards',weekly:'Weekly',settings:'Settings'};
 const TIER={coach:2,reports:2,goals:2,weekly:2,eval:3};
@@ -920,6 +972,7 @@ VIEWS.dash=function(){
     ${coachBanner()}
     ${s.tr.length?coachHero(s,sc):''}
     ${s.tr.length?edgeScoresPanel(sc):''}
+    ${s.tr.length?leaksCard(s.tr):''}
     <div class="grid kpis">
       ${kpi('Win rate',s.wr+'%',s.wr>=50?'win':(s.tr.length?'loss':'win'),s.wins+'W · '+s.losses+'L')}
       ${kpi('Profit factor',s.pf===Infinity?'∞':s.pf.toFixed(2),'','Gross wins ÷ losses')}
