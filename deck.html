@@ -1,0 +1,422 @@
+<style>
+  :root{
+    --bg:#0A0A16; --bg2:#07070f; --surface:#14142A; --surface2:#1b1b30;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.14);
+    --text:#F4F4FB; --muted:rgba(244,244,251,.62); --faint:rgba(244,244,251,.40);
+    --violet:#7C5CFC; --violet2:#9D7BFF; --pink:#E15CC6;
+    --win:#24D19B; --gold:#FFC43D; --danger:#F5476B;
+    --grad:linear-gradient(135deg,#7C5CFC,#A45CFC 45%,#E15CC6);
+    --mono:ui-monospace,'SF Mono',Menlo,monospace;
+    --sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg2);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden}
+  .deck{position:fixed;inset:0}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:min(9vh,84px) min(9vw,110px);
+    background:radial-gradient(120% 85% at 12% -5%,rgba(124,92,252,.17),transparent 52%),
+               radial-gradient(90% 80% at 105% 108%,rgba(225,92,198,.12),transparent 55%),
+               linear-gradient(160deg,#0c0c1e,#07070f);}
+  .slide.on{display:flex}
+  .slide.anim>*{opacity:0;transform:translateY(20px);animation:rise .55s cubic-bezier(.2,.8,.25,1) forwards}
+  .slide.anim>*:nth-child(2){animation-delay:.06s}
+  .slide.anim>*:nth-child(3){animation-delay:.12s}
+  .slide.anim>*:nth-child(4){animation-delay:.18s}
+  .slide.anim>*:nth-child(5){animation-delay:.24s}
+  @keyframes rise{to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){.slide.anim>*{animation:none;opacity:1;transform:none}}
+
+  .eyebrow{font-family:var(--mono);font-size:clamp(11px,1.15vw,14px);letter-spacing:.22em;text-transform:uppercase;color:var(--violet2);font-weight:700;margin-bottom:22px;display:flex;align-items:center;gap:12px}
+  .eyebrow .num{color:var(--faint)}
+  h1{font-size:clamp(30px,6vw,74px);font-weight:800;letter-spacing:-.03em;line-height:1.03;text-wrap:balance}
+  h2{font-size:clamp(26px,4.4vw,54px);font-weight:800;letter-spacing:-.025em;line-height:1.06;text-wrap:balance}
+  .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lead{font-size:clamp(16px,2vw,25px);color:var(--muted);line-height:1.5;margin-top:24px;max-width:38ch}
+  .lead.wide{max-width:52ch}
+  .lead b{color:var(--text);font-weight:600}
+
+  ul.pts{margin-top:30px;list-style:none;display:flex;flex-direction:column;gap:15px;max-width:46ch}
+  ul.pts li{font-size:clamp(15px,1.75vw,22px);color:var(--text);display:flex;gap:15px;align-items:flex-start;line-height:1.4}
+  ul.pts li::before{content:"";flex:0 0 auto;width:10px;height:10px;border-radius:3px;background:var(--grad);margin-top:.5em}
+  ul.pts li span{color:var(--muted)}
+
+  /* logo */
+  .brand{display:flex;align-items:center;gap:16px}
+  .mark{width:clamp(46px,5vw,64px);height:clamp(46px,5vw,64px);border-radius:24%;background:var(--grad);display:grid;place-items:center;box-shadow:0 12px 30px -10px rgba(124,92,252,.6)}
+  .mark svg{width:60%;height:60%}
+  .word{font-size:clamp(24px,3.2vw,40px);font-weight:800;letter-spacing:-.02em}
+  .word em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  /* generic card */
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.01));border:1px solid var(--line);border-radius:20px;padding:clamp(18px,2.4vw,30px)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,1.8vw,22px);width:100%}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.8vw,22px);width:100%}
+  .row{display:flex;gap:clamp(20px,4vw,64px);align-items:center;flex-wrap:wrap}
+  .lbl{font-family:var(--mono);font-size:clamp(11px,1.1vw,14px);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:600}
+  .kval{font-size:clamp(34px,5vw,66px);font-weight:800;letter-spacing:-.03em;line-height:1;margin:12px 0 8px;font-variant-numeric:tabular-nums}
+  .ksub{font-size:clamp(13px,1.3vw,17px);color:var(--muted)}
+  .pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:7px 13px;border-radius:99px}
+  .pill.good{background:rgba(36,209,155,.15);color:var(--win)}
+  .pill.new{background:rgba(157,123,255,.16);color:var(--violet2)}
+
+  /* discipline ring */
+  .ring{--p:88;width:clamp(160px,20vw,240px);aspect-ratio:1;border-radius:50%;flex:0 0 auto;
+    background:conic-gradient(from -90deg,#7C5CFC,#E15CC6 calc(var(--p)*1%),rgba(255,255,255,.09) 0);
+    display:grid;place-items:center;position:relative}
+  .ring::before{content:"";position:absolute;inset:16%;border-radius:50%;background:#0d0d1c}
+  .ring b{position:relative;font-size:clamp(46px,7vw,84px);font-weight:800;letter-spacing:-.03em}
+  .drow{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--line);font-size:clamp(14px,1.5vw,19px)}
+  .drow:last-child{border-bottom:0}
+  .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  .drow .nm{display:flex;align-items:center;gap:12px;color:var(--muted)}
+  .drow .vv{font-family:var(--mono);font-weight:700;color:var(--text)}
+
+  /* gauges */
+  .gauge{margin:0 0 clamp(14px,2vw,22px)}
+  .gauge .top{display:flex;justify-content:space-between;font-size:clamp(14px,1.5vw,19px);margin-bottom:9px}
+  .gauge .top .r{font-family:var(--mono);font-weight:700}
+  .track{height:15px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+  .track i{display:block;height:100%;border-radius:99px}
+
+  /* stat proof */
+  .vs{display:flex;align-items:center;gap:clamp(16px,4vw,60px);flex-wrap:wrap;margin-top:10px}
+  .vs .col{text-align:center;flex:1 1 220px}
+  .vs .big{font-size:clamp(72px,15vw,190px);font-weight:800;letter-spacing:-.04em;line-height:.9;font-variant-numeric:tabular-nums}
+  .vs .cap{font-size:clamp(14px,1.6vw,20px);color:var(--muted);margin-top:10px}
+  .vs .div{align-self:stretch;width:1px;background:var(--line2);min-height:120px}
+
+  /* chat */
+  .chat{max-width:560px;width:100%}
+  .bub{border-radius:18px;padding:16px 20px;font-size:clamp(14px,1.5vw,19px);line-height:1.5;margin-top:14px;max-width:88%}
+  .bub.me{background:var(--violet);color:#fff;margin-left:auto;border-bottom-right-radius:5px}
+  .bub.ai{background:var(--surface2);border:1px solid rgba(157,123,255,.3);border-bottom-left-radius:5px}
+  .bub.ai .who{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--violet2);margin-bottom:7px}
+  .thumb{height:120px;border-radius:10px;background:linear-gradient(160deg,#0b0f1a,#10182a);border:1px solid rgba(255,255,255,.08);margin-bottom:10px;position:relative;overflow:hidden}
+  .thumb svg{position:absolute;inset:0;width:100%;height:100%}
+
+  /* feature grid */
+  .feat{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(10px,1.3vw,16px);width:100%;margin-top:8px}
+  .feat .f{background:linear-gradient(180deg,rgba(255,255,255,.04),transparent);border:1px solid var(--line);border-radius:15px;padding:clamp(13px,1.5vw,19px)}
+  .feat .f .ic{width:30px;height:30px;border-radius:9px;background:rgba(124,92,252,.16);display:grid;place-items:center;margin-bottom:11px}
+  .feat .f .ic svg{width:17px;height:17px;stroke:var(--violet2)}
+  .feat .f h4{font-size:clamp(14px,1.35vw,17px);font-weight:700;letter-spacing:-.01em}
+  .feat .f p{font-size:clamp(11.5px,1.1vw,13.5px);color:var(--muted);margin-top:4px;line-height:1.4}
+
+  /* pricing */
+  .price{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.8vw,22px);width:100%;margin-top:6px}
+  .price .p{border:1px solid var(--line);border-radius:20px;padding:clamp(18px,2.4vw,30px);background:linear-gradient(180deg,rgba(255,255,255,.04),transparent)}
+  .price .p.hot{border-color:rgba(157,123,255,.5);background:linear-gradient(180deg,rgba(124,92,252,.16),rgba(124,92,252,.03))}
+  .price .p .tier{font-family:var(--mono);letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--violet2);font-weight:700}
+  .price .p .amt{font-size:clamp(34px,4.6vw,56px);font-weight:800;letter-spacing:-.03em;margin:12px 0 2px}
+  .price .p .amt small{font-size:.35em;color:var(--faint);font-weight:600;letter-spacing:0}
+  .price .p .who{font-size:clamp(13px,1.3vw,16px);color:var(--muted)}
+
+  /* status columns */
+  .cols{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(20px,3vw,44px);width:100%;align-items:start}
+  .done li::before{background:var(--win)!important}
+  .ask{background:linear-gradient(180deg,rgba(124,92,252,.16),rgba(225,92,198,.05));border:1px solid rgba(157,123,255,.4);border-radius:20px;padding:clamp(20px,2.6vw,32px)}
+  .ask h3{font-size:clamp(19px,2.2vw,28px);font-weight:800;letter-spacing:-.02em;margin-bottom:12px}
+  .ask p{color:var(--muted);font-size:clamp(14px,1.5vw,18px);line-height:1.55}
+  .link{color:var(--violet2);font-weight:700;text-decoration:none;border-bottom:1px solid rgba(157,123,255,.4)}
+
+  /* chrome */
+  .topbar{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:20px clamp(20px,4vw,40px);z-index:20;pointer-events:none}
+  .topbar .tb{display:flex;align-items:center;gap:10px;opacity:.85}
+  .topbar .tb .m{width:30px;height:30px;border-radius:24%;background:var(--grad);display:grid;place-items:center}
+  .topbar .tb .m svg{width:60%;height:60%}
+  .topbar .tb span{font-weight:800;font-size:16px;letter-spacing:-.01em}
+  .topbar .tb span em{font-style:normal;color:var(--violet2)}
+  .topbar .url{font-family:var(--mono);font-size:12px;color:var(--faint)}
+  .progress{position:fixed;top:0;left:0;height:3px;background:var(--grad);z-index:30;transition:width .4s cubic-bezier(.2,.8,.25,1)}
+  .ctrl{position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:18px;padding:18px;z-index:20}
+  .dots{display:flex;gap:7px}
+  .dots i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2);cursor:pointer;transition:.25s}
+  .dots i.on{background:var(--violet2);width:22px;border-radius:99px}
+  .nav{width:42px;height:42px;border-radius:50%;border:1px solid var(--line2);background:rgba(255,255,255,.05);color:var(--text);font-size:18px;cursor:pointer;display:grid;place-items:center;transition:.2s}
+  .nav:hover{background:rgba(124,92,252,.25);border-color:var(--violet2)}
+  .count{position:fixed;bottom:22px;right:clamp(20px,4vw,40px);font-family:var(--mono);font-size:13px;color:var(--faint);z-index:20}
+
+  @media(max-width:720px){
+    .slide{padding:88px 26px 96px;justify-content:flex-start;overflow-y:auto}
+    .grid3,.feat{grid-template-columns:1fr 1fr}
+    .price,.cols{grid-template-columns:1fr}
+    .vs .div{display:none}
+    .topbar .url{display:none}
+  }
+</style>
+
+<div class="progress" id="prog"></div>
+<div class="topbar">
+  <div class="tb"><span class="m js-mark"></span><span>EDGE<em> Pro</em></span></div>
+  <div class="url">edgeprojournal.com</div>
+</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 COVER -->
+  <section class="slide anim on">
+    <div class="brand"><span class="mark js-mark"></span><span class="word">EDGE<em> Pro</em></span></div>
+    <h1 style="margin-top:34px">We don't build the best<br>trading journal.<br><span class="grad">We build better traders.</span></h1>
+    <p class="lead wide">An AI trading-performance platform that helps traders become consistently profitable — by scoring their discipline, spotting the mistakes costing them money, and coaching them to improve.</p>
+    <p class="lbl" style="margin-top:34px">Built by Ryu · Live now at edgeprojournal.com · Use → to walk through it</p>
+  </section>
+
+  <!-- 2 WHAT -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">01</span> What I built</div>
+    <h1>It's a real, working product —<br>not a school project.</h1>
+    <p class="lead wide">EDGE Pro is a subscription web app for traders. It records every trade, <b>scores how disciplined you were</b>, and uses AI to coach you like a mentor would. It's live on the internet right now, on its own domain, and anyone can use it today.</p>
+    <ul class="pts">
+      <li>Works in any browser — phone, tablet, laptop</li>
+      <li>Your own account, your data saved safely in the cloud</li>
+      <li>Powered by the same AI I'm talking to right now (Claude)</li>
+    </ul>
+  </section>
+
+  <!-- 3 PROBLEM -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">02</span> The problem</div>
+    <h1>Traders don't blow up from bad<br>strategies. They blow up from<br><span class="grad">broken discipline.</span></h1>
+    <ul class="pts" style="margin-top:34px">
+      <li>Revenge trading after a loss <span>— chasing it back and losing more</span></li>
+      <li>Moving stops, oversizing, overtrading <span>— the same mistakes on repeat</span></li>
+      <li>Prop-firm traders blow funded accounts <span>on rules they simply forgot</span></li>
+      <li>And every journal out there is just a <b>P&amp;L spreadsheet</b> <span>— it tracks money, not behaviour</span></li>
+    </ul>
+  </section>
+
+  <!-- 4 PROOF -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">03</span> Why discipline is the whole game</div>
+    <h2>Same trader. Same setups. One variable.</h2>
+    <div class="vs" style="margin-top:40px">
+      <div class="col"><div class="big" style="color:var(--win)">71%</div><div class="cap">win rate <b style="color:var(--text)">when they follow their rules</b></div></div>
+      <div class="div"></div>
+      <div class="col"><div class="big" style="color:var(--danger)">38%</div><div class="cap">win rate <b style="color:var(--text)">the moment they break one</b></div></div>
+    </div>
+    <p class="lead wide" style="margin-top:38px">The edge was never the strategy. It was the discipline. <b>EDGE Pro is the first journal built entirely around that.</b></p>
+  </section>
+
+  <!-- 5 SOLUTION -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">04</span> The solution</div>
+    <h1>Turn discipline into a number —<br>then coach you to raise it.</h1>
+    <div class="grid3" style="margin-top:40px">
+      <div class="card"><div class="pill new">Score it</div><p class="lead" style="margin-top:16px;font-size:clamp(14px,1.5vw,18px)">Every trade graded on whether you followed your own plan.</p></div>
+      <div class="card"><div class="pill new">Read it</div><p class="lead" style="margin-top:16px;font-size:clamp(14px,1.5vw,18px)">AI reads your journal &amp; charts and hands you the exact fix.</p></div>
+      <div class="card"><div class="pill new">Guard it</div><p class="lead" style="margin-top:16px;font-size:clamp(14px,1.5vw,18px)">Live guardrails stop you breaching a funded account.</p></div>
+    </div>
+  </section>
+
+  <!-- 6 DASHBOARD -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">05</span> The dashboard — your whole trading life at a glance</div>
+    <div class="grid2" style="max-width:1000px">
+      <div class="card"><div class="lbl">Win rate</div><div class="kval" style="color:var(--win)">68%</div><div class="ksub">19 wins · 9 losses</div></div>
+      <div class="card"><div class="lbl">Profit factor</div><div class="kval">2.40</div><div class="ksub">gross wins ÷ gross losses</div></div>
+      <div class="card"><div class="lbl">Net P&amp;L</div><div class="kval" style="color:var(--win)">+$3,438</div><div class="ksub">+34% on a $10,000 account</div></div>
+      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><div class="lbl">Discipline</div><span class="pill good">Good</span></div><div class="kval" style="color:var(--violet2)">88</div><div class="ksub">20 clean · 3 slips · 5 broken</div></div>
+    </div>
+  </section>
+
+  <!-- 7 DISCIPLINE -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">06</span> The Discipline Score — the feature nobody else has</div>
+    <div class="row" style="margin-top:20px">
+      <div class="ring" style="--p:88"><b>88</b></div>
+      <div style="flex:1 1 340px;min-width:280px">
+        <h2 style="font-size:clamp(22px,3vw,36px);margin-bottom:6px">Did you follow your plan?</h2>
+        <p class="lead" style="margin-top:6px;margin-bottom:18px;font-size:clamp(14px,1.5vw,18px)">Every trade is graded against your own rules — so improvement is measurable, not a feeling.</p>
+        <div class="drow"><div class="nm"><span class="dot" style="background:var(--win)"></span>Rules followed</div><div class="vv">20</div></div>
+        <div class="drow"><div class="nm"><span class="dot" style="background:var(--violet2)"></span>Partial slips</div><div class="vv">3</div></div>
+        <div class="drow"><div class="nm"><span class="dot" style="background:var(--danger)"></span>Rules broken</div><div class="vv">5</div></div>
+        <div class="drow"><div class="nm"><span class="dot" style="background:var(--faint)"></span>Total trades</div><div class="vv">28</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 AI COACH -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">07</span> The AI Coach — your personal "Edge Report"</div>
+    <div class="row" style="align-items:stretch;margin-top:14px">
+      <div class="card" style="flex:1 1 460px;min-width:300px">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+          <div class="mark" style="width:56px;height:56px;border-radius:18px"><b style="color:#fff;font-size:24px;font-weight:800">B+</b></div>
+          <div><div style="font-weight:700;font-size:clamp(17px,1.8vw,22px)">Your Edge Report</div><div class="ksub">AI-read from your last 28 trades</div></div>
+        </div>
+        <p style="font-size:clamp(16px,1.8vw,22px);font-weight:600;line-height:1.4">"Your edge is real — but breaking your own rules on 1 in 4 trades is a self-inflicted wound."</p>
+        <div style="margin-top:18px"><span class="lbl" style="color:var(--danger)">Biggest leak</span><p class="ksub" style="margin-top:6px;font-size:clamp(14px,1.5vw,18px);color:var(--text)">Revenge trades cost you −$210 this month.</p></div>
+        <div style="margin-top:18px;background:rgba(255,196,61,.1);border-left:4px solid var(--gold);border-radius:10px;padding:14px 16px">
+          <span class="lbl" style="color:var(--gold)">Do this week</span>
+          <p style="margin-top:5px;font-weight:600;font-size:clamp(14px,1.5vw,18px)">Skip the first trade after a loss.</p>
+        </div>
+      </div>
+      <div style="flex:1 1 280px;min-width:240px;display:flex;flex-direction:column;justify-content:center">
+        <p class="lead" style="max-width:30ch">Real AI (Claude) reads your actual numbers and writes a personal report — a grade, your strengths, the leak costing you money, and <b>one thing</b> to fix. It never invents data.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 CHART AI -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">08</span> Real-time AI chart reading</div>
+    <h2 style="max-width:20ch">Screenshot any chart. The AI reads it instantly.</h2>
+    <div class="chat" style="margin-top:26px">
+      <div class="bub me"><div class="thumb"><svg viewBox="0 0 300 120" preserveAspectRatio="none"><polyline points="0,95 40,80 80,88 120,60 160,66 200,40 240,30 300,14" fill="none" stroke="#24D19B" stroke-width="3"/></svg></div>What do you think of this setup? 📈</div>
+      <div class="bub ai"><div class="who">EDGE AI</div>Clean uptrend — price is holding prior resistance as support. Long is valid above 1.084. But your stop is 2.1R, wider than your winning average — tuck it under structure and you keep the same edge with half the risk.</div>
+    </div>
+  </section>
+
+  <!-- 10 BREACH -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">09</span> Prop-firm breach monitor</div>
+    <h2 style="max-width:22ch;margin-bottom:26px">Never blow a funded account on a rule you forgot.</h2>
+    <div style="width:100%;max-width:840px">
+      <div class="gauge"><div class="top"><span>Profit target</span><span class="r" style="color:var(--win)">$6,200 / $10k</span></div><div class="track"><i style="width:62%;background:var(--win)"></i></div></div>
+      <div class="gauge"><div class="top"><span>Daily loss limit</span><span class="r" style="color:var(--win)">$4,790 left</span></div><div class="track"><i style="width:6%;background:var(--win)"></i></div></div>
+      <div class="gauge"><div class="top"><span>Max drawdown</span><span class="r" style="color:var(--gold)">$6,900 left</span></div><div class="track"><i style="width:31%;background:var(--gold)"></i></div></div>
+      <div class="gauge"><div class="top"><span>Consistency rule</span><span class="r" style="color:var(--gold)">26% / 30% max</span></div><div class="track"><i style="width:86%;background:var(--gold)"></i></div></div>
+    </div>
+    <p class="lead wide">Works for prop-firm traders <b>and</b> anyone trading their own capital with their own limits.</p>
+  </section>
+
+  <!-- 11 TOOLKIT -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">10</span> And that's just the start — the full toolkit</div>
+    <div class="feat">
+      <div class="f"><div class="ic" data-i="book"></div><h4>Journal</h4><p>Daily notes, emotions &amp; lessons</p></div>
+      <div class="f"><div class="ic" data-i="play"></div><h4>Playbooks</h4><p>Your setups, win-rate per strategy</p></div>
+      <div class="f"><div class="ic" data-i="check"></div><h4>Checklist</h4><p>Pre-trade plan before you click buy</p></div>
+      <div class="f"><div class="ic" data-i="goal"></div><h4>Goals</h4><p>Targets &amp; streaks to stay on track</p></div>
+      <div class="f"><div class="ic" data-i="chart"></div><h4>Reports</h4><p>Deep analytics on your edge</p></div>
+      <div class="f"><div class="ic" data-i="calc"></div><h4>Calculators</h4><p>Risk, position size, R-multiple</p></div>
+      <div class="f"><div class="ic" data-i="cal"></div><h4>Economic Calendar</h4><p>High-impact news + a trade guard</p></div>
+      <div class="f"><div class="ic" data-i="shield"></div><h4>Evaluation</h4><p>Track a prop-firm challenge live</p></div>
+      <div class="f"><div class="ic" data-i="bell"></div><h4>Smart Reminders</h4><p>Nudges to journal &amp; review</p></div>
+      <div class="f"><div class="ic" data-i="link"></div><h4>Broker Connect</h4><p>Import trades automatically</p></div>
+      <div class="f"><div class="ic" data-i="cloud"></div><h4>Cloud Sync</h4><p>Your data on every device</p></div>
+      <div class="f"><div class="ic" data-i="spark"></div><h4>Seasonal UI</h4><p>The app celebrates with you</p></div>
+    </div>
+  </section>
+
+  <!-- 12 MARKET -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">11</span> Who it's for</div>
+    <h1>A big, growing market —<br>and I serve <span class="grad">both halves.</span></h1>
+    <div class="grid2" style="margin-top:36px;max-width:960px">
+      <div class="card"><h2 style="font-size:clamp(22px,2.6vw,32px)">Prop-firm traders</h2><p class="lead" style="font-size:clamp(14px,1.5vw,18px);margin-top:12px">Millions of people now pay firms like FTMO for funded accounts. They're desperate not to breach the rules — my breach monitor is built for them.</p></div>
+      <div class="card"><h2 style="font-size:clamp(22px,2.6vw,32px)">Retail &amp; self-funded</h2><p class="lead" style="font-size:clamp(14px,1.5vw,18px);margin-top:12px">Everyday traders on their own money who want to get serious. The discipline score &amp; AI coach work for anyone in any market.</p></div>
+    </div>
+  </section>
+
+  <!-- 13 MONEY -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">12</span> How it makes money</div>
+    <h2>Free to try. A monthly subscription when it pays for itself.</h2>
+    <div class="price" style="margin-top:32px">
+      <div class="p"><div class="tier">Starter</div><div class="amt">$9<small>/mo</small></div><div class="who">Solo traders getting serious</div></div>
+      <div class="p hot"><div class="tier" style="color:var(--pink)">Pro · most popular</div><div class="amt">$19<small>/mo</small></div><div class="who">Full AI coach + chart reading</div></div>
+      <div class="p"><div class="tier">Funded</div><div class="amt">$39<small>/mo</small></div><div class="who">Prop-firm guardrails &amp; evals</div></div>
+    </div>
+    <p class="lead wide">Recurring revenue — every trader pays each month they keep improving. A free demo brings them in with zero risk.</p>
+  </section>
+
+  <!-- 14 LEGIT -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">13</span> Why it's the real deal</div>
+    <h1>Built properly. Secured properly.<br><span class="grad">Live right now.</span></h1>
+    <div class="grid3" style="margin-top:36px">
+      <div class="card"><div class="lbl">Built on</div><p style="margin-top:12px;font-size:clamp(14px,1.5vw,18px);line-height:1.5">Professional infrastructure — Vercel, Supabase &amp; Anthropic's Claude AI. The same tools real startups use.</p></div>
+      <div class="card"><div class="lbl">Secured</div><p style="margin-top:12px;font-size:clamp(14px,1.5vw,18px);line-height:1.5">Encrypted HTTPS, isolated per-user data, and full security headers. One user can never see another's trades.</p></div>
+      <div class="card"><div class="lbl">Status</div><p style="margin-top:12px;font-size:clamp(14px,1.5vw,18px);line-height:1.5">Live &amp; working at edgeprojournal.com. Not a mockup — a finished product you can use today.</p></div>
+    </div>
+  </section>
+
+  <!-- 15 ASK -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">14</span> Where I am — and the one thing I need</div>
+    <div class="cols">
+      <div>
+        <h2 style="font-size:clamp(24px,3vw,40px);margin-bottom:20px">Everything's done.</h2>
+        <ul class="pts done">
+          <li>Full app built &amp; live on its own domain</li>
+          <li>AI coach, discipline score &amp; chart reading working</li>
+          <li>Secured to professional standard</li>
+          <li>Marketing content ready to post (Instagram/TikTok)</li>
+        </ul>
+      </div>
+      <div class="ask">
+        <span class="pill new">The ask</span>
+        <h3 style="margin-top:14px">One thing left: take payments.</h3>
+        <p>To accept subscriptions I need to connect <b style="color:var(--text)">Stripe</b>, which needs a <b style="color:var(--text)">business bank account</b> — and that requires an adult. <br><br>Dad, this is where I need your help to actually launch it. 🚀</p>
+        <p style="margin-top:18px"><a class="link" href="https://edgeprojournal.com" target="_blank" rel="noopener">See it live → edgeprojournal.com</a></p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="ctrl">
+  <button class="nav" id="prev" aria-label="Previous">‹</button>
+  <div class="dots" id="dots"></div>
+  <button class="nav" id="next" aria-label="Next">›</button>
+</div>
+<div class="count"><span id="cur">1</span> / <span id="tot">15</span></div>
+
+<script>
+(function(){
+  var MARK='<svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22 L13 15 L18 19 L25.5 10"/><path d="M19.5 10 L25.5 10 L25.5 16"/></svg>';
+  var ICON={
+    book:'<path d="M4 5a2 2 0 0 1 2-2h9v16H6a2 2 0 0 0-2 2z"/><path d="M15 3h3a1 1 0 0 1 1 1v15"/>',
+    play:'<path d="M5 4v14l6-3 6 3V4"/>',
+    check:'<path d="M4 6h16M4 12h10M4 18h7"/><path d="M15 16l2 2 4-4"/>',
+    goal:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+    chart:'<path d="M4 20V4M4 20h16M8 16v-4M13 16V8M18 16v-7"/>',
+    calc:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01"/>',
+    cal:'<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/>',
+    shield:'<path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/>',
+    bell:'<path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+    link:'<path d="M9 15l6-6M8 8l-2 2a4 4 0 0 0 6 6M16 16l2-2a4 4 0 0 0-6-6"/>',
+    cloud:'<path d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 9.6-1A3.5 3.5 0 0 1 17 18z"/>',
+    spark:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>'
+  };
+  [].forEach.call(document.querySelectorAll('.js-mark'),function(el){el.innerHTML=MARK;});
+  [].forEach.call(document.querySelectorAll('.ic[data-i]'),function(el){
+    var g=ICON[el.getAttribute('data-i')]; if(g) el.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+g+'</svg>';
+  });
+
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var i=0, N=slides.length;
+  var dots=document.getElementById('dots');
+  slides.forEach(function(_,k){var d=document.createElement('i');if(k===0)d.className='on';d.onclick=function(){go(k)};dots.appendChild(d);});
+  var di=[].slice.call(dots.children);
+  document.getElementById('tot').textContent=N;
+
+  function go(n){
+    n=Math.max(0,Math.min(N-1,n));
+    if(n===i && slides[i].classList.contains('on'))return;
+    slides[i].classList.remove('on','anim');
+    i=n;
+    var s=slides[i];
+    s.classList.add('on');
+    void s.offsetWidth; s.classList.add('anim');
+    di.forEach(function(d,k){d.classList.toggle('on',k===i);});
+    document.getElementById('cur').textContent=i+1;
+    document.getElementById('prog').style.width=((i+1)/N*100)+'%';
+  }
+  document.getElementById('prog').style.width=(1/N*100)+'%';
+  document.getElementById('next').onclick=function(){go(i+1)};
+  document.getElementById('prev').onclick=function(){go(i-1)};
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(i+1);}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(i-1);}
+    else if(e.key==='Home')go(0); else if(e.key==='End')go(N-1);
+  });
+  var x0=null;
+  document.addEventListener('touchstart',function(e){x0=e.touches[0].clientX;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50)go(i+(dx<0?1:-1));x0=null;
+  },{passive:true});
+})();
+</script>
