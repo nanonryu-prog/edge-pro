@@ -23,15 +23,15 @@
 <body>
 <div class="wrap">
   <div class="eyebrow">EDGE Pro · showcase carousel</div>
-  <h1>The inside of the app — 6 slides</h1>
-  <p class="sub">Real screens: the discipline score, AI coach, and prop-firm monitor. Download all, post in order.</p>
+  <h1>The inside of the app — 5 slides</h1>
+  <p class="sub">Real screens: the discipline score, the AI coach, and your Edge Report. Download all, post in order.</p>
   <div class="grid" id="grid"></div>
   <div class="note"><b>Phone:</b> long-press a slide → “Save Image,” or tap Download.</div>
-  <div class="cap"><h3>📋 Caption</h3><pre>This is what a trading journal should actually look like 👇 It scores your discipline, reads your charts with AI, and keeps you inside your prop-firm rules.
+  <div class="cap"><h3>📋 Caption</h3><pre>This is what a trading journal should actually look like 👇 It scores your discipline, reads your charts with AI, and shows you the leak that’s quietly costing you.
 
 Try it free — no signup, no card. Link in bio 📈
 
-#trading #daytrading #forex #propfirm #tradingpsychology #fundedtrader #tradingjournal</pre></div>
+#trading #daytrading #tradingpsychology #tradingjournal #forex #stockmarket #propfirm</pre></div>
 </div>
 <script>
 var W=1080,H=1350,PAD=96;
@@ -135,7 +135,7 @@ function drawReport(x,X,Y,w,h){
   x.fillStyle='#ECEAF6';x.font='600 29px system-ui,-apple-system,sans-serif';x.fillText('Skip the first trade after a loss.',X+72,by+86);
 }
 var slides=[
-  {type:'hook'},{type:'disc'},{type:'insight'},{type:'report'},{type:'breach'},{type:'offer'}
+  {type:'hook'},{type:'disc'},{type:'insight'},{type:'report'},{type:'offer'}
 ];
 function draw(s){
   var c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');bg(x);header(x);
