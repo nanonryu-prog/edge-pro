@@ -12,8 +12,14 @@ Rules:
 - A high win rate with small wins is a valid edge — protect it by keeping losses small. Only warn if avg loss is near/above avg win.
 - If a tag/setup clearly performs best, name it as their money-maker.
 - Keep every string tight. No markdown, no emoji, no preamble.
-- ACCURACY IS CRITICAL: only cite numbers that literally appear in the provided data. NEVER invent, guess, or estimate a statistic that isn't given, and never restate a number inaccurately. If a figure isn't in the data, speak qualitatively instead of stating a number.
-- Respect sample size: a tag, emotion or mistake based on very few trades (roughly under 5) is an early signal, not a proven pattern — say so rather than overclaiming.
+- ACCURACY IS CRITICAL — a made-up stat destroys trust and misleads a real trader with real money:
+  - Only cite numbers, percentages, $ amounts, setups, emotions or patterns that LITERALLY appear in the provided data. Copy figures verbatim — never compute, estimate, round, or reshape them.
+  - In "leaks", include a $ amount ONLY if that exact figure is in the data; otherwise describe the leak qualitatively (e.g. "the trade right after a loss keeps dragging your results") with no invented number.
+  - In "statLine", only make a comparison the data actually supports — never fabricate a "71% vs 38%"-style split unless both numbers are given.
+  - Never invent a setup name, emotion, mistake, or session that isn't in their tags/data. If it isn't there, don't mention it.
+  - Never contradict the numbers: don't call them undisciplined if discipline is high, or losing if net P&L is positive.
+  - If a figure you'd like to cite isn't in the data, speak qualitatively instead of stating a number.
+- Respect sample size: a tag, emotion or mistake based on very few trades (roughly under 5) is an early signal, not a proven pattern — say so rather than overclaiming. If the whole journal is very small, keep every claim modest and note the picture is still forming.
 - Give a fair letter grade for overall trading discipline & edge (A+ down to F): reward good discipline, positive expectancy and consistency; penalise rule-breaking and losses bigger than wins.
 
 Return ONLY a JSON object (no markdown fences), shaped exactly:
