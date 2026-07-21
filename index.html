@@ -7,7 +7,7 @@
 <link rel="manifest" href="/manifest.json" />
 <meta name="theme-color" content="#0A0A16" />
 <link rel="apple-touch-icon" href="/icon.svg" />
-<title>EDGE Pro — Trade with discipline, not guesswork</title>
+<title>EDGE Pro — We build better traders | AI trading journal & coach</title>
 <script src="config.js"></script>
 <script>
 /* Returning-trader fast path: if already signed in, send them straight to the dashboard — skip the login page. */
@@ -31,7 +31,7 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
 <script>(function(){try{var p=new URLSearchParams(location.search);var ref=p.get("ref")||p.get("via")||p.get("aff");if(ref)localStorage.setItem("edgepro_ref",ref);}catch(e){}var c=(window.EDGE_CONFIG||{}).affiliate||{};if(c.toltKey){var t=document.createElement("script");t.async=true;t.src="https://cdn.tolt.io/tolt.js";t.setAttribute("data-tolt",c.toltKey);document.head.appendChild(t);}})();</script>
-<meta name="description" content="EDGE Pro grades every trade against your own rules, protects your capital, and tracks your prop-firm evaluation live — a discipline-first trading journal for traders on their own capital or a funded account." />
+<meta name="description" content="EDGE Pro is an AI trading-performance platform that scores your discipline, catches the habits costing you money, and coaches you to fix them — for prop-firm and self-funded traders. Free to try, no card." />
 <link rel="canonical" href="https://edgeprojournal.com/" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="EDGE Pro" />
@@ -1444,26 +1444,34 @@
   }
 
   // ---- Reveal + trigger nested animations ----
+  function revealEl(el){
+    if (el.classList.contains('is-visible')) return;
+    el.classList.add('is-visible');
+    el.querySelectorAll('[data-count]').forEach(n => { if (!n.dataset.done) { n.dataset.done = '1'; animateCount(n); } });
+    el.querySelectorAll('.barfill').forEach(b => { b.style.width = b.dataset.w; });
+    io.unobserve(el);
+  }
+  // threshold 0.01 so even elements taller than the viewport (mobile pricing cards) reveal as soon as they enter
   const io = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      const el = entry.target;
-      el.classList.add('is-visible');
-
-      // count-ups inside this block
-      el.querySelectorAll('[data-count]').forEach(n => { if (!n.dataset.done) { n.dataset.done = '1'; animateCount(n); } });
-      // bar fills inside this block
-      el.querySelectorAll('.barfill').forEach(b => { b.style.width = b.dataset.w; });
-
-      io.unobserve(el);
-    });
-  }, { threshold: 0.2, rootMargin: '0px 0px -50px 0px' });
+    entries.forEach(entry => { if (entry.isIntersecting) revealEl(entry.target); });
+  }, { threshold: 0.01, rootMargin: '0px 0px -40px 0px' });
 
   document.querySelectorAll('[data-reveal],[data-flip]').forEach(el => io.observe(el));
-
-  // dashboard has counts + bars but is revealed early — make sure it's observed
   const dash = document.getElementById('dash');
   if (dash) io.observe(dash);
+
+  // Safety net: never leave content stuck invisible on a #hash landing or a fast scroll.
+  // Reveal anything already at/above the fold, on load, hash change, and a couple of short ticks.
+  function safetySweep(){
+    const vh = window.innerHeight || 800;
+    document.querySelectorAll('[data-reveal]:not(.is-visible),[data-flip]:not(.is-visible)').forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.top < vh * 0.98 && r.bottom > 0) revealEl(el);
+    });
+  }
+  window.addEventListener('load', () => { safetySweep(); setTimeout(safetySweep, 400); });
+  window.addEventListener('hashchange', () => setTimeout(safetySweep, 60));
+  setTimeout(safetySweep, 250); setTimeout(safetySweep, 1200);
 
   // ---- Nav shadow on scroll ----
   const nav = document.querySelector('.nav');
