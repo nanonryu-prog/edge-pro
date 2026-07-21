@@ -260,6 +260,8 @@
   .hero p.sub { margin: 24px auto 0; max-width: 60ch; font-size: clamp(16px, 2.2vw, 20px); color: var(--muted); line-height: 1.6; }
   .hero-actions { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
   .hero-note { margin-top: 18px; font-size: 12.5px; color: var(--faint); }
+  .quiz-link { display: inline-block; margin-top: 18px; font-size: 14px; font-weight: 600; color: var(--violet2); border-bottom: 1px solid rgba(157,123,255,.35); padding-bottom: 2px; transition: color .2s var(--ease); }
+  .quiz-link:hover { color: var(--pink); }
 
   /* ---------- Dashboard mockup ---------- */
   .dash-shell {
@@ -737,6 +739,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3l14 9-14 9V3z"/></svg>
         </a>
       </div>
+      <a href="score.html" class="quiz-link" data-reveal>✦ Not ready? Take the 60-second Discipline Score test →</a>
       <p class="hero-note" data-reveal>No sign-up needed to explore · No card required for trial · Built by a funded trader</p>
     </div>
 
