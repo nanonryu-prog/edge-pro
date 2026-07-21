@@ -1502,8 +1502,14 @@ function coachBrief(){
   const afterLoss=[]; for(let i=1;i<tr.length;i++){ if(tr[i-1].pnl<0) afterLoss.push(tr[i]); }
   const notes=tr.filter(t=>((t.notes||'')+'').trim()).slice(-12).map(t=>({date:t.date,pnl:Math.round(t.pnl),side:t.side,emotion:t.emotion||'',note:((t.notes||'')+'').slice(0,160)}));
   const pnls=tr.map(t=>t.pnl);
+  // proprietary EDGE Scores + detected behavioral leaks — so the AI grounds answers in real metrics, never invents them
+  let edgeSc=null, leaks=null;
+  try{ const sc=edgeScores(tr); edgeSc={}; sc.list.forEach(x=>{ edgeSc[x.key]={score:x.v,trend:x.trend}; }); }catch(e){}
+  try{ leaks=behavioralLeaks(tr).map(l=>({leak:l.title,costUSD:Math.round(l.cost),detail:(l.detail||'').replace(/<[^>]+>/g,''),fix:l.fix})); }catch(e){}
   return {
     range:{from:tr[0]&&tr[0].date,to:tr[tr.length-1]&&tr[tr.length-1].date,trades:tr.length},
+    edgeScores:edgeSc,
+    behavioralLeaks:leaks,
     totals:{net:Math.round(s.net),winRate:s.wr,profitFactor:s.pf===Infinity?null:Math.round(s.pf*100)/100,expectancy:Math.round(s.exp),avgWin:Math.round(s.avgWin),avgLoss:Math.round(s.avgLoss),avgRmultiple:s.avgR!=null?Math.round(s.avgR*100)/100:null,maxDrawdown:s.maxDD,avgDiscipline:s.dis,bestTrade:Math.round(Math.max.apply(null,pnls.concat(0))),worstTrade:Math.round(Math.min.apply(null,pnls.concat(0)))},
     disciplineSplit:{cleanRuleTrades:sub(clean),ruleBrokenTrades:sub(broke),timesBrokeRules:broke.length},
     bySide:{long:sub(tr.filter(t=>t.side==='long')),short:sub(tr.filter(t=>t.side==='short'))},
