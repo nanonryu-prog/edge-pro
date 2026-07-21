@@ -175,27 +175,40 @@
   .mega-panel {
     position: absolute; top: calc(100% + 20px); left: 50%;
     transform: translateX(-50%) translateY(10px);
-    width: 640px; max-width: 92vw;
-    background: color-mix(in srgb, var(--surface, #14142a) 94%, transparent);
+    width: 880px; max-width: 94vw;
+    background: color-mix(in srgb, var(--surface, #14142a) 95%, transparent);
     -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
-    border: 1px solid var(--border); border-radius: 20px; padding: 14px;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+    border: 1px solid var(--border); border-radius: 22px; padding: 16px;
+    display: grid; grid-template-columns: 1fr 292px; gap: 16px;
     box-shadow: 0 34px 80px -24px rgba(0,0,0,.72);
     opacity: 0; visibility: hidden; pointer-events: none;
     transition: opacity .24s var(--ease), transform .24s var(--ease), visibility .24s; z-index: 90;
   }
   .mega-panel::before { content: ""; position: absolute; top: -22px; left: 0; right: 0; height: 22px; }
   .mega-wrap:hover .mega-panel, .mega-wrap:focus-within .mega-panel, .mega-panel.open {
-    opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(-50%) translateY(0);
+    opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; transform: translateX(-50%) translateY(0) !important;
   }
-  .mega-item { display: flex; gap: 13px; align-items: flex-start; padding: 12px 13px; border-radius: 14px; transition: background .18s var(--ease); }
+  .mega-list { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; align-content: start; }
+  .mega-item { display: flex; gap: 12px; align-items: flex-start; padding: 11px 12px; border-radius: 14px; transition: background .18s var(--ease); }
   .mega-item:hover { background: rgba(124,92,252,.12); }
   .mega-item::after, .mega-trigger::after, .mega-foot a::after { display: none !important; }
-  .mega-ic { flex: 0 0 auto; width: 36px; height: 36px; border-radius: 11px; background: rgba(124,92,252,.16); display: grid; place-items: center; color: var(--violet-2); }
-  .mega-ic svg { width: 19px; height: 19px; }
-  .mega-item .mt { display: block; color: var(--text); font-size: 14px; font-weight: 650; letter-spacing: -.01em; }
-  .mega-item .md { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.45; margin-top: 3px; }
-  .mega-foot { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 6px; padding: 13px 14px 4px; border-top: 1px solid var(--border); }
+  .mega-ic { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 10px; background: rgba(124,92,252,.16); display: grid; place-items: center; color: var(--violet-2); }
+  .mega-ic svg { width: 18px; height: 18px; }
+  .mega-item .mt { display: block; color: var(--text); font-size: 13.5px; font-weight: 650; letter-spacing: -.01em; }
+  .mega-item .md { display: block; color: var(--muted); font-size: 12px; line-height: 1.42; margin-top: 2px; }
+  /* visual "peek inside" preview */
+  .mega-peek { background: #0c0c1a; border: 1px solid var(--border); border-radius: 16px; padding: 15px; display: flex; flex-direction: column; }
+  .mega-peek .pk-h { font-size: 9.5px; letter-spacing: .14em; color: rgba(244,244,251,.42); font-weight: 700; }
+  .mega-peek .pk-ring { display: flex; align-items: center; gap: 13px; margin: 11px 0 13px; }
+  .mega-peek .pk-r { width: 60px; height: 60px; border-radius: 50%; flex: 0 0 auto; background: conic-gradient(from -90deg, #7C5CFC, #E15CC6 88%, rgba(255,255,255,.09) 0); display: grid; place-items: center; position: relative; }
+  .mega-peek .pk-r::before { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: #0c0c1a; }
+  .mega-peek .pk-r b { position: relative; font-size: 22px; font-weight: 800; color: #ECEAF6; }
+  .mega-peek .pk-rl .t { font-size: 13px; font-weight: 650; color: var(--text); }
+  .mega-peek .pk-rl .s { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .mega-peek .pk-badge { display: inline-block; font-size: 8px; font-weight: 700; letter-spacing: .06em; color: #24D19B; background: rgba(36,209,155,.15); border-radius: 5px; padding: 2px 6px; margin-top: 5px; }
+  .mega-peek .pk-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 6px 0; border-top: 1px solid rgba(255,255,255,.06); }
+  .mega-peek .pk-row span { color: var(--muted); } .mega-peek .pk-row b { font-variant-numeric: tabular-nums; }
+  .mega-foot { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; padding: 13px 14px 3px; border-top: 1px solid var(--border); }
   .mega-foot span { font-size: 12.5px; color: var(--faint); }
   .mega-foot a { color: var(--violet-2); font-weight: 650; font-size: 13px; }
   @media (max-width: 900px) { .mega-panel { display: none !important; } .mega-caret { display: none; } }
@@ -651,12 +664,24 @@
           <svg class="mega-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
         </a>
         <div class="mega-panel" role="menu" aria-label="Features">
-          <a class="mega-item" href="#features" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.5" fill="currentColor"/></svg></span><span><span class="mt">Discipline Score</span><span class="md">Every trade graded 0–100 on how well you followed your own rules.</span></span></a>
-          <a class="mega-item" href="#ai" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10z"/><path d="M18.5 15.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></svg></span><span><span class="mt">AI Coach & chart reading</span><span class="md">An honest read on any trade — plus the one fix to make next.</span></span></a>
-          <a class="mega-item" href="#ai" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 2 4-6"/></svg></span><span><span class="mt">Behavioral leaks</span><span class="md">See the exact habits — revenge, overtrading — quietly costing you money.</span></span></a>
-          <a class="mega-item" href="#features" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5Z"/><path d="m9 12 2 2 4-4"/></svg></span><span><span class="mt">Prop-firm guardrails</span><span class="md">Track FTMO targets, daily loss & trailing drawdown live as you trade.</span></span></a>
-          <a class="mega-item" href="#inside" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg></span><span><span class="mt">Reports & calendar</span><span class="md">40+ analytics and a whole month colour-coded by discipline.</span></span></a>
-          <a class="mega-item" href="#inside" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span><span><span class="mt">See it inside</span><span class="md">A full tour of the real dashboard — before you sign up.</span></span></a>
+          <div class="mega-list">
+            <a class="mega-item" href="#features" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.5" fill="currentColor"/></svg></span><span><span class="mt">Discipline Score</span><span class="md">Every trade graded 0–100 on your own rules.</span></span></a>
+            <a class="mega-item" href="#ai" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10z"/><path d="M18.5 15.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></svg></span><span><span class="mt">AI Coach & charts</span><span class="md">An honest read on any trade + the fix.</span></span></a>
+            <a class="mega-item" href="#ai" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 2 4-6"/></svg></span><span><span class="mt">Behavioral leaks</span><span class="md">The habits quietly costing you money.</span></span></a>
+            <a class="mega-item" href="#features" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5Z"/><path d="m9 12 2 2 4-4"/></svg></span><span><span class="mt">Prop-firm guardrails</span><span class="md">FTMO targets & limits, live.</span></span></a>
+            <a class="mega-item" href="#inside" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg></span><span><span class="mt">Reports & calendar</span><span class="md">40+ analytics, month by discipline.</span></span></a>
+            <a class="mega-item" href="#inside" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span><span><span class="mt">See it inside</span><span class="md">Tour the real dashboard first.</span></span></a>
+          </div>
+          <div class="mega-peek" aria-hidden="true">
+            <div class="pk-h">YOUR DASHBOARD · LIVE</div>
+            <div class="pk-ring">
+              <div class="pk-r"><b>88</b></div>
+              <div class="pk-rl"><div class="t">Discipline Score</div><div class="s">20 clean · 3 slips · 5 broken</div><span class="pk-badge">GOOD</span></div>
+            </div>
+            <div class="pk-row"><span>Win rate</span><b style="color:#24D19B">68%</b></div>
+            <div class="pk-row"><span>Net P&amp;L</span><b style="color:#24D19B">+$3,438</b></div>
+            <div class="pk-row"><span>Profit factor</span><b style="color:var(--text)">2.40</b></div>
+          </div>
           <div class="mega-foot"><span>Everything in one place — free to explore, no card.</span><a href="app.html?demo=1">Try the live demo →</a></div>
         </div>
       </div>
