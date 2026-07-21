@@ -9,6 +9,25 @@
 <link rel="apple-touch-icon" href="/icon.svg" />
 <title>EDGE Pro — Trade with discipline, not guesswork</title>
 <script src="config.js"></script>
+<script>
+/* Returning-trader fast path: if already signed in, send them straight to the dashboard — skip the login page. */
+(function(){
+  function edgeLoggedIn(){
+    try{
+      if(localStorage.getItem('edgepro_session')) return true;
+      var url=((window.EDGE_CONFIG||{}).supabase||{}).url||'';
+      var m=url.match(/https?:\/\/([a-z0-9]+)\.supabase/i);
+      if(m){
+        var raw=localStorage.getItem('sb-'+m[1]+'-auth-token');
+        if(raw){ var s=JSON.parse(raw); var exp=s&&(s.expires_at||(s.currentSession&&s.currentSession.expires_at)); if(s&&(!exp||exp*1000>Date.now())) return true; }
+      }
+    }catch(e){}
+    return false;
+  }
+  window.__edgeAuthed=edgeLoggedIn();
+  if(window.__edgeAuthed) document.documentElement.classList.add('is-authed');
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
 <script>(function(){try{var p=new URLSearchParams(location.search);var ref=p.get("ref")||p.get("via")||p.get("aff");if(ref)localStorage.setItem("edgepro_ref",ref);}catch(e){}var c=(window.EDGE_CONFIG||{}).affiliate||{};if(c.toltKey){var t=document.createElement("script");t.async=true;t.src="https://cdn.tolt.io/tolt.js";t.setAttribute("data-tolt",c.toltKey);document.head.appendChild(t);}})();</script>
@@ -147,6 +166,7 @@
   .nav-links a:hover { color: var(--text); }
   .nav-links a:hover::after { width: 100%; }
   .nav-cta { display: flex; align-items: center; gap: 12px; }
+  .is-authed .nav-login { display: none !important; }
   @media (min-width: 900px) { .nav-links { display: flex; } }
 
   /* ---------- Buttons ---------- */
@@ -1528,6 +1548,23 @@
       card.addEventListener('mouseleave',()=>{ sp.style.opacity='0'; });
     });
   })();
+</script>
+<script>
+/* Returning-trader fast path (part 2): re-point every "login / start trial" link to the dashboard and relabel. */
+(function(){
+  if(!window.__edgeAuthed) return;
+  document.querySelectorAll('a[href="login.html"]').forEach(function(a){
+    var t=((a.textContent||'').trim().toLowerCase());
+    if(/log ?in|sign ?in/.test(t)){ a.style.display='none'; return; }
+    a.setAttribute('href','app.html');
+    if(/free trial|get started|start/.test(t)){
+      // preserve any trailing icon markup; just swap the leading label text node
+      var replaced=false;
+      a.childNodes.forEach(function(n){ if(!replaced && n.nodeType===3 && n.textContent.trim()){ n.textContent='Open dashboard'; replaced=true; } });
+      if(!replaced) a.textContent='Open dashboard';
+    }
+  });
+})();
 </script>
 
 </body>
