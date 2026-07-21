@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EDGE Pro — Reel 2</title>
+<style>
+  :root{
+    --bg:#0A0A16; --ink:#F4F4FB; --mut:#A6A1C2; --faint:#6E6890;
+    --violet:#7C5CFC; --violet2:#9D7BFF; --pink:#E15CC6;
+    --win:#24D19B; --loss:#F5476B; --gold:#FFC43D;
+    --grad:linear-gradient(135deg,#7C5CFC,#A45CFC 45%,#E15CC6);
+    --sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    --mono:ui-monospace,'SF Mono',Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#05050c;overflow:hidden;font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .stage{
+    position:fixed;inset:0;margin:auto;height:100dvh;width:min(100vw,56.25dvh);
+    background:
+      radial-gradient(120% 70% at 85% 0%,rgba(245,71,107,.16),transparent 55%),
+      radial-gradient(110% 60% at 0% 100%,rgba(124,92,252,.22),transparent 55%),
+      linear-gradient(165deg,#0d0d1e,#07070f);
+    color:var(--ink);overflow:hidden;
+  }
+  .prog{position:absolute;top:16px;left:16px;right:16px;height:3px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden;z-index:20}
+  .prog i{display:block;height:100%;width:0;background:var(--grad);border-radius:3px}
+  .brand{position:absolute;top:30px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:9px;z-index:20;opacity:.9}
+  .brand .m{width:26px;height:26px;border-radius:24%;background:var(--grad);display:grid;place-items:center}
+  .brand .m svg{width:60%;height:60%}
+  .brand b{font-size:16px;font-weight:800;letter-spacing:-.01em}
+  .brand b em{font-style:normal;color:var(--violet2)}
+
+  .scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:0 8%;text-align:center;opacity:0;pointer-events:none;transition:opacity .45s ease}
+  .scene.on{opacity:1}
+  .rise{opacity:0;transform:translateY(26px)}
+  .scene.on .rise{animation:rise .6s cubic-bezier(.2,.8,.25,1) forwards}
+  .scene.on .rise.d1{animation-delay:.14s}.scene.on .rise.d2{animation-delay:.3s}.scene.on .rise.d3{animation-delay:.46s}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .shake{animation:none}
+  .scene.on .shake{animation:rise .6s cubic-bezier(.2,.8,.25,1) forwards, buzz .5s .6s ease}
+  @keyframes buzz{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+
+  .kick{font-family:var(--mono);font-size:3.6vh;letter-spacing:.16em;text-transform:uppercase;color:var(--violet2);font-weight:700;margin-bottom:2.4vh}
+  .kick.warn{color:var(--loss)}
+  h1{font-size:8vh;font-weight:800;letter-spacing:-.03em;line-height:1.03;text-wrap:balance}
+  h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  h1 .r{color:var(--loss)}
+  .sub{font-size:3.9vh;color:var(--mut);margin-top:3vh;line-height:1.4;max-width:22ch}
+  .mut{color:var(--faint)}
+
+  /* leak card */
+  .leak{width:100%;max-width:82vw;background:#12121f;border:1px solid rgba(245,71,107,.4);border-radius:4.5vh;padding:4vh;text-align:left;
+    box-shadow:0 4vh 9vh -3vh rgba(0,0,0,.72);position:relative;overflow:hidden}
+  .leak::before{content:"";position:absolute;top:0;left:0;bottom:0;width:1.4vh;background:var(--loss)}
+  .leak .tag{font-family:var(--mono);font-size:2.6vh;letter-spacing:.1em;text-transform:uppercase;color:var(--loss);font-weight:700;display:flex;align-items:center;gap:1.2vh}
+  .leak .nm{font-size:5.4vh;font-weight:800;letter-spacing:-.02em;margin:2vh 0 .6vh}
+  .leak .cost{font-size:11vh;font-weight:800;letter-spacing:-.03em;color:var(--loss);line-height:1;font-variant-numeric:tabular-nums}
+  .leak .det{font-size:3vh;color:var(--mut);margin-top:1.2vh}
+  .leak .fix{margin-top:3vh;padding-top:2.6vh;border-top:1px solid rgba(255,255,255,.08);font-size:3.4vh;color:var(--ink)}
+  .leak .fix b{color:var(--gold)}
+
+  /* coach */
+  .coach{width:100%;max-width:82vw;background:#12121f;border:1px solid rgba(157,123,255,.32);border-radius:4.5vh;padding:4vh;text-align:left;box-shadow:0 4vh 8vh -3vh rgba(0,0,0,.7)}
+  .coach .who{display:flex;align-items:center;gap:1.6vh;margin-bottom:2.4vh}
+  .coach .orb{width:6vh;height:6vh;border-radius:35%;background:var(--grad);display:grid;place-items:center;flex:0 0 auto}
+  .coach .orb svg{width:55%;height:55%}
+  .coach .wn{font-family:var(--mono);font-size:2.5vh;letter-spacing:.1em;text-transform:uppercase;color:var(--violet2);font-weight:700}
+  .coach .msg{font-size:4.4vh;font-weight:650;line-height:1.32;letter-spacing:-.01em}
+  .coach .cur{display:inline-block;width:.5ch;background:var(--violet2);animation:blink .7s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  .logo-xl{width:20vh;height:20vh;border-radius:24%;background:var(--grad);display:grid;place-items:center;box-shadow:0 5vh 10vh -3vh rgba(124,92,252,.7)}
+  .logo-xl svg{width:58%;height:58%}
+  .pill{margin-top:4vh;font-size:3.6vh;font-weight:800;letter-spacing:.02em;color:#fff;background:var(--grad);border-radius:99px;padding:2.2vh 4.4vh}
+  .url{margin-top:3.2vh;font-size:4.2vh;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .free{margin-top:1.6vh;font-size:3.2vh;color:var(--mut)}
+  .replay{position:absolute;bottom:26px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:2.4vh;color:var(--faint);z-index:20;cursor:pointer;opacity:0;transition:opacity .3s}
+  .replay.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="prog"><i id="progbar"></i></div>
+  <div class="brand"><span class="m">%%M%%</span><b>EDGE<em> Pro</em></b></div>
+
+  <!-- 1 HOOK -->
+  <section class="scene" data-t="3400">
+    <div class="kick rise">Prop traders 👇</div>
+    <h1 class="rise d1">The reason you keep<br>blowing accounts</h1>
+    <div class="sub rise d2">…it's <b class="mut" style="font-weight:700">not</b> your strategy.</div>
+  </section>
+
+  <!-- 2 REVEAL -->
+  <section class="scene" data-t="3200">
+    <h1 class="rise">It's the trade you<br>take <span class="r">right after<br>a loss.</span></h1>
+    <div class="sub rise d2">Revenge trading. Every time.</div>
+  </section>
+
+  <!-- 3 LEAK CARD -->
+  <section class="scene" data-t="4400" id="sLeak">
+    <div class="kick warn rise">EDGE Pro caught it</div>
+    <div class="leak rise d1">
+      <div class="tag">⚠ Leak detected</div>
+      <div class="nm">Revenge trading</div>
+      <div class="cost" id="cost">$0</div>
+      <div class="det">6 trades right after a red one</div>
+      <div class="fix shake"><b>Fix:</b> skip the first trade after a loss.</div>
+    </div>
+  </section>
+
+  <!-- 4 COACH -->
+  <section class="scene" data-t="4000" id="sCoach">
+    <div class="kick rise">Your AI coach, on every trade</div>
+    <div class="coach rise d1">
+      <div class="who"><span class="orb">%%SP%%</span><span class="wn">EDGE AI · your coach</span></div>
+      <div class="msg"><span id="typed"></span><span class="cur" id="cur">&nbsp;</span></div>
+    </div>
+  </section>
+
+  <!-- 5 CTA -->
+  <section class="scene" data-t="4200">
+    <div class="logo-xl rise">%%M%%</div>
+    <div class="pill rise d1">START FREE</div>
+    <div class="url rise d2">edgeprojournal.com</div>
+    <div class="free rise d2">No signup. No card. Link in bio.</div>
+  </section>
+
+  <div class="replay" id="replay" onclick="run()">↻ tap to replay</div>
+</div>
+
+<script>
+(function(){
+  var MARK='<svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22 L13 15 L18 19 L25.5 10"/><path d="M19.5 10 L25.5 10 L25.5 16"/></svg>';
+  var SPARK='<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.2 6.2L20 10l-5.8 1.8L12 18l-2.2-6.2L4 10l5.8-1.8z"/></svg>';
+  document.body.innerHTML=document.body.innerHTML.split('%%M%%').join(MARK).split('%%SP%%').join(SPARK);
+
+  var scenes=[].slice.call(document.querySelectorAll('.scene'));
+  var progbar=document.getElementById('progbar');
+  var replay=document.getElementById('replay');
+  var timers=[], total=0, startT=0, raf=0;
+  scenes.forEach(function(s){ total+=(+s.dataset.t||3000); });
+
+  function countMoney(el,target,dur){
+    var t0=performance.now();
+    (function step(now){
+      var k=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-k,3), v=Math.round(e*target);
+      el.textContent='−$'+v;
+      if(k<1) requestAnimationFrame(step);
+    })(t0);
+  }
+  function typeOut(el,text,cps){ el.textContent=''; var i=0, iv=setInterval(function(){ el.textContent=text.slice(0,++i); if(i>=text.length) clearInterval(iv); }, 1000/cps); }
+
+  function show(i){
+    scenes.forEach(function(s,k){ s.classList.toggle('on', k===i); });
+    if(scenes[i].id==='sLeak') setTimeout(function(){ countMoney(document.getElementById('cost'),210,1200); }, 520);
+    if(scenes[i].id==='sCoach') setTimeout(function(){ typeOut(document.getElementById('typed'),'Skip the first trade after a loss.',22); },700);
+  }
+  function progressLoop(){ var el=performance.now()-startT; progbar.style.width=Math.min(100,(el/total)*100)+'%'; if(el<total) raf=requestAnimationFrame(progressLoop); }
+  function run(){
+    timers.forEach(clearTimeout); cancelAnimationFrame(raf); replay.classList.remove('show');
+    startT=performance.now(); progressLoop();
+    var acc=0;
+    scenes.forEach(function(s,i){ timers.push(setTimeout(function(){ show(i); }, acc)); acc+=(+s.dataset.t||3000); });
+    timers.push(setTimeout(function(){ scenes.forEach(function(s){ s.classList.remove('on'); }); replay.classList.add('show'); progbar.style.width='100%'; }, acc));
+  }
+  window.run=run; run();
+})();
+</script>
+</body>
+</html>
