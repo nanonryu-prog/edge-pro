@@ -759,6 +759,51 @@ function leaksCard(listArg){
       +'<div style="margin-top:9px;display:flex;gap:9px;align-items:flex-start"><span style="flex:0 0 auto;margin-top:1px">'+svgi('flame',15,'var(--win)')+'</span><span style="font-size:13.5px;color:var(--text)"><b>Fix:</b> '+x.fix+'</span></div></div>'; }).join('');
   return '<div class="card section-gap"><div class="row-sb"><div><div class="card-title">Behavioral leaks</div><div class="card-sub">The habits quietly costing you money — and how to plug them</div></div><span class="chip">EDGE analysis</span></div>'+rows+'</div>';
 }
+/* ---- Strengths — what's already working, so the trader can lean in ---- */
+function strengthsCard(st){
+  const tr=st.tr;
+  const byTag={}; tr.forEach(t=>(t.tags||[]).forEach(tag=>{ if(!tag||tag==='imported'||tag==='open')return; (byTag[tag]=byTag[tag]||{n:0,net:0,w:0}); byTag[tag].n++; byTag[tag].net+=t.pnl; if(t.pnl>0)byTag[tag].w++; }));
+  const tags=Object.keys(byTag).map(k=>[k,byTag[k]]).filter(e=>e[1].n>=3).sort((a,b)=>b[1].net-a[1].net);
+  const dowN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat']; const byDow={};
+  tr.forEach(t=>{ const d=new Date(t.date); if(isNaN(d.getTime()))return; const k=d.getDay(); (byDow[k]=byDow[k]||{n:0,net:0}); byDow[k].n++; byDow[k].net+=t.pnl; });
+  const dows=Object.keys(byDow).map(k=>[k,byDow[k]]).filter(e=>e[1].n>=2).sort((a,b)=>b[1].net-a[1].net);
+  const longs=tr.filter(t=>t.side==='long'), shorts=tr.filter(t=>t.side==='short');
+  const lNet=longs.reduce((a,t)=>a+t.pnl,0), sNet=shorts.reduce((a,t)=>a+t.pnl,0);
+  const rows=[];
+  if(tags.length&&tags[0][1].net>0) rows.push(['Best setup',tags[0][0],(tags[0][1].net>=0?'+':'')+money(Math.round(tags[0][1].net))+' · '+Math.round(tags[0][1].w/tags[0][1].n*100)+'% win']);
+  if(dows.length&&dows[0][1].net>0) rows.push(['Strongest day',dowN[dows[0][0]],(dows[0][1].net>=0?'+':'')+money(Math.round(dows[0][1].net))]);
+  if(longs.length&&shorts.length){ const dir=lNet>=sNet?['Long',lNet]:['Short',sNet]; if(dir[1]>0) rows.push(['Edge direction',dir[0],(dir[1]>=0?'+':'')+money(Math.round(dir[1]))]); }
+  if(!rows.length) return '<div class="card"><div class="card-title">Your strengths</div><div class="card-sub" style="margin-top:6px">Tag your setups and log a few more trades — we\'ll surface exactly what you\'re best at.</div></div>';
+  const html=rows.map(r=>'<div class="dbrk"><span>'+r[0]+' · <b style="color:var(--text)">'+escHtml(r[1])+'</b></span><b class="mono pos">'+r[2]+'</b></div>').join('');
+  return '<div class="card"><div class="card-title">Your strengths</div><div class="card-sub">Lean into what\'s already working</div><div style="margin-top:14px">'+html+'</div></div>';
+}
+/* ---- Daily missions — small reps generated from the trader's weakest scores ---- */
+function dailyMissions(st,sc){
+  const b=sc.byKey; const M=['Log every trade the moment you close it — with a screenshot.'];
+  if(b.ruleAdh!=null&&b.ruleAdh<85) M.push('Tick every checklist box before you enter. No exceptions.');
+  if(b.emotional!=null&&b.emotional<70) M.push('After any loss, step away for 10 minutes before the next trade.');
+  if(b.consistency!=null&&b.consistency<65) M.push('Risk the exact same amount on every trade today.');
+  if(b.execution!=null&&b.execution<65) M.push('Set your stop before entry — and don\'t move it.');
+  if(b.decision!=null&&b.decision<70) M.push('Only take A+ setups that are in your playbook.');
+  const items=M.slice(0,4).map(m=>'<label style="display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-top:1px solid rgba(255,255,255,.07);cursor:pointer"><input type="checkbox" style="margin-top:3px;width:17px;height:17px;accent-color:var(--violet);flex:0 0 auto" onchange="this.nextElementSibling.style.opacity=this.checked?.5:1;this.nextElementSibling.style.textDecoration=this.checked?\'line-through\':\'none\'"><span style="font-size:14.5px;line-height:1.5">'+m+'</span></label>').join('');
+  return '<div class="card section-gap"><div class="row-sb"><div><div class="card-title">Today\'s missions</div><div class="card-sub">Small reps that raise your scores — built from your weak spots</div></div><span class="chip">DAILY</span></div><div style="margin-top:8px">'+items+'</div></div>';
+}
+/* ---- Predictive warning — flags likely mistakes before the next trade ---- */
+function predictiveWarn(){
+  const all=Store.trades().filter(t=>!t.open).slice().sort((a,b)=>{ const d=((a.date||'')+'').localeCompare((b.date||'')+''); return d||((a.id||0)-(b.id||0)); });
+  if(all.length<8) return '';
+  const today=new Date().toISOString().slice(0,10);
+  const todayN=all.filter(t=>(t.date||'').slice(0,10)===today).length;
+  const byDay={}; all.forEach(t=>{ const k=(t.date||'').slice(0,10); if(k)byDay[k]=(byDay[k]||0)+1; });
+  const counts=Object.keys(byDay).map(k=>byDay[k]); const avg=counts.reduce((a,b)=>a+b,0)/counts.length;
+  const last=all[all.length-1]; let msg='';
+  if(todayN>=Math.max(4,Math.ceil(avg+2))) msg='You\'ve taken '+todayN+' trades today — above your usual '+avg.toFixed(1)+'. This is where overtrading starts. Consider stopping for the day.';
+  else if(last&&last.pnl<0&&(last.date||'').slice(0,10)===today){ const afterLoss=all.filter((t,i)=>i>0&&all[i-1].pnl<0); const base=all.filter(t=>t.pnl>0).length/all.length;
+    if(afterLoss.length>=4){ const alWR=afterLoss.filter(t=>t.pnl>0).length/afterLoss.length; if(alWR<base-0.1) msg='Your last trade was a loss — historically you win just '+Math.round(alWR*100)+'% on the very next one (vs '+Math.round(base*100)+'%). Take a breath before re-entering.'; }
+  }
+  if(!msg) return '';
+  return '<div class="card section-gap" style="border-color:rgba(255,196,61,.5);background:radial-gradient(120% 100% at 0 0,rgba(255,196,61,.1),transparent 60%)"><div style="display:flex;gap:13px;align-items:flex-start"><span style="flex:0 0 auto;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--gold);background:rgba(255,196,61,.14)">'+svgi('warn',20,'currentColor')+'</span><div><b style="color:var(--gold)">Heads up before your next trade</b><div class="hint" style="margin-top:3px;line-height:1.55">'+msg+'</div></div></div></div>';
+}
 function levelInfo(){ const xp=Store.profile().xp||0; return {xp,lvl:Math.floor(xp/100)+1,into:xp%100}; }
 function lossGuard(s){
   const w=s.avgWin, l=s.avgLoss;
@@ -970,9 +1015,11 @@ VIEWS.dash=function(){
     ${gamePlanCard()}
     ${reviewNudge()}
     ${coachBanner()}
+    ${s.tr.length?predictiveWarn():''}
     ${s.tr.length?coachHero(s,sc):''}
     ${s.tr.length?edgeScoresPanel(sc):''}
     ${s.tr.length?leaksCard(s.tr):''}
+    ${s.tr.length?dailyMissions(s,sc):''}
     <div class="grid kpis">
       ${kpi('Win rate',s.wr+'%',s.wr>=50?'win':(s.tr.length?'loss':'win'),s.wins+'W · '+s.losses+'L')}
       ${kpi('Profit factor',s.pf===Infinity?'∞':s.pf.toFixed(2),'','Gross wins ÷ losses')}
@@ -992,18 +1039,7 @@ VIEWS.dash=function(){
         <div class="row-sb"><div><div class="card-title">Equity curve</div><div class="mono" style="font-size:15px;margin-top:6px">${money0(s.acct)} → ${money0(eq)}</div></div><span class="pct-pill ${pct<0?'neg':''}">${(pct>=0?'+':'')+pct.toFixed(1)}%</span></div>
         <div style="margin-top:14px">${equitySVG(s.tr,s.acct)}</div>
       </div>
-      <div class="card">
-        <div class="card-title">Discipline Score</div><div class="card-sub">How well you followed your plan</div>
-        <div style="display:flex;gap:18px;align-items:center;margin-top:14px;flex-wrap:wrap;">
-          ${ring(hasDis?s.dis:0)}
-          <div style="flex:1;min-width:150px;">
-            <div class="dbrk"><span><span class="dot" style="background:var(--win)"></span>Rules followed</span><b class="mono">${s.rulesFollowed}</b></div>
-            <div class="dbrk"><span><span class="dot" style="background:var(--violet-2)"></span>Partial slips</span><b class="mono">${s.slips}</b></div>
-            <div class="dbrk"><span><span class="dot" style="background:var(--loss)"></span>Rules broken</span><b class="mono">${s.broken}</b></div>
-            <div class="dbrk"><span>Total trades</span><b class="mono">${s.tr.length}</b></div>
-          </div>
-        </div>
-      </div>
+      ${strengthsCard(s)}
     </div>
     <div class="card section-gap">
       <div class="row-sb"><div class="card-title">Insights</div><span class="chip">EDGE analysis</span></div>
