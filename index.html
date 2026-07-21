@@ -167,6 +167,38 @@
   .nav-links a:hover::after { width: 100%; }
   .nav-cta { display: flex; align-items: center; gap: 12px; }
   .is-authed .nav-login { display: none !important; }
+  /* ===== Mega-menu (Tradezella-style dropdown) ===== */
+  .mega-wrap { position: relative; }
+  .mega-trigger { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+  .mega-caret { transition: transform .22s var(--ease); opacity: .7; }
+  .mega-wrap:hover .mega-caret, .mega-wrap:focus-within .mega-caret { transform: rotate(180deg); }
+  .mega-panel {
+    position: absolute; top: calc(100% + 20px); left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    width: 640px; max-width: 92vw;
+    background: color-mix(in srgb, var(--surface, #14142a) 94%, transparent);
+    -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
+    border: 1px solid var(--border); border-radius: 20px; padding: 14px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+    box-shadow: 0 34px 80px -24px rgba(0,0,0,.72);
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity .24s var(--ease), transform .24s var(--ease), visibility .24s; z-index: 90;
+  }
+  .mega-panel::before { content: ""; position: absolute; top: -22px; left: 0; right: 0; height: 22px; }
+  .mega-wrap:hover .mega-panel, .mega-wrap:focus-within .mega-panel, .mega-panel.open {
+    opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(-50%) translateY(0);
+  }
+  .mega-item { display: flex; gap: 13px; align-items: flex-start; padding: 12px 13px; border-radius: 14px; transition: background .18s var(--ease); }
+  .mega-item:hover { background: rgba(124,92,252,.12); }
+  .mega-item::after, .mega-trigger::after, .mega-foot a::after { display: none !important; }
+  .mega-ic { flex: 0 0 auto; width: 36px; height: 36px; border-radius: 11px; background: rgba(124,92,252,.16); display: grid; place-items: center; color: var(--violet-2); }
+  .mega-ic svg { width: 19px; height: 19px; }
+  .mega-item .mt { display: block; color: var(--text); font-size: 14px; font-weight: 650; letter-spacing: -.01em; }
+  .mega-item .md { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.45; margin-top: 3px; }
+  .mega-foot { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 6px; padding: 13px 14px 4px; border-top: 1px solid var(--border); }
+  .mega-foot span { font-size: 12.5px; color: var(--faint); }
+  .mega-foot a { color: var(--violet-2); font-weight: 650; font-size: 13px; }
+  @media (max-width: 900px) { .mega-panel { display: none !important; } .mega-caret { display: none; } }
   @media (min-width: 900px) { .nav-links { display: flex; } }
 
   /* ---------- Buttons ---------- */
@@ -614,7 +646,20 @@
     </a>
 
     <nav class="nav-links" aria-label="Primary">
-      <a href="#features">Features</a>
+      <div class="mega-wrap">
+        <a href="#features" class="mega-trigger" aria-haspopup="true" aria-expanded="false">Features
+          <svg class="mega-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </a>
+        <div class="mega-panel" role="menu" aria-label="Features">
+          <a class="mega-item" href="#features" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.5" fill="currentColor"/></svg></span><span><span class="mt">Discipline Score</span><span class="md">Every trade graded 0–100 on how well you followed your own rules.</span></span></a>
+          <a class="mega-item" href="#ai" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10z"/><path d="M18.5 15.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></svg></span><span><span class="mt">AI Coach & chart reading</span><span class="md">An honest read on any trade — plus the one fix to make next.</span></span></a>
+          <a class="mega-item" href="#ai" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 2 4-6"/></svg></span><span><span class="mt">Behavioral leaks</span><span class="md">See the exact habits — revenge, overtrading — quietly costing you money.</span></span></a>
+          <a class="mega-item" href="#features" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5Z"/><path d="m9 12 2 2 4-4"/></svg></span><span><span class="mt">Prop-firm guardrails</span><span class="md">Track FTMO targets, daily loss & trailing drawdown live as you trade.</span></span></a>
+          <a class="mega-item" href="#inside" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg></span><span><span class="mt">Reports & calendar</span><span class="md">40+ analytics and a whole month colour-coded by discipline.</span></span></a>
+          <a class="mega-item" href="#inside" role="menuitem"><span class="mega-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span><span><span class="mt">See it inside</span><span class="md">A full tour of the real dashboard — before you sign up.</span></span></a>
+          <div class="mega-foot"><span>Everything in one place — free to explore, no card.</span><a href="app.html?demo=1">Try the live demo →</a></div>
+        </div>
+      </div>
       <a href="#how">How it works</a>
       <a href="#stats">Why us</a>
       <a href="#pricing">Pricing</a>
