@@ -1,0 +1,45 @@
+<!doctype html><html><head><meta charset="utf-8"><title>OG gen</title></head>
+<body style="margin:0;background:#111">
+<canvas id="c" width="1200" height="630"></canvas>
+<script>
+var W=1200,H=630;var x=document.getElementById('c').getContext('2d');
+function rr(c,X,Y,w,h,r){c.beginPath();c.moveTo(X+r,Y);c.arcTo(X+w,Y,X+w,Y+h,r);c.arcTo(X+w,Y+h,X,Y+h,r);c.arcTo(X,Y+h,X,Y,r);c.arcTo(X,Y,X+w,Y,r);c.closePath();}
+// bg
+x.fillStyle='#0A0A16';x.fillRect(0,0,W,H);
+var g=x.createRadialGradient(W*0.85,-60,60,W*0.85,-60,760);g.addColorStop(0,'rgba(124,92,252,.34)');g.addColorStop(1,'rgba(124,92,252,0)');x.fillStyle=g;x.fillRect(0,0,W,H);
+var g2=x.createRadialGradient(-40,H+40,60,-40,H+40,620);g2.addColorStop(0,'rgba(225,92,198,.20)');g2.addColorStop(1,'rgba(225,92,198,0)');x.fillStyle=g2;x.fillRect(0,0,W,H);
+// logo tile
+var S=68,LX=80,LY=70;rr(x,LX,LY,S,S,S*0.24);var lg=x.createLinearGradient(LX,LY,LX+S,LY+S);lg.addColorStop(0,'#7C5CFC');lg.addColorStop(1,'#E15CC6');x.fillStyle=lg;x.fill();
+var s=S*0.6/32,ox=LX+(S-32*s)/2,oy=LY+(S-32*s)/2;x.strokeStyle='#fff';x.lineWidth=Math.max(3,2.7*s);x.lineCap='round';x.lineJoin='round';x.beginPath();x.moveTo(ox+6*s,oy+22*s);x.lineTo(ox+13*s,oy+15*s);x.lineTo(ox+18*s,oy+19*s);x.lineTo(ox+25.5*s,oy+10*s);x.stroke();x.beginPath();x.moveTo(ox+19.5*s,oy+10*s);x.lineTo(ox+25.5*s,oy+10*s);x.lineTo(ox+25.5*s,oy+16*s);x.stroke();
+// wordmark
+x.textBaseline='alphabetic';x.fillStyle='#ECEAF6';x.font='800 40px system-ui,-apple-system,sans-serif';x.fillText('EDGE',LX+90,LY+46);
+var ew=x.measureText('EDGE').width;var pg=x.createLinearGradient(LX+90+ew,0,LX+90+ew+130,0);pg.addColorStop(0,'#9D7BFF');pg.addColorStop(1,'#E15CC6');x.fillStyle=pg;x.fillText(' Pro',LX+90+ew,LY+46);
+// eyebrow
+x.fillStyle='#9D7BFF';x.font='700 22px ui-monospace,Menlo,monospace';x.fillText('AI TRADING-PERFORMANCE PLATFORM',80,240);
+// headline
+x.fillStyle='#F4F4FB';x.font='800 76px system-ui,-apple-system,sans-serif';
+x.fillText('We build', 78, 330);
+x.fillText('better traders.', 78, 418);
+// underline accent on "better traders."
+// subline
+x.fillStyle='#A6A1C2';x.font='400 30px system-ui,-apple-system,sans-serif';
+x.fillText('Scores your discipline. Catches your leaks.', 80, 486);
+x.fillText('Coaches you to fix them.', 80, 526);
+// url pill
+x.font='700 26px ui-monospace,monospace';var uw=x.measureText('edgeprojournal.com').width;
+rr(x,80,566,uw+44,44,22);var ug=x.createLinearGradient(80,0,80+uw+44,0);ug.addColorStop(0,'#7C5CFC');ug.addColorStop(1,'#E15CC6');x.fillStyle=ug;x.fill();
+x.fillStyle='#fff';x.textBaseline='middle';x.fillText('edgeprojournal.com',102,590);x.textBaseline='alphabetic';
+
+// right-side mini discipline ring
+var cx=980,cy=300,r=150;
+x.lineWidth=34;x.strokeStyle='rgba(255,255,255,.10)';x.beginPath();x.arc(cx,cy,r,0,7);x.stroke();
+var rg=x.createLinearGradient(cx-r,cy-r,cx+r,cy+r);rg.addColorStop(0,'#7C5CFC');rg.addColorStop(1,'#E15CC6');
+x.strokeStyle=rg;x.lineCap='round';x.beginPath();x.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*0.88);x.stroke();x.lineCap='butt';
+x.textAlign='center';x.fillStyle='#ECEAF6';x.font='800 92px system-ui,-apple-system,sans-serif';x.fillText('88',cx,cy+18);
+x.fillStyle='#9D7BFF';x.font='700 20px ui-monospace,monospace';x.fillText('DISCIPLINE SCORE',cx,cy+r+52);
+x.textAlign='left';
+
+document.title='READY:'+document.getElementById('c').toDataURL('image/png').length;
+window.__png=document.getElementById('c').toDataURL('image/png');
+</script>
+</body></html>
