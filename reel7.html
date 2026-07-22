@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EDGE Pro — Reel 7</title>
+<style>
+  :root{--bg:#0A0A16;--ink:#F4F4FB;--mut:#A6A1C2;--faint:#6E6890;--violet:#7C5CFC;--violet2:#9D7BFF;--pink:#E15CC6;--win:#24D19B;--loss:#F5476B;--gold:#FFC43D;--grad:linear-gradient(135deg,#7C5CFC,#A45CFC 45%,#E15CC6);--sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--mono:ui-monospace,'SF Mono',Menlo,monospace;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#05050c;overflow:hidden;font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .stage{position:fixed;inset:0;margin:auto;height:100dvh;width:min(100vw,56.25dvh);background:radial-gradient(120% 70% at 15% 0%,rgba(124,92,252,.22),transparent 55%),radial-gradient(100% 60% at 100% 100%,rgba(225,92,198,.16),transparent 55%),linear-gradient(165deg,#0d0d1e,#07070f);color:var(--ink);overflow:hidden;}
+  .prog{position:absolute;top:16px;left:16px;right:16px;height:3px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden;z-index:20}.prog i{display:block;height:100%;width:0;background:var(--grad);border-radius:3px}
+  .brand{position:absolute;top:30px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:9px;z-index:20;opacity:.9}
+  .brand .m{width:26px;height:26px;border-radius:24%;background:var(--grad);display:grid;place-items:center}.brand .m svg{width:60%;height:60%}
+  .brand b{font-size:16px;font-weight:800}.brand b em{font-style:normal;color:var(--violet2)}
+  .scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 8%;text-align:center;opacity:0;pointer-events:none;transition:opacity .45s ease}
+  .scene.on{opacity:1}
+  .rise{opacity:0;transform:translateY(26px)}.scene.on .rise{animation:rise .6s cubic-bezier(.2,.8,.25,1) forwards}
+  .scene.on .rise.d1{animation-delay:.16s}.scene.on .rise.d2{animation-delay:.34s}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .kick{font-family:var(--mono);font-size:3.4vh;letter-spacing:.14em;text-transform:uppercase;color:var(--violet2);font-weight:700;margin-bottom:2.4vh}
+  h1{font-size:8vh;font-weight:800;letter-spacing:-.03em;line-height:1.04;text-wrap:balance}
+  h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}h1 .r{color:var(--loss)}
+  .sub{font-size:3.9vh;color:var(--mut);margin-top:3vh;line-height:1.4;max-width:22ch}
+  .big{font-size:19vh;font-weight:800;letter-spacing:-.04em;line-height:.9}
+  .cap{font-size:3.6vh;color:var(--mut);margin-top:1.6vh}
+  .cmp{width:100%;max-width:80vw}
+  .cmp .row{display:flex;justify-content:space-between;align-items:center;font-size:4.4vh;font-weight:750;padding:2.6vh 0;border-bottom:1px solid rgba(255,255,255,.08)}
+  .cmp .row:last-child{border-bottom:0}.cmp .row span{color:var(--mut);font-size:3.4vh;font-weight:550}
+  .logo-xl{width:18vh;height:18vh;border-radius:24%;background:var(--grad);display:grid;place-items:center;box-shadow:0 5vh 10vh -3vh rgba(124,92,252,.7)}.logo-xl svg{width:58%;height:58%}
+  .pill{margin-top:3.6vh;font-size:3.5vh;font-weight:800;color:#fff;background:var(--grad);border-radius:99px;padding:2.2vh 4.2vh}
+  .url{margin-top:3vh;font-size:4vh;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .free{margin-top:1.6vh;font-size:3vh;color:var(--mut)}
+  .replay{position:absolute;bottom:26px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:2.4vh;color:var(--faint);z-index:20;cursor:pointer;opacity:0;transition:opacity .3s}.replay.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="prog"><i id="progbar"></i></div>
+  <div class="brand"><span class="m">%%M%%</span><b>EDGE<em> Pro</em></b></div>
+  <section class="scene" data-t="3200"><div class="kick rise">Watch 👇</div><h1 class="rise d1">Your win rate is<br><span class="r">lying</span> to you.</h1></section>
+  <section class="scene" data-t="3400"><div class="big rise" style="color:var(--win)">68%</div><div class="cap rise d1">win rate…</div><h1 class="rise d2" style="font-size:6vh;margin-top:3vh">…and still <span class="r">red?</span></h1></section>
+  <section class="scene" data-t="4000"><div class="kick rise">Here's why</div><div class="cmp">
+    <div class="row rise d1"><span>Avg win</span><b style="color:var(--win)">+$180</b></div>
+    <div class="row rise d2"><span>Avg loss</span><b style="color:var(--loss)">−$390</b></div>
+  </div><div class="sub rise d2">One bad loss erases three good wins.</div></section>
+  <section class="scene" data-t="3200"><h1 class="rise">EDGE Pro shows you<br>the <span class="g">real math.</span></h1></section>
+  <section class="scene" data-t="4200"><div class="logo-xl rise">%%M%%</div><div class="pill rise d1">TRY IT FREE</div><div class="url rise d2">edgeprojournal.com</div><div class="free rise d2">No card · link in bio</div></section>
+  <div class="replay" id="replay" onclick="run()">↻ tap to replay</div>
+</div>
+<script>
+(function(){var MARK='<svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22 L13 15 L18 19 L25.5 10"/><path d="M19.5 10 L25.5 10 L25.5 16"/></svg>';document.body.innerHTML=document.body.innerHTML.split('%%M%%').join(MARK);
+var scenes=[].slice.call(document.querySelectorAll('.scene')),pb=document.getElementById('progbar'),rp=document.getElementById('replay'),tm=[],total=0,st=0,raf=0;scenes.forEach(function(s){total+=(+s.dataset.t||3000);});
+function pl(){var e=performance.now()-st;pb.style.width=Math.min(100,e/total*100)+'%';if(e<total)raf=requestAnimationFrame(pl);}
+function run(){tm.forEach(clearTimeout);cancelAnimationFrame(raf);rp.classList.remove('show');st=performance.now();pl();var a=0;scenes.forEach(function(s,i){tm.push(setTimeout(function(){scenes.forEach(function(x,k){x.classList.toggle('on',k===i);});},a));a+=(+s.dataset.t||3000);});tm.push(setTimeout(function(){scenes.forEach(function(s){s.classList.remove('on');});rp.classList.add('show');pb.style.width='100%';},a));}
+window.run=run;run();})();
+</script>
+</body>
+</html>
