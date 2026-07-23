@@ -1,0 +1,371 @@
+<style>
+  :root{
+    --bg:#0A0A16; --bg2:#07070f; --surface:#14142A; --card:#12121f;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.14);
+    --text:#F4F4FB; --muted:rgba(244,244,251,.62); --faint:rgba(244,244,251,.40);
+    --violet:#7C5CFC; --violet2:#9D7BFF; --pink:#E15CC6;
+    --win:#24D19B; --gold:#FFC43D; --danger:#F5476B;
+    --grad:linear-gradient(135deg,#7C5CFC,#A45CFC 45%,#E15CC6);
+    --mono:ui-monospace,'SF Mono',Menlo,monospace;
+    --sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg2);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden}
+  .deck{position:fixed;inset:0}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:min(8vh,72px) min(9vw,104px);
+    background:radial-gradient(120% 85% at 12% -5%,rgba(124,92,252,.17),transparent 52%),
+               radial-gradient(90% 80% at 105% 108%,rgba(225,92,198,.12),transparent 55%),
+               linear-gradient(160deg,#0c0c1e,#07070f);}
+  .slide.on{display:flex}
+  .slide.anim>*{opacity:0;transform:translateY(20px);animation:rise .55s cubic-bezier(.2,.8,.25,1) forwards}
+  .slide.anim>*:nth-child(2){animation-delay:.06s}
+  .slide.anim>*:nth-child(3){animation-delay:.12s}
+  .slide.anim>*:nth-child(4){animation-delay:.18s}
+  .slide.anim>*:nth-child(5){animation-delay:.24s}
+  @keyframes rise{to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){.slide.anim>*{animation:none;opacity:1;transform:none}}
+
+  .eyebrow{font-family:var(--mono);font-size:clamp(11px,1.15vw,14px);letter-spacing:.22em;text-transform:uppercase;color:var(--violet2);font-weight:700;margin-bottom:22px;display:flex;align-items:center;gap:12px}
+  .eyebrow .num{color:var(--faint)}
+  h1{font-size:clamp(30px,6vw,74px);font-weight:800;letter-spacing:-.03em;line-height:1.03;text-wrap:balance}
+  h2{font-size:clamp(26px,4.6vw,56px);font-weight:800;letter-spacing:-.025em;line-height:1.06;text-wrap:balance}
+  .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lead{font-size:clamp(16px,2vw,25px);color:var(--muted);line-height:1.5;margin-top:24px;max-width:40ch}
+  .lead.wide{max-width:54ch}
+  .lead b{color:var(--text);font-weight:600}
+
+  ul.pts{margin-top:30px;list-style:none;display:flex;flex-direction:column;gap:15px;max-width:48ch}
+  ul.pts li{font-size:clamp(15px,1.75vw,22px);color:var(--text);display:flex;gap:15px;align-items:flex-start;line-height:1.4}
+  ul.pts li::before{content:"";flex:0 0 auto;width:10px;height:10px;border-radius:3px;background:var(--grad);margin-top:.5em}
+  ul.pts li span{color:var(--muted)}
+  ul.pts.win li::before{background:var(--win)}
+
+  .brand{display:flex;align-items:center;gap:16px}
+  .mark{width:clamp(46px,5vw,64px);height:clamp(46px,5vw,64px);border-radius:24%;background:var(--grad);display:grid;place-items:center;box-shadow:0 12px 30px -10px rgba(124,92,252,.6)}
+  .mark svg{width:60%;height:60%}
+  .word{font-size:clamp(24px,3.2vw,40px);font-weight:800;letter-spacing:-.02em}
+  .word em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.01));border:1px solid var(--line);border-radius:20px;padding:clamp(18px,2.4vw,30px)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,1.8vw,22px);width:100%}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.8vw,22px);width:100%}
+  .row{display:flex;gap:clamp(20px,4vw,60px);align-items:center;flex-wrap:wrap}
+  .lbl{font-family:var(--mono);font-size:clamp(11px,1.1vw,14px);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:600}
+  .kval{font-size:clamp(30px,5vw,60px);font-weight:800;letter-spacing:-.03em;line-height:1;margin:12px 0 8px;font-variant-numeric:tabular-nums}
+  .ksub{font-size:clamp(13px,1.3vw,17px);color:var(--muted)}
+  .pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:7px 13px;border-radius:99px}
+  .pill.good{background:rgba(36,209,155,.15);color:var(--win)}
+  .pill.new{background:rgba(157,123,255,.16);color:var(--violet2)}
+
+  .ring{--p:88;width:clamp(150px,19vw,220px);aspect-ratio:1;border-radius:50%;flex:0 0 auto;
+    background:conic-gradient(from -90deg,#7C5CFC,#E15CC6 calc(var(--p)*1%),rgba(255,255,255,.09) 0);
+    display:grid;place-items:center;position:relative}
+  .ring::before{content:"";position:absolute;inset:16%;border-radius:50%;background:#0d0d1c}
+  .ring b{position:relative;font-size:clamp(44px,7vw,80px);font-weight:800;letter-spacing:-.03em}
+  .drow{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--line);font-size:clamp(14px,1.5vw,19px)}
+  .drow:last-child{border-bottom:0}
+  .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  .drow .nm{display:flex;align-items:center;gap:12px;color:var(--muted)}
+  .drow .vv{font-family:var(--mono);font-weight:700;color:var(--text)}
+
+  .vs{display:flex;align-items:center;gap:clamp(16px,4vw,60px);flex-wrap:wrap;margin-top:10px}
+  .vs .col{text-align:center;flex:1 1 220px}
+  .vs .big{font-size:clamp(70px,15vw,190px);font-weight:800;letter-spacing:-.04em;line-height:.9;font-variant-numeric:tabular-nums}
+  .vs .cap{font-size:clamp(14px,1.6vw,20px);color:var(--muted);margin-top:10px}
+  .vs .div{align-self:stretch;width:1px;background:var(--line2);min-height:120px}
+
+  .stat{text-align:center}
+  .stat .n{font-size:clamp(40px,7vw,88px);font-weight:800;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+  .stat .c{font-size:clamp(13px,1.4vw,18px);color:var(--muted);margin-top:10px;line-height:1.4}
+
+  .price{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.8vw,22px);width:100%;margin-top:6px}
+  .price .p{border:1px solid var(--line);border-radius:20px;padding:clamp(18px,2.4vw,30px);background:linear-gradient(180deg,rgba(255,255,255,.04),transparent)}
+  .price .p.hot{border-color:rgba(157,123,255,.5);background:linear-gradient(180deg,rgba(124,92,252,.16),rgba(124,92,252,.03))}
+  .price .p .tier{font-family:var(--mono);letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--violet2);font-weight:700}
+  .price .p .amt{font-size:clamp(32px,4.6vw,54px);font-weight:800;letter-spacing:-.03em;margin:12px 0 2px}
+  .price .p .amt small{font-size:.35em;color:var(--faint);font-weight:600;letter-spacing:0}
+  .price .p .who{font-size:clamp(13px,1.3vw,16px);color:var(--muted)}
+
+  table.cmp{width:100%;border-collapse:collapse;margin-top:24px;font-size:clamp(13px,1.5vw,19px)}
+  table.cmp th,table.cmp td{padding:clamp(10px,1.5vw,16px) clamp(8px,1.4vw,18px);text-align:left;border-bottom:1px solid var(--line)}
+  table.cmp thead th{font-family:var(--mono);font-size:clamp(10px,1.1vw,13px);letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:700}
+  table.cmp .us{color:var(--violet2);font-weight:800}
+  table.cmp td .y{color:var(--win);font-weight:700}
+  table.cmp td .n{color:var(--danger);font-weight:700}
+  table.cmp tbody tr:first-child td{font-weight:600}
+
+  .ask{background:linear-gradient(180deg,rgba(124,92,252,.16),rgba(225,92,198,.05));border:1px solid rgba(157,123,255,.4);border-radius:20px;padding:clamp(22px,2.8vw,36px)}
+  .ask h3{font-size:clamp(20px,2.4vw,32px);font-weight:800;letter-spacing:-.02em;margin-bottom:14px}
+  .ask p{color:var(--muted);font-size:clamp(15px,1.6vw,20px);line-height:1.55}
+  .cols{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(20px,3vw,44px);width:100%;align-items:center}
+
+  .topbar{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:18px clamp(20px,4vw,40px);z-index:20;pointer-events:none}
+  .topbar .tb{display:flex;align-items:center;gap:10px;opacity:.85}
+  .topbar .tb .m{width:30px;height:30px;border-radius:24%;background:var(--grad);display:grid;place-items:center}
+  .topbar .tb .m svg{width:60%;height:60%}
+  .topbar .tb span{font-weight:800;font-size:16px;letter-spacing:-.01em}
+  .topbar .tb span em{font-style:normal;color:var(--violet2)}
+  .topbar .url{font-family:var(--mono);font-size:12px;color:var(--faint)}
+  .progress{position:fixed;top:0;left:0;height:3px;background:var(--grad);z-index:30;transition:width .4s cubic-bezier(.2,.8,.25,1)}
+  .ctrl{position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:18px;padding:16px;z-index:20}
+  .dots{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;max-width:60vw}
+  .dots i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2);cursor:pointer;transition:.25s}
+  .dots i.on{background:var(--violet2);width:22px;border-radius:99px}
+  .nav{width:42px;height:42px;border-radius:50%;border:1px solid var(--line2);background:rgba(255,255,255,.05);color:var(--text);font-size:18px;cursor:pointer;display:grid;place-items:center;transition:.2s}
+  .nav:hover{background:rgba(124,92,252,.25);border-color:var(--violet2)}
+  .count{position:fixed;bottom:20px;right:clamp(20px,4vw,40px);font-family:var(--mono);font-size:13px;color:var(--faint);z-index:20}
+
+  @media(max-width:720px){
+    .slide{padding:82px 24px 92px;justify-content:flex-start;overflow-y:auto}
+    .grid3,.price,.cols{grid-template-columns:1fr}
+    .vs .div{display:none}
+    .topbar .url{display:none}
+    table.cmp{font-size:13px}
+  }
+</style>
+
+<div class="progress" id="prog"></div>
+<div class="topbar">
+  <div class="tb"><span class="m">%%MARK%%</span><span>EDGE<em> Pro</em></span></div>
+  <div class="url">edgeprojournal.com · pitch</div>
+</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 COVER -->
+  <section class="slide anim on">
+    <div class="brand"><span class="mark">%%MARK%%</span><span class="word">EDGE<em> Pro</em></span></div>
+    <h1 style="margin-top:32px">We don't build the best<br>trading journal.<br><span class="grad">We build better traders.</span></h1>
+    <p class="lead wide">An AI trading-performance platform that helps traders stop losing money to their own bad habits — and turns discipline into a number they can actually improve.</p>
+    <p class="lbl" style="margin-top:30px">A live product · edgeprojournal.com · use → to advance</p>
+  </section>
+
+  <!-- 2 HOOK -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">01</span> The truth about trading</div>
+    <h1><span class="grad">90%</span> of traders lose money.</h1>
+    <p class="lead wide">And here's what almost nobody realises: <b>it's usually not their strategy.</b> It's their discipline — the same avoidable mistakes, made over and over. That's the problem we solve.</p>
+  </section>
+
+  <!-- 3 PROBLEM -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">02</span> The problem</div>
+    <h2>Traders don't blow up from bad strategies.<br>They blow up from <span class="grad">broken discipline.</span></h2>
+    <ul class="pts">
+      <li>Revenge trading after a loss <span>— chasing it back and losing more</span></li>
+      <li>Breaking their own rules, oversizing, overtrading <span>— on repeat</span></li>
+      <li>Prop-firm traders blow funded accounts <span>on rules they simply forgot</span></li>
+      <li>And every journal out there is just a <b>P&amp;L spreadsheet</b> <span>— it tracks money, not behaviour</span></li>
+    </ul>
+  </section>
+
+  <!-- 4 PROOF -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">03</span> Why discipline is the whole game</div>
+    <h2>Same trader. Same setups. One variable.</h2>
+    <div class="vs" style="margin-top:38px">
+      <div class="col"><div class="big" style="color:var(--win)">71%</div><div class="cap">win rate <b style="color:var(--text)">when they follow their rules</b></div></div>
+      <div class="div"></div>
+      <div class="col"><div class="big" style="color:var(--danger)">38%</div><div class="cap">win rate <b style="color:var(--text)">the moment they break one</b></div></div>
+    </div>
+    <p class="lead wide" style="margin-top:34px">The edge was never the strategy. It was the discipline. <b>EDGE Pro is the first journal built entirely around that.</b></p>
+  </section>
+
+  <!-- 5 SOLUTION -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">04</span> The solution</div>
+    <h1>Score it. Read it. Fix it.</h1>
+    <div class="grid3" style="margin-top:36px">
+      <div class="card"><div class="pill new">Score</div><p class="lead" style="margin-top:14px;font-size:clamp(14px,1.5vw,18px)">Every trade graded 0–100 on how well you followed your own plan.</p></div>
+      <div class="card"><div class="pill new">Read</div><p class="lead" style="margin-top:14px;font-size:clamp(14px,1.5vw,18px)">AI reads your trades &amp; charts and finds the exact habit costing you money.</p></div>
+      <div class="card"><div class="pill new">Fix</div><p class="lead" style="margin-top:14px;font-size:clamp(14px,1.5vw,18px)">A personal coach tells you the one thing to change next — like a mentor would.</p></div>
+    </div>
+  </section>
+
+  <!-- 6 PRODUCT: discipline -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">05</span> The product — a number nobody else has</div>
+    <div class="row" style="margin-top:14px">
+      <div class="ring" style="--p:88"><b>88</b></div>
+      <div style="flex:1 1 320px;min-width:260px">
+        <h2 style="font-size:clamp(22px,3vw,38px);margin-bottom:8px">Your Discipline Score</h2>
+        <p class="lead" style="margin-top:4px;margin-bottom:16px;font-size:clamp(14px,1.5vw,18px)">Every trade graded against your own rules — so improvement is measurable, not a feeling.</p>
+        <div class="drow"><div class="nm"><span class="dot" style="background:var(--win)"></span>Rules followed</div><div class="vv">20</div></div>
+        <div class="drow"><div class="nm"><span class="dot" style="background:var(--violet2)"></span>Partial slips</div><div class="vv">3</div></div>
+        <div class="drow"><div class="nm"><span class="dot" style="background:var(--danger)"></span>Rules broken</div><div class="vv">5</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 PRODUCT: AI coach -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">06</span> The product — an AI coach that tells the truth</div>
+    <div class="card" style="max-width:820px">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+        <div class="mark" style="width:54px;height:54px;border-radius:18px"><b style="color:#fff;font-size:24px;font-weight:800">B+</b></div>
+        <div><div style="font-weight:700;font-size:clamp(17px,1.8vw,22px)">Your Edge Report</div><div class="ksub">AI-read from your last 28 trades</div></div>
+      </div>
+      <p style="font-size:clamp(16px,1.9vw,24px);font-weight:600;line-height:1.4">"Your edge is real — but breaking your own rules on 1 in 4 trades is a self-inflicted wound."</p>
+      <div style="margin-top:18px;display:flex;gap:24px;flex-wrap:wrap">
+        <div><span class="lbl" style="color:var(--danger)">Biggest leak</span><p class="ksub" style="margin-top:6px;color:var(--text);font-size:clamp(14px,1.5vw,18px)">Revenge trades cost you −$210 this month.</p></div>
+      </div>
+      <div style="margin-top:18px;background:rgba(255,196,61,.1);border-left:4px solid var(--gold);border-radius:10px;padding:14px 16px">
+        <span class="lbl" style="color:var(--gold)">Do this week</span>
+        <p style="margin-top:5px;font-weight:600;font-size:clamp(14px,1.5vw,18px)">Skip the first trade after a loss.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 MOAT -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">07</span> Why it's hard to copy</div>
+    <h2>Anyone can build a journal.<br>They can't copy <span class="grad">this.</span></h2>
+    <ul class="pts">
+      <li><b>8 proprietary scores</b> <span>— Discipline, Execution, Consistency, Emotional Stability… a language of our own</span></li>
+      <li><b>Behavioral AI</b> <span>— it names the leak and puts a dollar cost on it, from day one</span></li>
+      <li><b>A category we own</b> <span>— everyone else sells "a journal." We sell "we make you better."</span></li>
+      <li><b>It gets smarter with every user</b> <span>— proprietary behavioural data compounds over time</span></li>
+    </ul>
+  </section>
+
+  <!-- 9 MARKET -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">08</span> The opportunity</div>
+    <h2>A huge, fast-growing market — and we serve <span class="grad">both halves.</span></h2>
+    <div class="grid3" style="margin-top:34px">
+      <div class="card stat"><div class="n grad">10M+</div><div class="c">active retail traders worldwide, and rising</div></div>
+      <div class="card stat"><div class="n grad">$B+</div><div class="c">prop-firm industry — millions now pay firms like FTMO for funded accounts</div></div>
+      <div class="card stat"><div class="n grad">Monthly</div><div class="c">recurring revenue — a tool traders pay for every month they keep improving</div></div>
+    </div>
+  </section>
+
+  <!-- 10 BUSINESS MODEL -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">09</span> How it makes money</div>
+    <h2>Free to try. A subscription once it pays for itself.</h2>
+    <div class="price" style="margin-top:30px">
+      <div class="p"><div class="tier">Starter</div><div class="amt">$9<small>/mo</small></div><div class="who">Solo traders getting serious</div></div>
+      <div class="p hot"><div class="tier" style="color:var(--pink)">Pro · most popular</div><div class="amt">$19<small>/mo</small></div><div class="who">Full AI coach + chart reading</div></div>
+      <div class="p"><div class="tier">Funded</div><div class="amt">$39<small>/mo</small></div><div class="who">Prop-firm guardrails &amp; evals</div></div>
+    </div>
+    <p class="lead wide">A free demo brings them in with zero risk — then converts to recurring revenue as they get hooked.</p>
+  </section>
+
+  <!-- 11 COMPETITION -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">10</span> How we win vs the competition</div>
+    <div style="overflow-x:auto;width:100%">
+    <table class="cmp">
+      <thead><tr><th></th><th class="us">EDGE Pro</th><th>Tradezella</th><th>TraderSync</th></tr></thead>
+      <tbody>
+        <tr><td>Cheapest plan</td><td class="us">$9/mo</td><td>$29/mo</td><td>$30/mo</td></tr>
+        <tr><td>Free to try</td><td><span class="y">Yes ✓</span></td><td><span class="n">No</span></td><td><span class="n">No</span></td></tr>
+        <tr><td>Discipline scoring</td><td><span class="y">Core ✓</span></td><td><span class="n">—</span></td><td><span class="n">—</span></td></tr>
+        <tr><td>AI coach from day 1</td><td><span class="y">Yes ✓</span></td><td>needs setup</td><td>100+ trades</td></tr>
+        <tr><td>Built around</td><td class="us">making you better</td><td>the journal</td><td>AI insights</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="lead wide" style="margin-top:22px">We're <b>3× cheaper</b>, one of the only ones <b>free to start</b>, and the only one whose whole identity is <b>improving the trader.</b></p>
+  </section>
+
+  <!-- 12 TRACTION -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">11</span> What's already built</div>
+    <h2>This isn't an idea. It's <span class="grad">live.</span></h2>
+    <ul class="pts win">
+      <li>A full, working product on its own domain <span>— anyone can use it right now</span></li>
+      <li>AI coach, discipline scoring &amp; chart reading <span>— all functioning</span></li>
+      <li>Secured to professional standard <span>— encrypted, isolated per-user data</span></li>
+      <li>A marketing engine ready to fire <span>— video reels, a viral "Discipline Score" quiz, live analytics</span></li>
+    </ul>
+    <p class="lead" style="margin-top:22px">Built solo, from scratch — the whole platform.</p>
+  </section>
+
+  <!-- 13 WHY NOW / WHY ME -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">12</span> Why now — and why me</div>
+    <div class="grid2" style="margin-top:12px">
+      <div class="card"><h2 style="font-size:clamp(20px,2.4vw,30px)">Why now</h2><p class="lead" style="font-size:clamp(14px,1.5vw,18px);margin-top:12px">AI is finally good enough to coach — not just record. And the prop-firm boom created millions of traders desperate to stay disciplined. The timing is exactly right.</p></div>
+      <div class="card"><h2 style="font-size:clamp(20px,2.4vw,30px)">Why me</h2><p class="lead" style="font-size:clamp(14px,1.5vw,18px);margin-top:12px">I live this problem, I built the entire product myself, and I move fast. I don't need convincing that discipline is the edge — I built a company on it.</p></div>
+    </div>
+  </section>
+
+  <!-- 14 ASK -->
+  <section class="slide anim">
+    <div class="cols">
+      <div>
+        <div class="eyebrow"><span class="num">13</span> The ask</div>
+        <h1>Help us get our<br><span class="grad">first traders.</span></h1>
+        <p class="lead wide">The product is done and free to try. What we need now is people using it — and belief behind it.</p>
+      </div>
+      <div class="ask">
+        <span class="pill new">What we're looking for</span>
+        <h3 style="margin-top:14px">Be our first believers.</h3>
+        <p>
+          • Try it &amp; give real feedback<br>
+          • Help us reach traders who need it<br>
+          • Support to switch on payments &amp; launch<br><br>
+          <b style="color:var(--text)">Then let me show you the live product.</b> 🚀
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15 CLOSE -->
+  <section class="slide anim">
+    <div class="brand" style="justify-content:center"><span class="mark">%%MARK%%</span><span class="word">EDGE<em> Pro</em></span></div>
+    <h1 style="text-align:center;margin-top:30px">We don't build the best trading journal.<br><span class="grad">We build better traders.</span></h1>
+    <p class="lead wide" style="text-align:center;margin:24px auto 0">edgeprojournal.com — let's look at it live.</p>
+  </section>
+
+</div>
+
+<div class="ctrl">
+  <button class="nav" id="prev" aria-label="Previous">‹</button>
+  <div class="dots" id="dots"></div>
+  <button class="nav" id="next" aria-label="Next">›</button>
+</div>
+<div class="count"><span id="cur">1</span> / <span id="tot">15</span></div>
+
+<script>
+(function(){
+  var MARK='<svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22 L13 15 L18 19 L25.5 10"/><path d="M19.5 10 L25.5 10 L25.5 16"/></svg>';
+  [].forEach.call(document.querySelectorAll('.mark, .tb .m'),function(el){el.innerHTML=MARK;});
+
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var i=0, N=slides.length;
+  var dots=document.getElementById('dots');
+  slides.forEach(function(_,k){var d=document.createElement('i');if(k===0)d.className='on';d.onclick=function(){go(k)};dots.appendChild(d);});
+  var di=[].slice.call(dots.children);
+  document.getElementById('tot').textContent=N;
+
+  function go(n){
+    n=Math.max(0,Math.min(N-1,n));
+    if(n===i && slides[i].classList.contains('on'))return;
+    slides[i].classList.remove('on','anim');
+    i=n;
+    var s=slides[i];
+    s.classList.add('on');
+    void s.offsetWidth; s.classList.add('anim');
+    di.forEach(function(d,k){d.classList.toggle('on',k===i);});
+    document.getElementById('cur').textContent=i+1;
+    document.getElementById('prog').style.width=((i+1)/N*100)+'%';
+  }
+  document.getElementById('prog').style.width=(1/N*100)+'%';
+  document.getElementById('next').onclick=function(){go(i+1)};
+  document.getElementById('prev').onclick=function(){go(i-1)};
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(i+1);}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(i-1);}
+    else if(e.key==='Home')go(0); else if(e.key==='End')go(N-1);
+  });
+  var x0=null;
+  document.addEventListener('touchstart',function(e){x0=e.touches[0].clientX;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50)go(i+(dx<0?1:-1));x0=null;
+  },{passive:true});
+})();
+</script>
