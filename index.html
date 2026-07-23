@@ -203,11 +203,11 @@
   .mega-peek .pk-r { width: 60px; height: 60px; border-radius: 50%; flex: 0 0 auto; background: conic-gradient(from -90deg, #7C5CFC, #E15CC6 88%, rgba(255,255,255,.09) 0); display: grid; place-items: center; position: relative; }
   .mega-peek .pk-r::before { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: #0c0c1a; }
   .mega-peek .pk-r b { position: relative; font-size: 22px; font-weight: 800; color: #ECEAF6; }
-  .mega-peek .pk-rl .t { font-size: 13px; font-weight: 650; color: var(--text); }
-  .mega-peek .pk-rl .s { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .mega-peek .pk-rl .t { font-size: 13px; font-weight: 650; color: #ECEAF6; }
+  .mega-peek .pk-rl .s { font-size: 11px; color: rgba(236,234,246,.6); margin-top: 1px; }
   .mega-peek .pk-badge { display: inline-block; font-size: 8px; font-weight: 700; letter-spacing: .06em; color: #24D19B; background: rgba(36,209,155,.15); border-radius: 5px; padding: 2px 6px; margin-top: 5px; }
   .mega-peek .pk-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 6px 0; border-top: 1px solid rgba(255,255,255,.06); }
-  .mega-peek .pk-row span { color: var(--muted); } .mega-peek .pk-row b { font-variant-numeric: tabular-nums; }
+  .mega-peek .pk-row span { color: rgba(236,234,246,.6); } .mega-peek .pk-row b { font-variant-numeric: tabular-nums; }
   .mega-foot { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; padding: 13px 14px 3px; border-top: 1px solid var(--border); }
   .mega-foot span { font-size: 12.5px; color: var(--faint); }
   .mega-foot a { color: var(--violet-2); font-weight: 650; font-size: 13px; }
@@ -443,7 +443,7 @@
   .cal-copy h2 { font-size: clamp(26px, 4vw, 40px); font-weight: 700; line-height: 1.12; margin: 14px 0 0; }
   .cal-copy p { color: var(--muted); font-size: 16px; line-height: 1.6; margin: 16px 0 0; }
   .cal-points { list-style: none; margin: 22px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
-  .cal-points li { display: flex; gap: 11px; align-items: flex-start; font-size: 14.5px; color: rgba(244,244,251,0.82); }
+  .cal-points li { display: flex; gap: 11px; align-items: flex-start; font-size: 14.5px; color: var(--text); }
   .cal-points .tick { width: 24px; height: 24px; flex: none; border-radius: 7px; background: rgba(36,209,155,0.14); border: 1px solid rgba(36,209,155,0.34); display: grid; place-items: center; color: var(--win); }
   .cal-card { background: linear-gradient(180deg, var(--surface), var(--bg-2)); border: 1px solid var(--border-2); border-radius: 22px; padding: 22px; box-shadow: 0 30px 90px rgba(0,0,0,0.5); }
   .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
@@ -457,11 +457,11 @@
   .is-visible .cal-day { animation: cellpop .4s var(--ease) forwards; }
   @keyframes cellpop { to { opacity: 1; transform: scale(1); } }
   .cal-day .pl { font-weight: 700; font-size: 10.5px; font-variant-numeric: tabular-nums; }
-  .cal-day.win { background: rgba(36,209,155,0.14); border-color: rgba(36,209,155,0.32); color: rgba(244,244,251,0.7); }
+  .cal-day.win { background: rgba(36,209,155,0.14); border-color: rgba(36,209,155,0.32); color: var(--muted); }
   .cal-day.win .pl { color: var(--win); }
-  .cal-day.loss { background: rgba(245,71,107,0.13); border-color: rgba(245,71,107,0.3); color: rgba(244,244,251,0.7); }
+  .cal-day.loss { background: rgba(245,71,107,0.13); border-color: rgba(245,71,107,0.3); color: var(--muted); }
   .cal-day.loss .pl { color: var(--loss); }
-  .cal-day.slip { background: rgba(255,196,0,0.13); border-color: rgba(255,196,0,0.34); color: rgba(244,244,251,0.7); }
+  .cal-day.slip { background: rgba(255,196,0,0.13); border-color: rgba(255,196,0,0.34); color: var(--muted); }
   .cal-day.slip .pl { color: #FFC43D; }
   .cal-legend { display: flex; gap: 16px; margin-top: 14px; flex-wrap: wrap; }
   .cal-legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--faint); }
@@ -487,7 +487,7 @@
   .price-bill { font-size: 12.5px; color: var(--faint); margin-top: 8px; min-height: 18px; }
   .price-card .btn { width: 100%; margin: 22px 0 22px; }
   .price-feats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
-  .price-feats li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: rgba(244,244,251,0.82); }
+  .price-feats li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: var(--text); }
   .price-feats .ck { width: 20px; height: 20px; flex: none; border-radius: 6px; background: rgba(124,92,252,0.16); border: 1px solid rgba(124,92,252,0.3); display: grid; place-items: center; color: var(--violet-2); margin-top: 1px; }
   .price-note { text-align: center; color: var(--faint); font-size: 13px; margin-top: 28px; }
 
@@ -688,7 +688,7 @@
             </div>
             <div class="pk-row"><span>Win rate</span><b style="color:#24D19B">68%</b></div>
             <div class="pk-row"><span>Net P&amp;L</span><b style="color:#24D19B">+$3,438</b></div>
-            <div class="pk-row"><span>Profit factor</span><b style="color:var(--text)">2.40</b></div>
+            <div class="pk-row"><span>Profit factor</span><b style="color:#ECEAF6">2.40</b></div>
           </div>
           <div class="mega-foot"><span>Everything in one place — free to explore, no card.</span><a href="app.html?demo=1">Try the live demo →</a></div>
         </div>
