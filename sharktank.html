@@ -124,6 +124,17 @@
     table.cmp{font-size:13px}
   }
 
+  /* ===== Product overview toolkit grid ===== */
+  .tk{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,1.5vw,18px);width:100%;margin-top:clamp(22px,3.4vh,34px)}
+  .tk .t{border:1px solid var(--line);border-radius:16px;padding:clamp(14px,1.8vw,20px);background:linear-gradient(180deg,rgba(255,255,255,.04),transparent)}
+  .tk .t .ic{width:38px;height:38px;border-radius:11px;background:rgba(124,92,252,.16);display:grid;place-items:center;margin-bottom:12px}
+  .tk .t .ic svg{width:20px;height:20px;stroke:var(--violet2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .tk .t h4{font-size:clamp(15px,1.55vw,19px);font-weight:700;letter-spacing:-.01em}
+  .tk .t p{font-size:clamp(12.5px,1.25vw,15px);color:var(--muted);margin-top:5px;line-height:1.4}
+  @media(max-width:720px){.tk{grid-template-columns:1fr}}
+  html.tsz2 .tk .t h4{font-size:clamp(17px,1.8vw,22px)} html.tsz3 .tk .t h4{font-size:clamp(19px,2.1vw,26px)}
+  html.tsz2 .tk .t p{font-size:clamp(14px,1.5vw,18px)} html.tsz3 .tk .t p{font-size:clamp(16px,1.7vw,20px)}
+
   /* ===== Bigger text presets (for presenting) ===== */
   html.tsz2 h1{font-size:clamp(38px,7vw,90px)} html.tsz3 h1{font-size:clamp(44px,8.4vw,108px)}
   html.tsz2 h2{font-size:clamp(31px,5.4vw,66px)} html.tsz3 h2{font-size:clamp(36px,6.4vw,78px)}
@@ -258,9 +269,26 @@
     </div>
   </section>
 
+  <!-- 7b PRODUCT OVERVIEW -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">07</span> The full product — everything in one place</div>
+    <h2>One cockpit for your <span class="grad">entire trading game.</span></h2>
+    <div class="tk">
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg></div><h4>Discipline Score</h4><p>Every trade graded on the rules you actually followed.</p></div>
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.5A8 8 0 1 1 21 12z"/></svg></div><h4>AI Coach</h4><p>An honest weekly Edge Report read straight from your trades.</p></div>
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 20V4M4 20h16"/><path d="M8 14v-4M12 16V8M16 12V6"/></svg></div><h4>Chart AI</h4><p>Snap a chart — it reads your setup and execution.</p></div>
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17v.5"/></svg></div><h4>Leak Detector</h4><p>Names revenge trades, oversizing &amp; tilt — with a dollar cost.</p></div>
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2V4z"/><path d="M9 8h6M9 12h6"/></svg></div><h4>Smart Journal</h4><p>Fast logging with notes, tags &amp; screenshots for every trade.</p></div>
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 5l8-2 8 2v10l-8 2-8-2V5z"/><path d="M12 3v14"/></svg></div><h4>Playbooks</h4><p>Your setups, with the real win-rate behind each one.</p></div>
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-3z"/></svg></div><h4>Prop Guardrails</h4><p>Drawdown &amp; target tracking built for funded evals.</p></div>
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg></div><h4>Daily Missions</h4><p>One clear focus each session — small wins compound.</p></div>
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg></div><h4>Reports &amp; Calendar</h4><p>P&amp;L, streaks and patterns across every day you trade.</p></div>
+    </div>
+  </section>
+
   <!-- 8 MOAT -->
   <section class="slide anim">
-    <div class="eyebrow"><span class="num">07</span> Why it's hard to copy</div>
+    <div class="eyebrow"><span class="num">08</span> Why it's hard to copy</div>
     <h2>Anyone can build a journal.<br>They can't copy <span class="grad">this.</span></h2>
     <ul class="pts">
       <li><b>8 proprietary scores</b> <span>— Discipline, Execution, Consistency, Emotional Stability… a language of our own</span></li>
@@ -279,7 +307,7 @@
 
   <!-- 9 MARKET -->
   <section class="slide anim">
-    <div class="eyebrow"><span class="num">08</span> The opportunity</div>
+    <div class="eyebrow"><span class="num">09</span> The opportunity</div>
     <h2>A huge, fast-growing market — and we serve <span class="grad">both halves.</span></h2>
     <div class="grid3" style="margin-top:34px">
       <div class="card stat"><div class="n grad">10M+</div><div class="c">retail &amp; self-funded traders worldwide — our core market, and rising</div></div>
@@ -290,7 +318,7 @@
 
   <!-- 10 BUSINESS MODEL -->
   <section class="slide anim">
-    <div class="eyebrow"><span class="num">09</span> How it makes money</div>
+    <div class="eyebrow"><span class="num">10</span> How it makes money</div>
     <h2>Free to try. A subscription once it pays for itself.</h2>
     <div class="price" style="margin-top:30px">
       <div class="p"><div class="tier">Starter</div><div class="amt">$9<small>/mo</small></div><div class="who">Solo traders getting serious</div></div>
@@ -302,7 +330,7 @@
 
   <!-- 11 COMPETITION -->
   <section class="slide anim">
-    <div class="eyebrow"><span class="num">10</span> How we win vs the competition</div>
+    <div class="eyebrow"><span class="num">11</span> How we win vs the competition</div>
     <div style="overflow-x:auto;width:100%">
     <table class="cmp">
       <thead><tr><th></th><th class="us">EDGE Pro</th><th>Tradezella</th><th>TraderSync</th></tr></thead>
@@ -320,7 +348,7 @@
 
   <!-- 12 TRACTION -->
   <section class="slide anim">
-    <div class="eyebrow"><span class="num">11</span> What's already built</div>
+    <div class="eyebrow"><span class="num">12</span> What's already built</div>
     <h2>This isn't an idea. It's <span class="grad">live.</span></h2>
     <ul class="pts win">
       <li>A full, working product on its own domain <span>— anyone can use it right now</span></li>
@@ -331,9 +359,33 @@
     <p class="lead" style="margin-top:22px">Built solo, from scratch — the whole platform.</p>
   </section>
 
+  <!-- 12b LAUNCH PLAN -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">13</span> The launch plan</div>
+    <h2>Built. Live. <span class="grad">Ready to launch.</span></h2>
+    <div class="grid3" style="margin-top:clamp(24px,4vh,36px)">
+      <div class="card">
+        <span class="lbl" style="color:var(--win)">● We are here</span>
+        <div style="font-weight:800;font-size:clamp(18px,2.1vw,25px);margin-top:12px">1 · Live &amp; free</div>
+        <p class="ksub" style="margin-top:9px;color:var(--text);font-size:clamp(14px,1.5vw,18px)">The full product is online. Anyone can sign up and use it today — zero cost, zero risk.</p>
+      </div>
+      <div class="card">
+        <span class="lbl">Next</span>
+        <div style="font-weight:800;font-size:clamp(18px,2.1vw,25px);margin-top:12px">2 · Switch on payments</div>
+        <p class="ksub" style="margin-top:9px;color:var(--text);font-size:clamp(14px,1.5vw,18px)">Turn on subscriptions ($9–$39/mo). Free users who are hooked convert to paying customers.</p>
+      </div>
+      <div class="card">
+        <span class="lbl">Then</span>
+        <div style="font-weight:800;font-size:clamp(18px,2.1vw,25px);margin-top:12px">3 · Grow</div>
+        <p class="ksub" style="margin-top:9px;color:var(--text);font-size:clamp(14px,1.5vw,18px)">A content engine + the viral Discipline quiz feed a steady stream of new traders in.</p>
+      </div>
+    </div>
+    <p class="lead wide" style="margin-top:clamp(20px,3vh,28px)">The hard part — building it — is <b>done.</b> Now we launch and grow.</p>
+  </section>
+
   <!-- 13 WHY NOW / WHY ME -->
   <section class="slide anim">
-    <div class="eyebrow"><span class="num">12</span> Why now — and why me</div>
+    <div class="eyebrow"><span class="num">14</span> Why now — and why me</div>
     <div class="grid2" style="margin-top:12px">
       <div class="card"><h2 style="font-size:clamp(20px,2.4vw,30px)">Why now</h2><p class="lead" style="font-size:clamp(14px,1.5vw,18px);margin-top:12px">AI is finally good enough to coach — not just record. And the prop-firm boom created millions of traders desperate to stay disciplined. The timing is exactly right.</p></div>
       <div class="card"><h2 style="font-size:clamp(20px,2.4vw,30px)">Why me</h2><p class="lead" style="font-size:clamp(14px,1.5vw,18px);margin-top:12px">I live this problem, I built the entire product myself, and I move fast. I don't need convincing that discipline is the edge — I built a company on it.</p></div>
@@ -344,7 +396,7 @@
   <section class="slide anim">
     <div class="cols">
       <div>
-        <div class="eyebrow"><span class="num">13</span> The ask</div>
+        <div class="eyebrow"><span class="num">15</span> The ask</div>
         <h1>Help us get our<br><span class="grad">first traders.</span></h1>
         <p class="lead wide">The product is done and free to try. What we need now is people using it — and belief behind it.</p>
       </div>
