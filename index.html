@@ -769,14 +769,33 @@
                 <div class="equity-chg">▲ 12.6%</div>
               </div>
               <!-- candlestick price action (trading feel) -->
-              <div style="margin:2px 0 12px">
-                <svg viewBox="0 0 500 90" width="100%" height="60" preserveAspectRatio="none" aria-hidden="true">
-                  <g stroke="#24D19B" stroke-width="2"><line x1="68" y1="52" x2="68" y2="70"/><line x1="111" y1="44" x2="111" y2="62"/><line x1="197" y1="38" x2="197" y2="56"/><line x1="240" y1="32" x2="240" y2="50"/><line x1="326" y1="26" x2="326" y2="44"/><line x1="369" y1="20" x2="369" y2="38"/><line x1="455" y1="12" x2="455" y2="32"/></g>
-                  <g fill="#24D19B"><rect x="62" y="56" width="12" height="12" rx="2"/><rect x="105" y="48" width="12" height="12" rx="2"/><rect x="191" y="42" width="12" height="12" rx="2"/><rect x="234" y="36" width="12" height="12" rx="2"/><rect x="320" y="30" width="12" height="12" rx="2"/><rect x="363" y="24" width="12" height="12" rx="2"/><rect x="449" y="16" width="12" height="12" rx="2"/></g>
-                  <g stroke="#F5476B" stroke-width="2"><line x1="25" y1="58" x2="25" y2="78"/><line x1="154" y1="46" x2="154" y2="66"/><line x1="283" y1="34" x2="283" y2="52"/><line x1="412" y1="22" x2="412" y2="40"/></g>
-                  <g fill="#F5476B"><rect x="19" y="64" width="12" height="10" rx="2"/><rect x="148" y="50" width="12" height="12" rx="2"/><rect x="277" y="38" width="12" height="10" rx="2"/><rect x="406" y="26" width="12" height="10" rx="2"/></g>
-                </svg>
+              <div style="margin:2px 0 10px">
+                <svg viewBox="0 0 520 140" width="100%" height="104" preserveAspectRatio="none" aria-hidden="true"><g id="heroCandles"></g></svg>
               </div>
+              <script>
+              (function(){
+                var g=document.getElementById('heroCandles'); if(!g||g.__done) return; g.__done=1;
+                var W=520,H=140,pad=10,N=32,slot=W/N,bw=slot*0.58;
+                var seed=13; function rnd(){ seed=(seed*9301+49297)%233280; return seed/233280; }
+                var price=0.15, out=[];
+                for(var i=0;i<N;i++){
+                  var open=price;
+                  var drift=0.030+(rnd()-0.40)*0.12;
+                  var close=Math.max(0.05,Math.min(0.96, open+drift));
+                  var hi=Math.min(0.99, Math.max(open,close)+rnd()*0.06+0.015);
+                  var lo=Math.max(0.01, Math.min(open,close)-rnd()*0.06-0.015);
+                  var up=close>=open, col=up?'#24D19B':'#F5476B';
+                  var cx=(i+0.5)*slot;
+                  var Y=function(v){return pad+(1-v)*(H-2*pad);};
+                  var bt=Math.min(Y(open),Y(close)), bb=Math.max(Y(open),Y(close));
+                  if(bb-bt<3){var m=(bt+bb)/2;bt=m-1.6;bb=m+1.6;}
+                  out.push('<line x1="'+cx.toFixed(1)+'" y1="'+Y(hi).toFixed(1)+'" x2="'+cx.toFixed(1)+'" y2="'+Y(lo).toFixed(1)+'" stroke="'+col+'" stroke-width="1.5"/>');
+                  out.push('<rect x="'+(cx-bw/2).toFixed(1)+'" y="'+bt.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+(bb-bt).toFixed(1)+'" rx="1.4" fill="'+col+'"/>');
+                  price=close;
+                }
+                g.innerHTML=out.join('');
+              })();
+              </script>
               <div class="eq-wrap">
                 <svg viewBox="0 0 500 150" width="100%" height="150" preserveAspectRatio="none" aria-hidden="true">
                   <defs>
