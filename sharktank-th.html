@@ -123,6 +123,17 @@
     .topbar .url{display:none}
     table.cmp{font-size:13px}
   }
+  /* ===== product overview toolkit grid ===== */
+  .tk{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,1.5vw,18px);width:100%;margin-top:clamp(22px,3.4vh,34px)}
+  .tk .t{border:1px solid var(--line);border-radius:16px;padding:clamp(14px,1.8vw,20px);background:linear-gradient(180deg,rgba(255,255,255,.04),transparent)}
+  .tk .t .ic{width:38px;height:38px;border-radius:11px;background:rgba(124,92,252,.16);display:grid;place-items:center;margin-bottom:12px}
+  .tk .t .ic svg{width:20px;height:20px;stroke:var(--violet2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .tk .t h4{font-size:clamp(15px,1.55vw,19px);font-weight:700;letter-spacing:-.01em}
+  .tk .t p{font-size:clamp(12.5px,1.25vw,15px);color:var(--muted);margin-top:5px;line-height:1.5}
+  @media(max-width:720px){.tk{grid-template-columns:1fr}}
+  html.tsz2 .tk .t h4{font-size:clamp(17px,1.8vw,22px)} html.tsz3 .tk .t h4{font-size:clamp(19px,2.1vw,26px)}
+  html.tsz2 .tk .t p{font-size:clamp(14px,1.5vw,18px)} html.tsz3 .tk .t p{font-size:clamp(16px,1.7vw,20px)}
+
   /* ===== bigger-text presets ===== */
   html.tsz2 h1{font-size:clamp(34px,6.4vw,80px)} html.tsz3 h1{font-size:clamp(40px,7.6vw,96px)}
   html.tsz2 h2{font-size:clamp(28px,5vw,60px)} html.tsz3 h2{font-size:clamp(33px,6vw,72px)}
@@ -256,9 +267,26 @@
     </div>
   </section>
 
+  <!-- 7b PRODUCT OVERVIEW -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">07</span> ทั้งระบบ — ทุกอย่างในที่เดียว</div>
+    <h2>ห้องควบคุมเดียว สำหรับ<span class="grad">ทั้งเกมเทรดของคุณ</span></h2>
+    <div class="tk">
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg></div><h4>Discipline Score</h4><p>ให้คะแนนทุกไม้ตามกฎที่คุณทำตามจริง</p></div>
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.5A8 8 0 1 1 21 12z"/></svg></div><h4>AI Coach</h4><p>รายงาน Edge รายสัปดาห์ อ่านตรงจากไม้ของคุณ พูดตรง</p></div>
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 20V4M4 20h16"/><path d="M8 14v-4M12 16V8M16 12V6"/></svg></div><h4>Chart AI</h4><p>ถ่ายกราฟมา แล้ว AI อ่านเซ็ตอัพและการเข้าออกให้</p></div>
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17v.5"/></svg></div><h4>Leak Detector</h4><p>จับ revenge trade, ไม้ใหญ่เกิน และ tilt — พร้อมบอกเป็นเงิน</p></div>
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2V4z"/><path d="M9 8h6M9 12h6"/></svg></div><h4>สมุดบันทึกอัจฉริยะ</h4><p>บันทึกเร็ว พร้อมโน้ต แท็ก และภาพกราฟทุกไม้</p></div>
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 5l8-2 8 2v10l-8 2-8-2V5z"/><path d="M12 3v14"/></svg></div><h4>Playbook</h4><p>เซ็ตอัพของคุณ พร้อมอัตราชนะจริงของแต่ละแบบ</p></div>
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-3z"/></svg></div><h4>ตัวช่วย Prop Firm</h4><p>ติดตาม drawdown และเป้า สร้างมาเพื่อการสอบทุนโดยเฉพาะ</p></div>
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg></div><h4>ภารกิจประจำวัน</h4><p>โฟกัสเดียวชัดๆ ต่อรอบ — ชนะเล็กๆ สะสมกันเป็นใหญ่</p></div>
+      <div class="t"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg></div><h4>รายงาน &amp; ปฏิทิน</h4><p>กำไรขาดทุน สตรีค และรูปแบบ ทุกวันที่คุณเทรด</p></div>
+    </div>
+  </section>
+
   <!-- 8 MOAT -->
   <section class="slide anim">
-    <div class="eyebrow"><span class="num">07</span> ทำไมถึงลอกยาก</div>
+    <div class="eyebrow"><span class="num">08</span> ทำไมถึงลอกยาก</div>
     <h2>ใครก็สร้างสมุดเทรดได้<br>แต่ลอก<span class="grad">สิ่งนี้</span>ไม่ได้</h2>
     <ul class="pts">
       <li><b>คะแนนเฉพาะของเรา 8 ตัว</b> <span>— วินัย, การเข้าออก, ความสม่ำเสมอ, ความมั่นคงทางอารมณ์… ภาษาที่เป็นของเราเอง</span></li>
@@ -277,7 +305,7 @@
 
   <!-- 9 MARKET -->
   <section class="slide anim">
-    <div class="eyebrow"><span class="num">08</span> โอกาส</div>
+    <div class="eyebrow"><span class="num">09</span> โอกาส</div>
     <h2>ตลาดใหญ่ที่โตเร็ว — และเราจับได้<span class="grad">ทั้งสองฝั่ง</span></h2>
     <div class="grid3" style="margin-top:30px">
       <div class="card stat"><div class="n grad">10M+</div><div class="c">เทรดเดอร์รายย่อย & เทรดทุนตัวเองทั่วโลก — ตลาดหลักของเรา และยังเพิ่มขึ้น</div></div>
@@ -288,7 +316,7 @@
 
   <!-- 10 BUSINESS MODEL -->
   <section class="slide anim">
-    <div class="eyebrow"><span class="num">09</span> ทำเงินได้อย่างไร</div>
+    <div class="eyebrow"><span class="num">10</span> ทำเงินได้อย่างไร</div>
     <h2>ลองฟรี แล้วค่อยสมัครสมาชิกเมื่อมันคุ้มค่า</h2>
     <div class="price" style="margin-top:30px">
       <div class="p"><div class="tier">เริ่มต้น</div><div class="amt">$9<small>/เดือน</small></div><div class="who">เทรดเดอร์เดี่ยวที่เริ่มจริงจัง</div></div>
@@ -300,7 +328,7 @@
 
   <!-- 11 COMPETITION -->
   <section class="slide anim">
-    <div class="eyebrow"><span class="num">10</span> เราชนะคู่แข่งอย่างไร</div>
+    <div class="eyebrow"><span class="num">11</span> เราชนะคู่แข่งอย่างไร</div>
     <div style="overflow-x:auto;width:100%">
     <table class="cmp">
       <thead><tr><th></th><th class="us">EDGE Pro</th><th>Tradezella</th><th>TraderSync</th></tr></thead>
@@ -318,7 +346,7 @@
 
   <!-- 12 TRACTION -->
   <section class="slide anim">
-    <div class="eyebrow"><span class="num">11</span> สิ่งที่สร้างเสร็จแล้ว</div>
+    <div class="eyebrow"><span class="num">12</span> สิ่งที่สร้างเสร็จแล้ว</div>
     <h2>นี่ไม่ใช่แค่ไอเดีย มัน<span class="grad">ใช้งานได้จริง</span>แล้ว</h2>
     <ul class="pts win">
       <li>ผลิตภัณฑ์ที่ใช้งานได้เต็มรูปแบบ บนโดเมนของตัวเอง <span>— ใครก็เข้าใช้ได้ตอนนี้</span></li>
@@ -329,9 +357,33 @@
     <p class="lead" style="margin-top:20px">สร้างคนเดียว จากศูนย์ — ทั้งแพลตฟอร์ม</p>
   </section>
 
+  <!-- 12b LAUNCH PLAN -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">13</span> แผนการเปิดตัว</div>
+    <h2>สร้างเสร็จ ใช้งานได้จริง <span class="grad">พร้อมเปิดตัว</span></h2>
+    <div class="grid3" style="margin-top:clamp(24px,4vh,36px)">
+      <div class="card">
+        <span class="lbl" style="color:var(--win)">● เราอยู่ตรงนี้</span>
+        <div style="font-weight:800;font-size:clamp(18px,2.1vw,25px);margin-top:12px">1 · ออนไลน์แล้ว &amp; ฟรี</div>
+        <p class="ksub" style="margin-top:9px;color:var(--text);font-size:clamp(14px,1.5vw,18px)">ตัวเต็มออนไลน์แล้ว ใครก็สมัครและใช้ได้วันนี้ — ไม่มีค่าใช้จ่าย ไม่มีความเสี่ยง</p>
+      </div>
+      <div class="card">
+        <span class="lbl">ถัดไป</span>
+        <div style="font-weight:800;font-size:clamp(18px,2.1vw,25px);margin-top:12px">2 · เปิดระบบจ่ายเงิน</div>
+        <p class="ksub" style="margin-top:9px;color:var(--text);font-size:clamp(14px,1.5vw,18px)">เปิดสมาชิกรายเดือน ($9–$39/เดือน) ผู้ใช้ฟรีที่ติดใจจะเปลี่ยนเป็นลูกค้าจ่ายเงิน</p>
+      </div>
+      <div class="card">
+        <span class="lbl">จากนั้น</span>
+        <div style="font-weight:800;font-size:clamp(18px,2.1vw,25px);margin-top:12px">3 · เติบโต</div>
+        <p class="ksub" style="margin-top:9px;color:var(--text);font-size:clamp(14px,1.5vw,18px)">คอนเทนต์ + แบบทดสอบ Discipline ที่ไวรัล ดึงเทรดเดอร์ใหม่เข้ามาต่อเนื่อง</p>
+      </div>
+    </div>
+    <p class="lead wide" style="margin-top:clamp(20px,3vh,28px)">ส่วนที่ยากที่สุด — การสร้าง — <b>เสร็จแล้ว</b> เหลือแค่เปิดตัวและเติบโต</p>
+  </section>
+
   <!-- 13 WHY NOW / WHY ME -->
   <section class="slide anim">
-    <div class="eyebrow"><span class="num">12</span> ทำไมต้องตอนนี้ — และทำไมต้องผม</div>
+    <div class="eyebrow"><span class="num">14</span> ทำไมต้องตอนนี้ — และทำไมต้องผม</div>
     <div class="grid2" style="margin-top:12px">
       <div class="card"><h2 style="font-size:clamp(20px,2.4vw,30px)">ทำไมต้องตอนนี้</h2><p class="lead" style="font-size:clamp(14px,1.5vw,18px);margin-top:12px">ในที่สุด AI ก็เก่งพอที่จะ "โค้ช" ได้ ไม่ใช่แค่บันทึก และกระแส Prop firm สร้างเทรดเดอร์นับล้านที่ต้องการวินัยอย่างมาก จังหวะนี้เหมาะที่สุด</p></div>
       <div class="card"><h2 style="font-size:clamp(20px,2.4vw,30px)">ทำไมต้องผม</h2><p class="lead" style="font-size:clamp(14px,1.5vw,18px);margin-top:12px">ผมเจอปัญหานี้กับตัวเอง ผมสร้างผลิตภัณฑ์ทั้งหมดด้วยตัวเอง และผมทำงานเร็ว ผมไม่ต้องให้ใครมาโน้มน้าวว่าวินัยคือจุดได้เปรียบ — ผมสร้างธุรกิจจากมันเลย</p></div>
@@ -342,7 +394,7 @@
   <section class="slide anim">
     <div class="cols">
       <div>
-        <div class="eyebrow"><span class="num">13</span> สิ่งที่ขอ</div>
+        <div class="eyebrow"><span class="num">15</span> สิ่งที่ขอ</div>
         <h1>ช่วยให้เราได้<br><span class="grad">เทรดเดอร์กลุ่มแรก</span></h1>
         <p class="lead wide">ผลิตภัณฑ์เสร็จแล้วและลองฟรีได้ สิ่งที่เราต้องการตอนนี้คือคนใช้งาน — และความเชื่อมั่นสนับสนุน</p>
       </div>
