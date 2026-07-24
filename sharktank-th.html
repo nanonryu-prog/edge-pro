@@ -1,0 +1,412 @@
+<style>
+  :root{
+    --bg:#0A0A16; --bg2:#07070f; --surface:#14142A; --card:#12121f;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.14);
+    --text:#F4F4FB; --muted:rgba(244,244,251,.62); --faint:rgba(244,244,251,.40);
+    --violet:#7C5CFC; --violet2:#9D7BFF; --pink:#E15CC6;
+    --win:#24D19B; --gold:#FFC43D; --danger:#F5476B;
+    --grad:linear-gradient(135deg,#7C5CFC,#A45CFC 45%,#E15CC6);
+    --mono:ui-monospace,'SF Mono',Menlo,monospace;
+    --sans:system-ui,-apple-system,'Segoe UI','Sarabun','Noto Sans Thai',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg2);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden}
+  .deck{position:fixed;inset:0}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:min(8vh,72px) min(9vw,104px);
+    background:radial-gradient(120% 85% at 12% -5%,rgba(124,92,252,.17),transparent 52%),
+               radial-gradient(90% 80% at 105% 108%,rgba(225,92,198,.12),transparent 55%),
+               linear-gradient(160deg,#0c0c1e,#07070f);}
+  .slide.on{display:flex}
+  .slide.anim>*{opacity:0;transform:translateY(20px);animation:rise .55s cubic-bezier(.2,.8,.25,1) forwards}
+  .slide.anim>*:nth-child(2){animation-delay:.06s}
+  .slide.anim>*:nth-child(3){animation-delay:.12s}
+  .slide.anim>*:nth-child(4){animation-delay:.18s}
+  .slide.anim>*:nth-child(5){animation-delay:.24s}
+  @keyframes rise{to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){.slide.anim>*{animation:none;opacity:1;transform:none}}
+
+  .eyebrow{font-family:var(--mono);font-size:clamp(11px,1.15vw,14px);letter-spacing:.14em;text-transform:uppercase;color:var(--violet2);font-weight:700;margin-bottom:22px;display:flex;align-items:center;gap:12px}
+  .eyebrow .num{color:var(--faint)}
+  h1{font-size:clamp(28px,5.6vw,68px);font-weight:800;letter-spacing:-.01em;line-height:1.14;text-wrap:balance}
+  h2{font-size:clamp(24px,4.4vw,52px);font-weight:800;letter-spacing:-.01em;line-height:1.2;text-wrap:balance}
+  .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lead{font-size:clamp(16px,2vw,25px);color:var(--muted);line-height:1.65;margin-top:24px;max-width:44ch}
+  .lead.wide{max-width:58ch}
+  .lead b{color:var(--text);font-weight:600}
+
+  ul.pts{margin-top:30px;list-style:none;display:flex;flex-direction:column;gap:15px;max-width:52ch}
+  ul.pts li{font-size:clamp(15px,1.75vw,22px);color:var(--text);display:flex;gap:15px;align-items:flex-start;line-height:1.55}
+  ul.pts li::before{content:"";flex:0 0 auto;width:10px;height:10px;border-radius:3px;background:var(--grad);margin-top:.5em}
+  ul.pts li span{color:var(--muted)}
+  ul.pts.win li::before{background:var(--win)}
+
+  .brand{display:flex;align-items:center;gap:16px}
+  .mark{width:clamp(46px,5vw,64px);height:clamp(46px,5vw,64px);border-radius:24%;background:var(--grad);display:grid;place-items:center;box-shadow:0 12px 30px -10px rgba(124,92,252,.6)}
+  .mark svg{width:60%;height:60%}
+  .word{font-size:clamp(24px,3.2vw,40px);font-weight:800;letter-spacing:-.02em}
+  .word em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.01));border:1px solid var(--line);border-radius:20px;padding:clamp(18px,2.4vw,30px)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,1.8vw,22px);width:100%}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.8vw,22px);width:100%}
+  .row{display:flex;gap:clamp(20px,4vw,60px);align-items:center;flex-wrap:wrap}
+  .lbl{font-family:var(--mono);font-size:clamp(11px,1.1vw,14px);letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:600}
+  .kval{font-size:clamp(30px,5vw,60px);font-weight:800;letter-spacing:-.03em;line-height:1;margin:12px 0 8px;font-variant-numeric:tabular-nums}
+  .ksub{font-size:clamp(13px,1.3vw,17px);color:var(--muted);line-height:1.5}
+  .pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:7px 13px;border-radius:99px}
+  .pill.good{background:rgba(36,209,155,.15);color:var(--win)}
+  .pill.new{background:rgba(157,123,255,.16);color:var(--violet2)}
+
+  .ring{--p:88;width:clamp(150px,19vw,220px);aspect-ratio:1;border-radius:50%;flex:0 0 auto;
+    background:conic-gradient(from -90deg,#7C5CFC,#E15CC6 calc(var(--p)*1%),rgba(255,255,255,.09) 0);
+    display:grid;place-items:center;position:relative}
+  .ring::before{content:"";position:absolute;inset:16%;border-radius:50%;background:#0d0d1c}
+  .ring b{position:relative;font-size:clamp(44px,7vw,80px);font-weight:800;letter-spacing:-.03em}
+  .drow{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--line);font-size:clamp(14px,1.5vw,19px)}
+  .drow:last-child{border-bottom:0}
+  .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  .drow .nm{display:flex;align-items:center;gap:12px;color:var(--muted)}
+  .drow .vv{font-family:var(--mono);font-weight:700;color:var(--text)}
+
+  .vs{display:flex;align-items:center;gap:clamp(16px,4vw,60px);flex-wrap:wrap;margin-top:10px}
+  .vs .col{text-align:center;flex:1 1 220px}
+  .vs .big{font-size:clamp(70px,15vw,190px);font-weight:800;letter-spacing:-.04em;line-height:.9;font-variant-numeric:tabular-nums}
+  .vs .cap{font-size:clamp(14px,1.6vw,20px);color:var(--muted);margin-top:10px;line-height:1.5}
+  .vs .div{align-self:stretch;width:1px;background:var(--line2);min-height:120px}
+
+  .stat{text-align:center}
+  .stat .n{font-size:clamp(40px,7vw,88px);font-weight:800;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+  .stat .c{font-size:clamp(13px,1.4vw,18px);color:var(--muted);margin-top:10px;line-height:1.5}
+
+  .price{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.8vw,22px);width:100%;margin-top:6px}
+  .price .p{border:1px solid var(--line);border-radius:20px;padding:clamp(18px,2.4vw,30px);background:linear-gradient(180deg,rgba(255,255,255,.04),transparent)}
+  .price .p.hot{border-color:rgba(157,123,255,.5);background:linear-gradient(180deg,rgba(124,92,252,.16),rgba(124,92,252,.03))}
+  .price .p .tier{font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;font-size:12px;color:var(--violet2);font-weight:700}
+  .price .p .amt{font-size:clamp(32px,4.6vw,54px);font-weight:800;letter-spacing:-.03em;margin:12px 0 2px}
+  .price .p .amt small{font-size:.35em;color:var(--faint);font-weight:600;letter-spacing:0}
+  .price .p .who{font-size:clamp(13px,1.3vw,16px);color:var(--muted);line-height:1.5}
+
+  table.cmp{width:100%;border-collapse:collapse;margin-top:24px;font-size:clamp(13px,1.5vw,19px)}
+  table.cmp th,table.cmp td{padding:clamp(10px,1.5vw,16px) clamp(8px,1.4vw,18px);text-align:left;border-bottom:1px solid var(--line)}
+  table.cmp thead th{font-family:var(--mono);font-size:clamp(10px,1.1vw,13px);letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:700}
+  table.cmp .us{color:var(--violet2);font-weight:800}
+  table.cmp td .y{color:var(--win);font-weight:700}
+  table.cmp td .n{color:var(--danger);font-weight:700}
+  table.cmp tbody tr:first-child td{font-weight:600}
+
+  .ask{background:linear-gradient(180deg,rgba(124,92,252,.16),rgba(225,92,198,.05));border:1px solid rgba(157,123,255,.4);border-radius:20px;padding:clamp(22px,2.8vw,36px)}
+  .ask h3{font-size:clamp(20px,2.4vw,32px);font-weight:800;letter-spacing:-.01em;margin-bottom:14px}
+  .ask p{color:var(--muted);font-size:clamp(15px,1.6vw,20px);line-height:1.75}
+  .cols{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(20px,3vw,44px);width:100%;align-items:center}
+
+  .topbar{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:18px clamp(20px,4vw,40px);z-index:20;pointer-events:none}
+  .topbar .tb{display:flex;align-items:center;gap:10px;opacity:.85}
+  .topbar .tb .m{width:30px;height:30px;border-radius:24%;background:var(--grad);display:grid;place-items:center}
+  .topbar .tb .m svg{width:60%;height:60%}
+  .topbar .tb span{font-weight:800;font-size:16px;letter-spacing:-.01em}
+  .topbar .tb span em{font-style:normal;color:var(--violet2)}
+  .topbar .url{font-family:var(--mono);font-size:12px;color:var(--faint)}
+  .progress{position:fixed;top:0;left:0;height:3px;background:var(--grad);z-index:30;transition:width .4s cubic-bezier(.2,.8,.25,1)}
+  .ctrl{position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:18px;padding:16px;z-index:20}
+  .dots{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;max-width:60vw}
+  .dots i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2);cursor:pointer;transition:.25s}
+  .dots i.on{background:var(--violet2);width:22px;border-radius:99px}
+  .nav{width:42px;height:42px;border-radius:50%;border:1px solid var(--line2);background:rgba(255,255,255,.05);color:var(--text);font-size:18px;cursor:pointer;display:grid;place-items:center;transition:.2s}
+  .nav:hover{background:rgba(124,92,252,.25);border-color:var(--violet2)}
+  .count{position:fixed;bottom:20px;right:clamp(20px,4vw,40px);font-family:var(--mono);font-size:13px;color:var(--faint);z-index:20}
+
+  @media(max-width:720px){
+    .slide{padding:82px 24px 92px;justify-content:flex-start;overflow-y:auto}
+    .grid3,.price,.cols{grid-template-columns:1fr}
+    .vs .div{display:none}
+    .topbar .url{display:none}
+    table.cmp{font-size:13px}
+  }
+  /* ===== bigger-text presets ===== */
+  html.tsz2 h1{font-size:clamp(34px,6.4vw,80px)} html.tsz3 h1{font-size:clamp(40px,7.6vw,96px)}
+  html.tsz2 h2{font-size:clamp(28px,5vw,60px)} html.tsz3 h2{font-size:clamp(33px,6vw,72px)}
+  html.tsz2 .lead{font-size:clamp(18px,2.4vw,29px)} html.tsz3 .lead{font-size:clamp(21px,2.8vw,34px)}
+  html.tsz2 ul.pts li{font-size:clamp(18px,2.1vw,26px)} html.tsz3 ul.pts li{font-size:clamp(21px,2.5vw,31px)}
+  html.tsz2 .ksub{font-size:clamp(15px,1.6vw,20px)} html.tsz3 .ksub{font-size:clamp(17px,1.9vw,23px)}
+  html.tsz2 table.cmp{font-size:clamp(15px,1.85vw,22px)} html.tsz3 table.cmp{font-size:clamp(17px,2.1vw,26px)}
+  html.tsz2 .ask h3{font-size:clamp(22px,2.7vw,36px)} html.tsz3 .ask h3{font-size:clamp(25px,3.1vw,42px)}
+  html.tsz2 .ask p{font-size:clamp(17px,1.9vw,23px)} html.tsz3 .ask p{font-size:clamp(19px,2.2vw,27px)}
+  html.tsz2 .stat .c{font-size:clamp(15px,1.6vw,20px)} html.tsz3 .stat .c{font-size:clamp(17px,1.85vw,23px)}
+  html.tsz2 .price .p .who{font-size:clamp(15px,1.5vw,19px)} html.tsz3 .price .p .who{font-size:clamp(17px,1.7vw,22px)}
+  html.tsz2 .card p.lead{font-size:clamp(16px,1.7vw,21px)} html.tsz3 .card p.lead{font-size:clamp(18px,2vw,25px)}
+  html.tsz2 .slide,html.tsz3 .slide{justify-content:flex-start;overflow-y:auto;padding-top:clamp(74px,10vh,110px)}
+</style>
+
+<div class="progress" id="prog"></div>
+<div class="topbar">
+  <div class="tb"><span class="m">%%MARK%%</span><span>EDGE<em> Pro</em></span></div>
+  <div class="url">edgeprojournal.com · นำเสนอ</div>
+</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 COVER -->
+  <section class="slide anim on">
+    <div class="brand"><span class="mark">%%MARK%%</span><span class="word">EDGE<em> Pro</em></span></div>
+    <h1 style="margin-top:32px">เราไม่ได้สร้างสมุดบันทึกเทรด<br>ที่ดีที่สุด<br><span class="grad">เราสร้างเทรดเดอร์ที่เก่งขึ้น</span></h1>
+    <p class="lead wide">แพลตฟอร์ม AI วิเคราะห์ประสิทธิภาพการเทรด ที่ช่วยให้เทรดเดอร์เลิกเสียเงินเพราะนิสัยเสียของตัวเอง และเปลี่ยน "วินัย" ให้กลายเป็นตัวเลขที่พัฒนาได้จริง</p>
+    <p class="lbl" style="margin-top:30px">ผลิตภัณฑ์ที่ใช้งานได้จริง · edgeprojournal.com · กด → เพื่อไปต่อ</p>
+  </section>
+
+  <!-- DIVIDER: WHY -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">ส่วนที่ 1 จาก 3</span></div>
+    <h1 style="font-size:clamp(48px,12vw,140px);line-height:1.05"><span class="grad">ทำไม</span></h1>
+    <p class="lead wide" style="font-size:clamp(20px,2.7vw,34px);max-width:34ch">ทำไมเทรดเดอร์ถึงขาดทุน — และทำไมไม่มีเครื่องมือไหนแก้ได้</p>
+  </section>
+
+  <!-- 2 HOOK -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">01</span> ความจริงของการเทรด</div>
+    <h1>เทรดเดอร์ <span class="grad">90%</span> ขาดทุน</h1>
+    <p class="lead wide">และสิ่งที่แทบไม่มีใครรู้: ส่วนใหญ่ไม่ใช่เพราะกลยุทธ์ แต่เป็นเพราะ <b>วินัย</b> — ความผิดพลาดเดิม ๆ ที่เลี่ยงได้ แต่ทำซ้ำแล้วซ้ำเล่า นี่คือปัญหาที่เราแก้</p>
+  </section>
+
+  <!-- 3 PROBLEM -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">02</span> ปัญหา</div>
+    <h2>เทรดเดอร์ไม่ได้ล้างพอร์ตเพราะกลยุทธ์แย่<br>แต่ล้างพอร์ตเพราะ<span class="grad">ขาดวินัย</span></h2>
+    <ul class="pts">
+      <li>เทรดแก้แค้นหลังขาดทุน <span>— ไล่เอาคืนแล้วยิ่งเสียหนัก</span></li>
+      <li>แหกกฎตัวเอง เพิ่มไซซ์เกินตัว เทรดถี่เกินไป <span>— ซ้ำแล้วซ้ำเล่า</span></li>
+      <li>เทรดเดอร์ Prop firm ล้างบัญชี funded <span>เพราะลืมกฎที่ตัวเองตั้ง</span></li>
+      <li>และสมุดเทรดทุกเจ้าก็แค่ตาราง P&amp;L <span>— บันทึกแค่เงิน ไม่ได้บันทึกพฤติกรรม</span></li>
+    </ul>
+  </section>
+
+  <!-- 4 PROOF -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">03</span> ทำไมวินัยคือทุกอย่าง</div>
+    <h2>เทรดเดอร์คนเดิม เซ็ตอัพเดิม ต่างกันแค่ตัวแปรเดียว</h2>
+    <div class="vs" style="margin-top:34px">
+      <div class="col"><div class="big" style="color:var(--win)">71%</div><div class="cap">อัตราชนะ <b style="color:var(--text)">เมื่อทำตามกฎตัวเอง</b></div></div>
+      <div class="div"></div>
+      <div class="col"><div class="big" style="color:var(--danger)">38%</div><div class="cap">อัตราชนะ <b style="color:var(--text)">เมื่อแหกกฎแค่ข้อเดียว</b></div></div>
+    </div>
+    <p class="lead wide" style="margin-top:30px">จุดได้เปรียบไม่เคยอยู่ที่กลยุทธ์ มันอยู่ที่ <b>วินัย</b> และ EDGE Pro คือสมุดเทรดเจ้าแรกที่สร้างขึ้นเพื่อสิ่งนี้โดยเฉพาะ</p>
+  </section>
+
+  <!-- DIVIDER: WHAT -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">ส่วนที่ 2 จาก 3</span></div>
+    <h1 style="font-size:clamp(48px,12vw,140px);line-height:1.05"><span class="grad">อะไร</span></h1>
+    <p class="lead wide" style="font-size:clamp(20px,2.7vw,34px);max-width:36ch">EDGE Pro คืออะไรกันแน่ — และทำไมถึงลอกเลียนไม่ได้</p>
+  </section>
+
+  <!-- 5 SOLUTION -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">04</span> ทางออก</div>
+    <h1>ให้คะแนน · อ่าน · แก้ไข</h1>
+    <div class="grid3" style="margin-top:34px">
+      <div class="card"><div class="pill new">ให้คะแนน</div><p class="lead" style="margin-top:14px;font-size:clamp(14px,1.5vw,18px)">ทุกไม้ถูกให้คะแนน 0–100 ว่าทำตามแผนของตัวเองได้ดีแค่ไหน</p></div>
+      <div class="card"><div class="pill new">อ่าน</div><p class="lead" style="margin-top:14px;font-size:clamp(14px,1.5vw,18px)">AI อ่านไม้เทรดและกราฟของคุณ แล้วหานิสัยที่กำลังทำให้เสียเงิน</p></div>
+      <div class="card"><div class="pill new">แก้ไข</div><p class="lead" style="margin-top:14px;font-size:clamp(14px,1.5vw,18px)">โค้ชส่วนตัวบอกสิ่งเดียวที่ต้องแก้ต่อไป — เหมือนมีเมนเทอร์คอยดูแล</p></div>
+    </div>
+  </section>
+
+  <!-- 6 PRODUCT: discipline -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">05</span> ผลิตภัณฑ์ — ตัวเลขที่ไม่มีใครมี</div>
+    <div class="row" style="margin-top:14px">
+      <div class="ring" style="--p:88"><b>88</b></div>
+      <div style="flex:1 1 320px;min-width:260px">
+        <h2 style="font-size:clamp(22px,3vw,38px);margin-bottom:8px">คะแนนวินัยของคุณ</h2>
+        <p class="lead" style="margin-top:4px;margin-bottom:16px;font-size:clamp(14px,1.5vw,18px)">ทุกไม้ถูกให้คะแนนตามกฎของคุณเอง — ความก้าวหน้าจึงวัดได้ ไม่ใช่แค่ความรู้สึก</p>
+        <div class="drow"><div class="nm"><span class="dot" style="background:var(--win)"></span>ทำตามกฎ</div><div class="vv">20</div></div>
+        <div class="drow"><div class="nm"><span class="dot" style="background:var(--violet2)"></span>พลาดบางส่วน</div><div class="vv">3</div></div>
+        <div class="drow"><div class="nm"><span class="dot" style="background:var(--danger)"></span>แหกกฎ</div><div class="vv">5</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 PRODUCT: AI coach -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">06</span> ผลิตภัณฑ์ — โค้ช AI ที่พูดความจริง</div>
+    <div class="card" style="max-width:820px">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+        <div class="mark" style="width:54px;height:54px;border-radius:18px"><b style="color:#fff;font-size:24px;font-weight:800">B+</b></div>
+        <div><div style="font-weight:700;font-size:clamp(17px,1.8vw,22px)">รายงาน Edge ของคุณ</div><div class="ksub">AI อ่านจาก 28 ไม้ล่าสุดของคุณ</div></div>
+      </div>
+      <p style="font-size:clamp(16px,1.9vw,24px);font-weight:600;line-height:1.5">"จุดได้เปรียบของคุณมีจริง — แต่การแหกกฎตัวเอง 1 ใน 4 ไม้ คือแผลที่คุณสร้างขึ้นเอง"</p>
+      <div style="margin-top:18px">
+        <span class="lbl" style="color:var(--danger)">จุดรั่วที่ใหญ่ที่สุด</span><p class="ksub" style="margin-top:6px;color:var(--text);font-size:clamp(14px,1.5vw,18px)">เทรดแก้แค้นทำคุณเสีย −$210 ในเดือนนี้</p>
+      </div>
+      <div style="margin-top:18px;background:rgba(255,196,61,.1);border-left:4px solid var(--gold);border-radius:10px;padding:14px 16px">
+        <span class="lbl" style="color:var(--gold)">ทำในสัปดาห์นี้</span>
+        <p style="margin-top:5px;font-weight:600;font-size:clamp(14px,1.5vw,18px)">ข้ามไม้แรกหลังจากขาดทุน</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 MOAT -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">07</span> ทำไมถึงลอกยาก</div>
+    <h2>ใครก็สร้างสมุดเทรดได้<br>แต่ลอก<span class="grad">สิ่งนี้</span>ไม่ได้</h2>
+    <ul class="pts">
+      <li><b>คะแนนเฉพาะของเรา 8 ตัว</b> <span>— วินัย, การเข้าออก, ความสม่ำเสมอ, ความมั่นคงทางอารมณ์… ภาษาที่เป็นของเราเอง</span></li>
+      <li><b>AI เชิงพฤติกรรม</b> <span>— บอกจุดรั่วพร้อมมูลค่าที่เสีย ตั้งแต่วันแรก</span></li>
+      <li><b>หมวดหมู่ที่เราเป็นเจ้าของ</b> <span>— คนอื่นขาย "สมุดเทรด" เราขาย "เราทำให้คุณเก่งขึ้น"</span></li>
+      <li><b>ยิ่งมีผู้ใช้ยิ่งฉลาด</b> <span>— ข้อมูลพฤติกรรมเฉพาะของเราทบต้นขึ้นเรื่อย ๆ</span></li>
+    </ul>
+  </section>
+
+  <!-- DIVIDER: HOW -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">ส่วนที่ 3 จาก 3</span></div>
+    <h1 style="font-size:clamp(48px,12vw,140px);line-height:1.05"><span class="grad">อย่างไร</span></h1>
+    <p class="lead wide" style="font-size:clamp(20px,2.7vw,34px);max-width:38ch">โอกาสใหญ่แค่ไหน — และเราทำเงินและชนะได้อย่างไร</p>
+  </section>
+
+  <!-- 9 MARKET -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">08</span> โอกาส</div>
+    <h2>ตลาดใหญ่ที่โตเร็ว — และเราจับได้<span class="grad">ทั้งสองฝั่ง</span></h2>
+    <div class="grid3" style="margin-top:30px">
+      <div class="card stat"><div class="n grad">10M+</div><div class="c">เทรดเดอร์รายย่อยทั่วโลก และยังเพิ่มขึ้นเรื่อย ๆ</div></div>
+      <div class="card stat"><div class="n grad">$พันล้าน+</div><div class="c">อุตสาหกรรม Prop firm — คนนับล้านจ่ายเงินให้เจ้าอย่าง FTMO เพื่อบัญชี funded</div></div>
+      <div class="card stat"><div class="n grad">รายเดือน</div><div class="c">รายได้ประจำ — เครื่องมือที่เทรดเดอร์จ่ายทุกเดือนที่ยังพัฒนาตัวเอง</div></div>
+    </div>
+  </section>
+
+  <!-- 10 BUSINESS MODEL -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">09</span> ทำเงินได้อย่างไร</div>
+    <h2>ลองฟรี แล้วค่อยสมัครสมาชิกเมื่อมันคุ้มค่า</h2>
+    <div class="price" style="margin-top:30px">
+      <div class="p"><div class="tier">เริ่มต้น</div><div class="amt">$9<small>/เดือน</small></div><div class="who">เทรดเดอร์เดี่ยวที่เริ่มจริงจัง</div></div>
+      <div class="p hot"><div class="tier" style="color:var(--pink)">Pro · นิยมที่สุด</div><div class="amt">$19<small>/เดือน</small></div><div class="who">โค้ช AI เต็มรูปแบบ + อ่านกราฟ</div></div>
+      <div class="p"><div class="tier">Funded</div><div class="amt">$39<small>/เดือน</small></div><div class="who">ระบบกันล้างพอร์ต Prop firm + ประเมินผล</div></div>
+    </div>
+    <p class="lead wide">เดโมฟรีดึงคนเข้ามาแบบไม่มีความเสี่ยง — แล้วเปลี่ยนเป็นรายได้ประจำเมื่อพวกเขาติดใจ</p>
+  </section>
+
+  <!-- 11 COMPETITION -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">10</span> เราชนะคู่แข่งอย่างไร</div>
+    <div style="overflow-x:auto;width:100%">
+    <table class="cmp">
+      <thead><tr><th></th><th class="us">EDGE Pro</th><th>Tradezella</th><th>TraderSync</th></tr></thead>
+      <tbody>
+        <tr><td>แพ็กถูกที่สุด</td><td class="us">$9/เดือน</td><td>$29/เดือน</td><td>$30/เดือน</td></tr>
+        <tr><td>ลองฟรี</td><td><span class="y">มี ✓</span></td><td><span class="n">ไม่มี</span></td><td><span class="n">ไม่มี</span></td></tr>
+        <tr><td>คะแนนวินัย</td><td><span class="y">หัวใจหลัก ✓</span></td><td><span class="n">—</span></td><td><span class="n">—</span></td></tr>
+        <tr><td>โค้ช AI ตั้งแต่วันแรก</td><td><span class="y">มี ✓</span></td><td>ต้องตั้งค่า</td><td>ต้อง 100+ ไม้</td></tr>
+        <tr><td>สร้างขึ้นเพื่อ</td><td class="us">ทำให้คุณเก่งขึ้น</td><td>ตัวสมุดเอง</td><td>ข้อมูลเชิงลึก AI</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="lead wide" style="margin-top:22px">เรา<b>ถูกกว่า 3 เท่า</b> เป็นหนึ่งในไม่กี่เจ้าที่<b>เริ่มฟรี</b> และเป็นเจ้าเดียวที่ตัวตนทั้งหมดคือ<b>การทำให้เทรดเดอร์เก่งขึ้น</b></p>
+  </section>
+
+  <!-- 12 TRACTION -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">11</span> สิ่งที่สร้างเสร็จแล้ว</div>
+    <h2>นี่ไม่ใช่แค่ไอเดีย มัน<span class="grad">ใช้งานได้จริง</span>แล้ว</h2>
+    <ul class="pts win">
+      <li>ผลิตภัณฑ์ที่ใช้งานได้เต็มรูปแบบ บนโดเมนของตัวเอง <span>— ใครก็เข้าใช้ได้ตอนนี้</span></li>
+      <li>โค้ช AI, การให้คะแนนวินัย และการอ่านกราฟ <span>— ทำงานได้ทั้งหมด</span></li>
+      <li>ปลอดภัยระดับมืออาชีพ <span>— เข้ารหัส และแยกข้อมูลรายผู้ใช้</span></li>
+      <li>ระบบการตลาดพร้อมยิง <span>— วิดีโอรีล, ควิซ "คะแนนวินัย" ที่ไวรัลได้, ระบบวิเคราะห์แบบเรียลไทม์</span></li>
+    </ul>
+    <p class="lead" style="margin-top:20px">สร้างคนเดียว จากศูนย์ — ทั้งแพลตฟอร์ม</p>
+  </section>
+
+  <!-- 13 WHY NOW / WHY ME -->
+  <section class="slide anim">
+    <div class="eyebrow"><span class="num">12</span> ทำไมต้องตอนนี้ — และทำไมต้องผม</div>
+    <div class="grid2" style="margin-top:12px">
+      <div class="card"><h2 style="font-size:clamp(20px,2.4vw,30px)">ทำไมต้องตอนนี้</h2><p class="lead" style="font-size:clamp(14px,1.5vw,18px);margin-top:12px">ในที่สุด AI ก็เก่งพอที่จะ "โค้ช" ได้ ไม่ใช่แค่บันทึก และกระแส Prop firm สร้างเทรดเดอร์นับล้านที่ต้องการวินัยอย่างมาก จังหวะนี้เหมาะที่สุด</p></div>
+      <div class="card"><h2 style="font-size:clamp(20px,2.4vw,30px)">ทำไมต้องผม</h2><p class="lead" style="font-size:clamp(14px,1.5vw,18px);margin-top:12px">ผมเจอปัญหานี้กับตัวเอง ผมสร้างผลิตภัณฑ์ทั้งหมดด้วยตัวเอง และผมทำงานเร็ว ผมไม่ต้องให้ใครมาโน้มน้าวว่าวินัยคือจุดได้เปรียบ — ผมสร้างธุรกิจจากมันเลย</p></div>
+    </div>
+  </section>
+
+  <!-- 14 ASK -->
+  <section class="slide anim">
+    <div class="cols">
+      <div>
+        <div class="eyebrow"><span class="num">13</span> สิ่งที่ขอ</div>
+        <h1>ช่วยให้เราได้<br><span class="grad">เทรดเดอร์กลุ่มแรก</span></h1>
+        <p class="lead wide">ผลิตภัณฑ์เสร็จแล้วและลองฟรีได้ สิ่งที่เราต้องการตอนนี้คือคนใช้งาน — และความเชื่อมั่นสนับสนุน</p>
+      </div>
+      <div class="ask">
+        <span class="pill new">สิ่งที่เรากำลังมองหา</span>
+        <h3 style="margin-top:14px">เป็นผู้เชื่อมั่นกลุ่มแรกของเรา</h3>
+        <p>
+          • ลองใช้ &amp; ให้ฟีดแบ็กจริง<br>
+          • ช่วยให้เราเข้าถึงเทรดเดอร์ที่ต้องการมัน<br>
+          • สนับสนุนให้เปิดระบบชำระเงิน &amp; เปิดตัว<br><br>
+          <b style="color:var(--text)">แล้วให้ผมโชว์ผลิตภัณฑ์จริงให้ดู</b> 🚀
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15 CLOSE -->
+  <section class="slide anim">
+    <div class="brand" style="justify-content:center"><span class="mark">%%MARK%%</span><span class="word">EDGE<em> Pro</em></span></div>
+    <h1 style="text-align:center;margin-top:30px">เราไม่ได้สร้างสมุดบันทึกเทรดที่ดีที่สุด<br><span class="grad">เราสร้างเทรดเดอร์ที่เก่งขึ้น</span></h1>
+    <p class="lead wide" style="text-align:center;margin:24px auto 0">edgeprojournal.com — มาดูของจริงกันเลย</p>
+  </section>
+
+</div>
+
+<div class="ctrl">
+  <button class="nav" id="tsz" aria-label="ขนาดตัวอักษร" title="ขนาดตัวอักษร (ใหญ่ขึ้น)" style="font-weight:800;font-size:15px">ก<sup style="font-size:9px">+</sup></button>
+  <button class="nav" id="prev" aria-label="ก่อนหน้า">‹</button>
+  <div class="dots" id="dots"></div>
+  <button class="nav" id="next" aria-label="ถัดไป">›</button>
+</div>
+<div class="count"><span id="cur">1</span> / <span id="tot">18</span></div>
+
+<script>
+(function(){
+  var MARK='<svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22 L13 15 L18 19 L25.5 10"/><path d="M19.5 10 L25.5 10 L25.5 16"/></svg>';
+  [].forEach.call(document.querySelectorAll('.mark, .tb .m'),function(el){el.innerHTML=MARK;});
+
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var i=0, N=slides.length;
+  var dots=document.getElementById('dots');
+  slides.forEach(function(_,k){var d=document.createElement('i');if(k===0)d.className='on';d.onclick=function(){go(k)};dots.appendChild(d);});
+  var di=[].slice.call(dots.children);
+  document.getElementById('tot').textContent=N;
+
+  function go(n){
+    n=Math.max(0,Math.min(N-1,n));
+    if(n===i && slides[i].classList.contains('on'))return;
+    slides[i].classList.remove('on','anim');
+    i=n;
+    var s=slides[i];
+    s.classList.add('on');
+    void s.offsetWidth; s.classList.add('anim');
+    di.forEach(function(d,k){d.classList.toggle('on',k===i);});
+    document.getElementById('cur').textContent=i+1;
+    document.getElementById('prog').style.width=((i+1)/N*100)+'%';
+  }
+  document.getElementById('prog').style.width=(1/N*100)+'%';
+  document.getElementById('next').onclick=function(){go(i+1)};
+  document.getElementById('prev').onclick=function(){go(i-1)};
+
+  var tlev=0, tszBtn=document.getElementById('tsz');
+  function applyT(){ document.documentElement.classList.remove('tsz2','tsz3'); if(tlev===1)document.documentElement.classList.add('tsz2'); if(tlev===2)document.documentElement.classList.add('tsz3'); tszBtn.innerHTML=(tlev===2?'ก<sup style="font-size:11px">−</sup>':'ก<sup style="font-size:9px">+</sup>'); }
+  tszBtn.onclick=function(){ tlev=(tlev+1)%3; applyT(); };
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(i+1);}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(i-1);}
+    else if(e.key==='Home')go(0); else if(e.key==='End')go(N-1);
+    else if(e.key==='+'||e.key==='='){e.preventDefault();tlev=Math.min(2,tlev+1);applyT();}
+    else if(e.key==='-'){e.preventDefault();tlev=Math.max(0,tlev-1);applyT();}
+  });
+  var x0=null;
+  document.addEventListener('touchstart',function(e){x0=e.touches[0].clientX;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50)go(i+(dx<0?1:-1));x0=null;
+  },{passive:true});
+})();
+</script>
